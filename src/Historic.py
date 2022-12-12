@@ -1,0 +1,47 @@
+import discord
+from discord import File, Embed
+from discord.ext import commands
+import requests
+from io import BytesIO
+import os
+from Image.Image import arrived_image, leave_image
+from PIL import Image
+
+
+class Historic(commands.Cog):
+    arrived_channel_id: int = None
+    arrived_channel: discord.TextChannel = None
+    bot: commands.Bot = None
+
+    def __init__(self, bot):
+        self.bot = bot
+        self.arrived_channel_id = int(os.getenv("ARRIVED_CHANNEL"))
+        self.arrived_channel = bot.get_channel(self.arrived_channel_id)
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        print(f"New member : {member.display_name}")
+        avatar: discord.User.avatar = member.avatar
+        if avatar is None:
+            avatar = member.display_avatar
+        response = requests.get(avatar.url)
+        return_image = arrived_image(member.display_name, BytesIO(response.content))
+
+        file = File(fp=return_image, filename=f'{member.display_name}.png')
+        await self.arrived_channel.send(file=file)
+        embed: Embed = Embed(title=f'{member.display_name} a rejoint nos rangs !')
+        await self.arrived_channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        print(f"Member leave : {member.display_name}")
+        avatar: discord.User.avatar = member.avatar
+        if avatar is None:
+            avatar = member.display_avatar
+        response = requests.get(avatar.url)
+        return_image = leave_image(member.display_name, BytesIO(response.content))
+
+        file = File(fp=return_image, filename=f'{member.display_name}.png')
+        await self.arrived_channel.send(file=file)
+        embed: Embed = Embed(title=f'{member.display_name} a deserté !')
+        await self.arrived_channel.send(embed=embed)
