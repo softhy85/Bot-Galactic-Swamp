@@ -9,14 +9,14 @@ from PIL import Image
 
 
 class Historic(commands.Cog):
-    arrived_channel_id: int = None
-    arrived_channel: discord.TextChannel = None
+    historic_channel_id: int = None
+    historic_channel: discord.TextChannel = None
     bot: commands.Bot = None
 
     def __init__(self, bot):
         self.bot = bot
-        self.arrived_channel_id = int(os.getenv("ARRIVED_CHANNEL"))
-        self.arrived_channel = bot.get_channel(self.arrived_channel_id)
+        self.historic_channel_id = int(os.getenv("HISTORIC_CHANNEL"))
+        self.historic_channel = bot.get_channel(self.historic_channel_id)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -28,9 +28,9 @@ class Historic(commands.Cog):
         return_image = arrived_image(member.display_name, BytesIO(response.content))
 
         file = File(fp=return_image, filename=f'{member.display_name}.png')
-        await self.arrived_channel.send(file=file)
+        await self.historic_channel.send(file=file)
         embed: Embed = Embed(title=f'{member.display_name} a rejoint nos rangs !')
-        await self.arrived_channel.send(embed=embed)
+        await self.historic_channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
@@ -42,6 +42,6 @@ class Historic(commands.Cog):
         return_image = leave_image(member.display_name, BytesIO(response.content))
 
         file = File(fp=return_image, filename=f'{member.display_name}.png')
-        await self.arrived_channel.send(file=file)
+        await self.historic_channel.send(file=file)
         embed: Embed = Embed(title=f'{member.display_name} a deserté !')
-        await self.arrived_channel.send(embed=embed)
+        await self.historic_channel.send(embed=embed)
