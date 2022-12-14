@@ -5,7 +5,6 @@ import requests
 from io import BytesIO
 import os
 from Image.Image import arrived_image, leave_image
-from PIL import Image
 
 
 class Historic(commands.Cog):
@@ -13,10 +12,14 @@ class Historic(commands.Cog):
     historic_channel: discord.TextChannel = None
     bot: commands.Bot = None
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.historic_channel_id = int(os.getenv("HISTORIC_CHANNEL"))
         self.historic_channel = bot.get_channel(self.historic_channel_id)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Historic cog loaded.")
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -45,3 +48,7 @@ class Historic(commands.Cog):
         await self.historic_channel.send(file=file)
         embed: Embed = Embed(title=f'{member.display_name} a deserté !')
         await self.historic_channel.send(embed=embed)
+
+
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Historic(bot))
