@@ -1,6 +1,6 @@
 import os
 from pymongo import MongoClient
-from models.Faction import Faction
+from models.Alliance import Alliance
 from models.Player import Player
 from models.Colony import Colony
 from models.InfoMessage import InfoMessage
@@ -23,8 +23,8 @@ class DataBase:
         self.db.infoMessages.insert_one(info_message)
 
     def update_info_message(self, info_message: InfoMessage):
-        return_info_message: Faction = self.db.infoMessages.find_one({"_id": info_message["_id"]})
-        if faction["_id"] == return_info_message["_id"]:
+        return_info_message: Alliance = self.db.infoMessages.find_one({"_id": info_message["_id"]})
+        if alliance["_id"] == return_info_message["_id"]:
             self.db.infoMessages.update({"_id": info_message["_id"]}, {'$set': {info_message}})
 
     def remove_info_message(self, info_message: InfoMessage):
@@ -36,31 +36,31 @@ class DataBase:
     def get_info_messages(self, name: str, value: str):
         return self.db.infoMessages.find({name: value})
 
-    def push_new_faction(self, faction: Faction):
-        existing_faction: Player = self.db.factions.find_one({"_id": faction["_id"]})
-        if existing_faction is None:
-            self.db.factions.insert_one(faction)
+    def push_new_alliance(self, alliance: Alliance):
+        existing_alliance: Player = self.db.alliances.find_one({"_id": alliance["_id"]})
+        if existing_alliance is None:
+            self.db.alliances.insert_one(alliance)
 
-    def update_faction(self, faction: Faction):
-        return_faction: Faction = self.db.factions.find_one({"_id": faction["_id"]})
-        if faction["_id"] == return_faction["_id"]:
-            self.db.factions.update({"_id": faction["_id"]}, {'$set': {faction}})
+    def update_alliance(self, alliance: Alliance):
+        return_alliance: Alliance = self.db.alliances.find_one({"_id": alliance["_id"]})
+        if alliance["_id"] == return_alliance["_id"]:
+            self.db.alliances.update({"_id": alliance["_id"]}, {'$set': {alliance}})
 
-    def remove_faction(self, faction: Faction):
-        self.db.factions.delete_one({"_id": faction["_id"]})
-        self.db.players.delete({"_faction_id": faction["_id"]})
-        self.db.colonies.delete({"_faction_id": faction["_id"]})
+    def remove_alliance(self, alliance: Alliance):
+        self.db.alliances.delete_one({"_id": alliance["_id"]})
+        self.db.players.delete({"_alliance_id": alliance["_id"]})
+        self.db.colonies.delete({"_alliance_id": alliance["_id"]})
 
-    def get_one_faction(self, name: str, value: str):
-        return self.db.factions.find_one({name: value})
+    def get_one_alliance(self, name: str, value: str):
+        return self.db.alliances.find_one({name: value})
 
-    def get_factions(self, name: str, value: str):
-        return self.db.factions.find({name: value})
+    def get_alliances(self, name: str, value: str):
+        return self.db.alliances.find({name: value})
 
     def push_new_player(self, player: Player):
         existing_player: Player = self.db.players.find_one({"pseudo": player["pseudo"]})
-        existing_faction: Faction = self.db.factions.find_one({"_id": player["_faction_id"]})
-        if existing_player is None and existing_faction is not None:
+        existing_alliance: Alliance = self.db.alliances.find_one({"_id": player["_alliance_id"]})
+        if existing_player is None and existing_alliance is not None:
             self.db.players.insert_one(player)
 
     def update_player(self, player: Player):
@@ -80,8 +80,8 @@ class DataBase:
 
     def push_new_colony(self, colony: Colony):
         existing_player: Player = self.db.players.find_one({"_id": colony["_player_id"]})
-        existing_faction: Faction = self.db.factions.find_one({"_id": colony["_faction_id"]})
-        if existing_player is not None and existing_faction is not None:
+        existing_alliance: Alliance = self.db.alliances.find_one({"_id": colony["_alliance_id"]})
+        if existing_player is not None and existing_alliance is not None:
             self.db.colonies.insert_one(colony)
 
     def update_colony(self, colony: Colony):
@@ -98,27 +98,27 @@ class DataBase:
     def get_colonies(self, name: str, value: str):
         return self.db.colonies.find({name: value})
 
-    def players_from_faction(self, name: str, value: str):
-        id_faction: ObjectId
+    def players_from_alliance(self, name: str, value: str):
+        id_alliance: ObjectId
         if name == "_id":
-            id_faction = ObjectId(value)
+            id_alliance = ObjectId(value)
         else:
-            existing_faction: Faction = self.db.factions.find_one({name: value})
-            if existing_faction is None:
+            existing_alliance: Alliance = self.db.alliances.find_one({name: value})
+            if existing_alliance is None:
                 return []
-            id_faction = existing_faction["_id"]
-        return self.db.factions.find({["_faction_id"]: id_faction})
+            id_alliance = existing_alliance["_id"]
+        return self.db.alliances.find({["_alliance_id"]: id_alliance})
 
     def colonies_from_player(self, name: str, value: str):
         id_player: ObjectId
         if name == "_id":
             id_player = ObjectId(value)
         else:
-            existing_player: Faction = self.db.players.find_one({name: value})
+            existing_player: Alliance = self.db.players.find_one({name: value})
             if existing_player is None:
                 return []
             id_player = existing_player["_id"]
-        return self.db.factions.find({["_faction_id"]: id_player})
+        return self.db.alliances.find({["_alliance_id"]: id_player})
 
 
     def close(self):
@@ -128,5 +128,5 @@ class DataBase:
 if __name__ == '__main__':
     load_dotenv()
     db = DataBase()
-    faction: Faction = {"name": "Test", "faction_lvl": 1, "status": "Oui"}
-    db.push_new_faction(faction)
+    alliance: Alliance = {"name": "Test", "alliance_lvl": 1, "status": "Oui"}
+    db.push_new_alliance(alliance)

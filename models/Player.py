@@ -10,7 +10,6 @@ class Player(TypedDict):
     lvl: int
     SB_sys_name: str
     SB_lvl: int
-    SB_coord: Coord
     SB_status: str
     SB_last_attack_time: datetime
     SB_refresh_time: datetime
