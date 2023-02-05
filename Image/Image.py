@@ -79,5 +79,6 @@ def leave_image(username: str, icon_data: BytesIO):
     image_binary.seek(0)
     return image_binary
 
+
 if __name__ == '__main__':
     image: Image = leave_image("Test Test Test Test", str(directory_name + "\\worker.png").replace("\\", "/"))

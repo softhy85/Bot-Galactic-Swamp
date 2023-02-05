@@ -46,7 +46,7 @@ class Historic(commands.Cog):
 
         file = File(fp=return_image, filename=f'{member.display_name}.png')
         await self.historic_channel.send(file=file)
-        embed: Embed = Embed(title=f'{member.display_name} a deserté !')
+        embed: Embed = Embed(title=f'{member.display_name} a déserté !')
         await self.historic_channel.send(embed=embed)
 
 
