@@ -5,6 +5,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from src.Historic import Historic
 from src.War import War
+from src.Role import Role
 from src.DataBase import DataBase
 
 load_dotenv()
@@ -13,8 +14,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 db = DataBase()
-bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"))
-
+bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
 
 @bot.event
 async def on_ready():
@@ -32,5 +32,8 @@ async def disconnect(member: discord.Member):
             print("Closing the bot.")
             db.close()
             exit(0)
+
+bot.db = db
+bot.spec_role = Role()
 
 bot.run(token)

@@ -3,9 +3,9 @@ from bson.objectid import ObjectId
 from models.Coord import Coord
 import datetime
 
-class Player(TypedDict):
+class Player_Model(TypedDict):
     _id: ObjectId
-    _faction_id: ObjectId
+    _alliance_id: ObjectId
     pseudo: str
     lvl: int
     SB_sys_name: str

@@ -8,9 +8,9 @@ from Image.Image import arrived_image, leave_image
 
 
 class Historic(commands.Cog):
-    historic_channel_id: int = None
-    historic_channel: discord.TextChannel = None
     bot: commands.Bot = None
+    historic_channel_id: int = None
+    historic_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot

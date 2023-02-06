@@ -4,10 +4,10 @@ from models.Coord import Coord
 import datetime
 
 
-class Colony(TypedDict):
+class Colony_Model(TypedDict):
     _id: ObjectId
     _player_id: ObjectId
-    _faction_id: ObjectId
+    _alliance_id: ObjectId
     number: int
     colo_sys_name: str
     colo_lvl: int

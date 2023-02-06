@@ -2,7 +2,7 @@ from typing import TypedDict
 from bson.objectid import ObjectId
 
 
-class Alliance(TypedDict):
+class Alliance_Model(TypedDict):
     _id: ObjectId
     name: str
-    faction_lvl: int
+    alliance_lvl: int
