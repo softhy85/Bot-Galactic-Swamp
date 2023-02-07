@@ -105,28 +105,6 @@ class DataBase:
     def get_colonies(self, name: str, value: str):
         return self.db.colonies.find({name: value})
 
-    def players_from_alliance(self, name: str, value: str):
-        id_alliance: ObjectId
-        if name == "_id":
-            id_alliance = ObjectId(value)
-        else:
-            existing_alliance: Alliance_Model = self.db.alliances.find_one({name: value})
-            if existing_alliance is None:
-                return []
-            id_alliance = existing_alliance["_id"]
-        return self.db.alliances.find({["_alliance_id"]: id_alliance})
-
-    def colonies_from_player(self, name: str, value: str):
-        id_player: ObjectId
-        if name == "_id":
-            id_player = ObjectId(value)
-        else:
-            existing_player: Alliance_Model = self.db.players.find_one({name: value})
-            if existing_player is None:
-                return []
-            id_player = existing_player["_id"]
-        return self.db.alliances.find({["_alliance_id"]: id_player})
-
     def push_new_war(self, war: War_Model):
         actual_war: War_Model = self.db.wars.find_one({"status": "InProgress"})
         if actual_war is None:
