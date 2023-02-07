@@ -1,14 +1,15 @@
 import discord 
 import datetime
 import time
+import os
 from dotenv import load_dotenv
 from discord.ext import commands
-from models.Alliance_Model import Alliance_Model
 from models.Player_Model import Player_Model
 from models.War_Model import War_Model
 from models.Colony_Model import Colony_Model
 from src.DataBase import DataBase
 from typing import List
+from pymongo.cursor import Cursor
 
 from enum import Enum
 
@@ -19,8 +20,7 @@ intents.message_content = True
 intents.members = True
 db = DataBase()
 bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
-
-client=commands.Bot(command_prefix=commands.when_mentioned_or("."))
+bot.db = db
 
 def convert_to_unix_time(date: datetime.datetime) -> str:
     return f'<t:{int(time.mktime(date.timetuple()))}:R>'
@@ -31,35 +31,40 @@ class Emoji(Enum):
     down: str = "💥"
 
 class Select(discord.ui.Select):
-    def __init__(self, player: Player_Model, colonies: List[Colony_Model]):
+    def __init__(self, player: Player_Model, colonies: Cursor[Colony_Model]):
         it: int = 1
         player_drop_down: List[discord.SelectOption] = []
-        
-        player_drop_down.append(discord.SelectOption(label = f"Niveau {player['lvl']} : {player['pseudo']} ➖➖➖➖➖➖➖➖ ", emoji = "💫",description = "", value = it, defaut = True))
+        menu_label: str = f"Niveau {player['lvl']} : {player['pseudo']}"
+        menu_label += " " + Emoji.down.value if player["SB_status"] == "Down" else " " + Emoji.SB.value
+        for colony in colonies:
+           menu_label += Emoji.down.value if colony["colo_status"] == "Down" else Emoji.colo.value
+        colonies.rewind()
+        player_drop_down.append(discord.SelectOption(label = menu_label, emoji = "💫",description = "", value = str(it), default = True))
         it += 1
-        if Player_Model.SB_status == "Down" :
-            menu_label = f"Base Principale (Retour {convert_to_unix_time(player['SB_refresh_time'])})"
-            menu_emoji = Emoji.down
+        if player["SB_status"] == "Down" :
+            menu_label = "Base Principale"
+            menu_description = f"SB ({player['SB_lvl']}) (Retour {convert_to_unix_time(player['SB_refresh_time'])})"
+            menu_emoji = Emoji.down.value
         else :
             menu_label = "Base Principale"
-            menu_emoji = Emoji.SB
-        
-        player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = f"SB ({player['SB_lvl']})", value = it))
+            menu_description = f"SB ({player['SB_lvl']})"
+            menu_emoji = Emoji.SB.value
+
+        player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it)))
         it += 1
-                
         for colony in colonies:
-            menu_description = f"{colony['colo_coord']['x']} {colony['colo_coord']['y']} SB ({colony['colo_lvl']})"
-            if Colony_Model.colo_status == "Down" :
-                menu_label = f"{colony['colo_sys_name']} (Retour {convert_to_unix_time(colony['colo_refresh_time'])})"
-                menu_emoji = Emoji.down
-                
+            if colony["colo_status"] == "Down" :
+                menu_label = f"{colony['colo_sys_name']}"
+                menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) (Retour {convert_to_unix_time(colony['colo_refresh_time'])})"
+                menu_emoji = Emoji.down.value
             else :
                 menu_label = f"{colony['colo_sys_name']}"
-                menu_emoji = Emoji.colo
+                menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
+                menu_emoji = Emoji.colo.value
                 
-            player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = it))
+            player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it)))
             it += 1
-            
+
         options = player_drop_down
         super().__init__(placeholder="Select an option",max_values=1,min_values=1,options=options)
 
@@ -73,23 +78,24 @@ class Select(discord.ui.Select):
 #            await interaction.response.send_message("Third One!",ephemeral=True)
 
 class SelectView(discord.ui.View):
+    error: bool = False
     def __init__(self, bot, timeout = 180):
         super().__init__(timeout=timeout)
         actual_war: War_Model = bot.db.get_one_war("status", "InProgress")
         if actual_war is None:
-            return -1
-        players: List[Player_Model] = bot.db.get_players("_id", actual_war["_alliance_id"])
+            self.error = True
+            return
+        players: List[Player_Model] = bot.db.get_players("_alliance_id", actual_war["_alliance_id"])
         for player in players:
-            colonies: List[Colony_Model] = bot.db.get_colonies("_id", player["_id"])
+            colonies: List[Colony_Model] = bot.db.get_colonies("_player_id", player["_id"])
             self.add_item(Select(player, colonies))
 
 @bot.command()
 async def menu(ctx):
-    await ctx.send("Menus!",view=SelectView())
-
-
-
-bot.db = db
-bot.spec_role = Role()
+    view: SelectView = SelectView(bot)
+    if view.error:
+        await ctx.send("No wars in progress")
+    else:
+        await ctx.send("Menus!", view=view)
 
 bot.run(token)
