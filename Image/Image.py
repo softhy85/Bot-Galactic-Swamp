@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
 from io import BytesIO
 import os
 import base64
-dirname = os.path.dirname(__file__)
+directory_name: str = os.path.dirname(__file__)
 
 
 def remove_transparent(pil_img) -> Image:
@@ -32,7 +32,7 @@ def mask_circle_transparent(size, blur_radius, offset=0) -> Image:
 
 
 def arrived_image(username: str, icon_data: BytesIO):
-    return_image: Image = Image.open(str(dirname + "\\Swamp.png").replace("\\", "/"))
+    return_image: Image = Image.open(str(directory_name + "\\Swamp.png").replace("\\", "/"))
     icon_img = Image.open(icon_data)
     icon_img.convert('RGBA')
     icon_img = remove_transparent(icon_img)
@@ -44,7 +44,7 @@ def arrived_image(username: str, icon_data: BytesIO):
     return_image.paste(icon_cropped, (50, 100), mask)
 
     draw_image = ImageDraw.Draw(return_image)
-    title_font = ImageFont.truetype(str(dirname + '\\Happy Sushi.ttf').replace("\\", "/"), 100)
+    title_font = ImageFont.truetype(str(directory_name + '\\Happy Sushi.ttf').replace("\\", "/"), 100)
     text: str = username
     if len(text) >= 10:
         text = username[0:7] + "..."
@@ -56,7 +56,7 @@ def arrived_image(username: str, icon_data: BytesIO):
     return image_binary
 
 def leave_image(username: str, icon_data: BytesIO):
-    return_image: Image = Image.open(str(dirname + "\\Swamp.png").replace("\\", "/"))
+    return_image: Image = Image.open(str(directory_name + "\\Swamp.png").replace("\\", "/"))
     return_image.convert('RGBA')
     icon_img = Image.open(icon_data)
     icon_img.convert('RGBA')
@@ -68,7 +68,7 @@ def leave_image(username: str, icon_data: BytesIO):
     return_image.paste(icon_cropped, (50, 100), mask)
 
     draw_image = ImageDraw.Draw(return_image)
-    title_font = ImageFont.truetype(str(dirname + '\\Happy Sushi.ttf').replace("\\", "/"), 100)
+    title_font = ImageFont.truetype(str(directory_name + '\\Happy Sushi.ttf').replace("\\", "/"), 100)
     text: str = username
     if len(text) >= 10:
         text = username[0:7] + "..."
@@ -79,5 +79,6 @@ def leave_image(username: str, icon_data: BytesIO):
     image_binary.seek(0)
     return image_binary
 
+
 if __name__ == '__main__':
-    image: Image = leave_image("Test Test Test Test", str(dirname + "\\worker.png").replace("\\", "/"))
+    image: Image = leave_image("Test Test Test Test", str(directory_name + "\\worker.png").replace("\\", "/"))
