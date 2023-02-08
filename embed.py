@@ -85,9 +85,10 @@ class SelectView(discord.ui.View):
         if actual_war is None:
             self.error = True
             return
-        players: List[Player_Model] = bot.db.get_players("_alliance_id", actual_war["_alliance_id"])
+        obj: dict = {"_alliance_id", actual_war["_alliance_id"]}
+        players: List[Player_Model] = bot.db.get_players(obj)
         for player in players:
-            colonies: List[Colony_Model] = bot.db.get_colonies("_player_id", player["_id"])
+            colonies: List[Colony_Model] = bot.db.get_colonies({"_player_id", player["_id"]})
             self.add_item(Select(player, colonies))
 
 @bot.command()

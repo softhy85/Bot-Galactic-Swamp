@@ -35,8 +35,8 @@ class DataBase:
     def get_one_info_message(self, name: str, value: any):
         return self.db.infoMessages.find_one({name: value})
 
-    def get_info_messages(self, name: str, value: any):
-        return self.db.infoMessages.find({name: value})
+    def get_info_messages(self, obj: dict):
+        return self.db.infoMessages.find(obj)
 
     def push_new_alliance(self, alliance: Alliance_Model) -> ObjectId | None:
         existing_alliance: Alliance_Model = self.db.alliances.find_one({"name": alliance["name"]})
@@ -57,8 +57,8 @@ class DataBase:
     def get_one_alliance(self, name: str, value: any):
         return self.db.alliances.find_one({name: value})
 
-    def get_alliances(self, name: str, value: any):
-        return self.db.alliances.find({name: value})
+    def get_alliances(self, obj: dict):
+        return self.db.alliances.find(obj)
 
     def get_all_alliances(self):
         return self.db.alliances.find()
@@ -82,8 +82,8 @@ class DataBase:
     def get_one_player(self, name: str, value: any):
         return self.db.players.find_one({name: value})
 
-    def get_players(self, name: str, value: any):
-        return self.db.players.find({name: value})
+    def get_players(self, obj: dict):
+        return self.db.players.find(obj)
 
     def get_all_players(self):
         return self.db.players.find()
@@ -107,8 +107,8 @@ class DataBase:
     def get_one_colony(self, name: str, value: any):
         return self.db.colonies.find_one({name: value})
 
-    def get_colonies(self, name: str, value: any):
-        return self.db.colonies.find({name: value})
+    def get_colonies(self, obj: dict):
+        return self.db.colonies.find(obj)
 
     def push_new_war(self, war: War_Model) -> ObjectId | None:
         actual_war: War_Model = self.db.wars.find_one({"status": "InProgress"})
@@ -127,8 +127,8 @@ class DataBase:
     def get_one_war(self, name: str, value: any):
         return self.db.wars.find_one({name: value})
 
-    def get_wars(self, name: str, value: any):
-        return self.db.wars.find({name: value})
+    def get_wars(self, obj: dict):
+        return self.db.wars.find(obj)
 
     def close(self):
         self.mongo_client.close()

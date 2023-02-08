@@ -96,5 +96,6 @@ class DropView(discord.ui.View):
     def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], timeout: int = 180):
         super().__init__(timeout=timeout)
         for player in players:
-            colonies: List[Colony_Model] = bot.db.get_colonies("_player_id", player["_id"])
+            obj: dict = {"_player_id", player["_id"]}
+            colonies: List[Colony_Model] = bot.db.get_colonies(obj)
             self.add_item(Select(player, colonies))

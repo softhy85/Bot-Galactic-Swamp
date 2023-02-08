@@ -30,7 +30,8 @@ class Dashboard:
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
         if war_alliance is None:
             return -1
-        players: Cursor[Player_Model] = self.bot.db.get_players("_alliance_id", actual_war["_alliance_id"])
+        obj: dict = {"_alliance_id", actual_war["_alliance_id"]}
+        players: Cursor[Player_Model] = self.bot.db.get_players(obj)
         embed = self.create_embed_alliance(actual_war, war_alliance)
         dropView = DropView(self.bot, players)
         message: discord.abc.Message = await thread.send(embed=embed, view=dropView)
@@ -48,7 +49,8 @@ class Dashboard:
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
         if war_alliance is None:
             return -1
-        players: Cursor[Player_Model] = self.bot.db.get_players("_alliance_id", actual_war["_alliance_id"])
+        obj: dict = {"_alliance_id", actual_war["_alliance_id"]}
+        players: Cursor[Player_Model] = self.bot.db.get_players(obj)
         embed = self.create_embed_alliance(actual_war, war_alliance)
         dropView = DropView(self.bot, players)
         infoMessage: InfoMessage_Model = self.bot.db.get_one_info_message('_id_linked', actual_war["_id"])
