@@ -1,10 +1,8 @@
 import discord
-from discord import Embed, app_commands
+from discord import app_commands
 from discord.ext import commands
 from models.Alliance_Model import Alliance_Model
-from models.War_Model import War_Model
 from typing import List
-from discord.ext.commands import Context
 import os
 
 
@@ -25,14 +23,6 @@ class Alliance(commands.Cog):
     async def on_ready(self):
         print("Alliance cog loaded.")
 
-    @commands.command()
-    async def sync_war(self, ctx: Context) -> None:
-        if self.bot.spec_role.admin_role(ctx.guild, ctx.author):
-            fmt = await ctx.bot.tree.sync(guild=ctx.guild)
-            await ctx.send(f'Synced {len(fmt)} commands.')
-        else:
-            await ctx.send("You don't have the permission to use this command.")
-
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         alliances = self.bot.db.get_all_alliances()
         return [
@@ -40,10 +30,10 @@ class Alliance(commands.Cog):
             for alliance in alliances
         ]
 
-    @app_commands.command(name="alliancenew", description="Add a new Alliance to the db")
-    @app_commands.describe(alliance="The name of the alliance against which you are at war", alliance_lvl="The level of the alliance")
+    @app_commands.command(name="alliance_add", description="Add a new Alliance to the db")
+    @app_commands.describe(alliance="Alliance's name", alliance_lvl="Alliance's level")
     @app_commands.default_permissions()
-    async def alliancenew(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int=-1):
+    async def alliance_add(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int=-1):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
@@ -61,11 +51,11 @@ class Alliance(commands.Cog):
         else:
             await interaction.response.send_message(f"Alliance named {alliance} already exist.")
 
-    @app_commands.command(name="allianceupdate", description="Update an existent Alliance")
-    @app_commands.describe(alliance="The name of the alliance against which you are at war", alliance_lvl="The level of the alliance")
-    @app_commands.autocomplete(template=alliance_autocomplete)
+    @app_commands.command(name="alliance_update", description="Update an existent Alliance")
+    @app_commands.describe(alliance="Alliance's name", alliance_lvl="Alliance's level")
+    @app_commands.autocomplete(alliance=alliance_autocomplete)
     @app_commands.default_permissions()
-    async def allianceupdate(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int):
+    async def alliance_update(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int):
         return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
@@ -80,11 +70,11 @@ class Alliance(commands.Cog):
             self.bot.db.update_alliance(return_alliance)
             await interaction.response.send_message(f"Alliance named {alliance} updated.")
 
-    @app_commands.command(name="allianceremove", description="Remove an existent Alliance")
-    @app_commands.describe(alliance="The name of the alliance against which you are at war", alliance_lvl="The level of the alliance")
-    @app_commands.autocomplete(template=alliance_autocomplete)
+    @app_commands.command(name="alliance_remove", description="Remove an existent Alliance")
+    @app_commands.describe(alliance="Alliance's name")
+    @app_commands.autocomplete(alliance=alliance_autocomplete)
     @app_commands.default_permissions()
-    async def allianceremove(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int):
+    async def alliance_remove(self, interaction: discord.Interaction, alliance: str):
         return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
@@ -97,6 +87,7 @@ class Alliance(commands.Cog):
         else:
             self.bot.db.remove_alliance(return_alliance)
             await interaction.response.send_message(f"Alliance named {alliance} as been removed.")
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Alliance(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

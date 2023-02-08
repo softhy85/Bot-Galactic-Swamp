@@ -1,10 +1,7 @@
 import discord
-from discord import Embed, app_commands
+from discord import app_commands
 from discord.ext import commands
-from models.Alliance_Model import Alliance_Model
-from models.War_Model import War_Model
 from typing import List
-from discord.ext.commands import Context
 import os
 
 
@@ -24,14 +21,6 @@ class Template(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print("Template cog loaded.")
-
-    @commands.command()
-    async def sync_war(self, ctx: Context) -> None:
-        if self.bot.spec_role.admin_role(ctx.guild, ctx.author):
-            fmt = await ctx.bot.tree.sync(guild=ctx.guild)
-            await ctx.send(f'Synced {len(fmt)} commands.')
-        else:
-            await ctx.send("You don't have the permission to do this command.")
 
 #    async def template_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
 #        alliances = self.bot.db.get_all_alliances()

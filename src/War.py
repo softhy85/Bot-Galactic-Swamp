@@ -5,7 +5,6 @@ from discord.ext import commands
 from models.Alliance_Model import Alliance_Model
 from models.War_Model import War_Model, Status
 from typing import List
-from discord.ext.commands import Context
 import os
 
 
@@ -30,14 +29,6 @@ class War(commands.Cog):
     async def on_ready(self):
         print("War cog loaded.")
 
-    @commands.command()
-    async def sync_war(self, ctx: Context) -> None:
-        if self.bot.spec_role.admin_role(ctx.guild, ctx.author):
-            fmt = await ctx.bot.tree.sync(guild=ctx.guild)
-            await ctx.send(f'Synced {len(fmt)} commands.')
-        else:
-            await ctx.send("You don't have the permission to use this command.")
-
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         alliances = self.bot.db.get_all_alliances()
         return [
@@ -56,6 +47,10 @@ class War(commands.Cog):
         if alliance.strip() == "":
             await interaction.response.send_message(f"Cannot create Alliances with a name composed only of whitespace.")
             return
+        actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+        if actual_war is not None:
+            await interaction.response.send_message(f"We are already at war with {actual_war['alliance_name']}.")
+            return
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
         if war_alliance is None:
             new_alliance: Alliance_Model = {"name": alliance, "alliance_lvl": alliance_lvl}
@@ -65,10 +60,13 @@ class War(commands.Cog):
                 return
             await interaction.response.send_message(f"Alliance named {alliance} created.")
             war_alliance = new_alliance
-        new_message: discord.Message = await self.war_channel.send(f"@everyone nous somme en guerre contre {war_alliance['name']}")
+        # new_message: discord.Message = await self.war_channel.send(f"@everyone nous somme en guerre contre {war_alliance['name']}")
+        new_message: discord.Message = await self.war_channel.send(f"nous somme en guerre contre {war_alliance['name']}")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
         new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "enemy_point": 0, "point": 0, "status": "InProgress"}
-        self.bot.db.push_new_war(new_war)
+
+        new_war["_id"] = self.bot.db.push_new_war(new_war)
+        await self.bot.dashboard.create_Dashboard(new_war)
         await interaction.response.send_message("New wars created.")
 
     @app_commands.command(name="war_update", description="Update the actual war")
