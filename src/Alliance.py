@@ -8,13 +8,11 @@ import os
 
 class Alliance(commands.Cog):
     bot: commands.Bot = None
-    synced: bool = False
     war_channel_id: int = None
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.synced = False
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
         super().__init__()
