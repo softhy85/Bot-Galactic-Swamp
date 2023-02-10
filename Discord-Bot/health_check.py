@@ -1,0 +1,21 @@
+import socketserver
+from http.server import BaseHTTPRequestHandler
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+def some_function():
+    print("some_function got called")
+
+class MyHandler(BaseHTTPRequestHandler):
+    def handle(self):
+        if self.path == '/':
+            self.send_response(200)
+
+print(os.getenv("URL_HEALTH_CHECK"))
+httpd: socketserver.TCPServer = socketserver.TCPServer(server_address=(os.getenv("URL_HEALTH_CHECK"), 8080), RequestHandlerClass=MyHandler)
+def start_health_check():
+    httpd.serve_forever()
+
+def stop_health_check():
+    httpd.shutdown()
