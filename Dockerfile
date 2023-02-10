@@ -1,11 +1,10 @@
 FROM python:3.11.2-alpine3.16
 
 COPY ./.env ./
-WORKDIR ./Discord-Bot
 
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY ./Discord-Bot .
 
-CMD [ "python", "./main.py" ]
+CMD [ "python", "./Discord-Bot/main.py" ]
