@@ -6,19 +6,19 @@ from discord.ext import commands
 from models.War_Model import War_Model
 from models.Alliance_Model import Alliance_Model
 from models.Player_Model import Player_Model
+from models.Colony_Model import Colony_Model
+from pymongo.cursor import Cursor
 from typing import List
 import os
 
 
 class Player(commands.Cog):
     bot: commands.Bot = None
-    synced: bool = False
     war_channel_id: int = None
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.synced = False
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
         super().__init__()
@@ -34,7 +34,7 @@ class Player(commands.Cog):
             for alliance in alliances
         ]
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        players: List[Player_Model] = self.bot.db.get_all_players()
+        players: Cursor[Player_Model] = self.bot.db.get_all_players()
         return [
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
             for player in players
@@ -53,12 +53,13 @@ class Player(commands.Cog):
             return
         return_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", act_war["_alliance_id"])
         if return_alliance is None:
-            await interaction.response.send_message(f"Alliance named {return_alliance['name']} not found.")
+            await interaction.response.send_message(f"Alliance named {act_war['alliance_name']} not found.")
         else:
             date: datetime.datetime = datetime.datetime.now()
             new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': mb_sys_name, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
             self.bot.db.push_new_player(new_player)
             await interaction.response.send_message(f"Player named {pseudo} created.")
+            await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="player_scout", description="Add a new Player to the db")
     @app_commands.describe(alliance="Alliance's name", pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
@@ -79,6 +80,7 @@ class Player(commands.Cog):
             new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': mb_sys_name, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
             self.bot.db.push_new_player(new_player)
             await interaction.response.send_message(f"Player named {pseudo} created.")
+            await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="player_update", description="Update an existent Player")
     @app_commands.describe(alliance="Alliance's name", pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
@@ -111,8 +113,14 @@ class Player(commands.Cog):
                     return
                 else:
                     act_player["_alliance_id"] = return_alliance["_id"]
+                    obj: dict = {"_player_id": act_player["_id"]}
+                    colonies: Cursor[Colony_Model] = self.bot.db.get_colonies(obj)
+                    for colony in colonies:
+                        colony["_alliance_id"] = return_alliance["_id"]
+                        self.bot.db.upadte_colony(colony)
             self.bot.db.update_player(act_player)
             await interaction.response.send_message(f"Player named {pseudo} updated.")
+            await self.bot.dashboard.update_Dashboard()
 
 
     @app_commands.command(name="player_remove", description="Remove an existent Player")
@@ -132,6 +140,7 @@ class Player(commands.Cog):
         else:
             self.bot.db.remove_player(return_player)
             await interaction.response.send_message(f"Player named {pseudo} as been removed.")
+            await self.bot.dashboard.update_Dashboard()
 
 
 async def setup(bot: commands.Bot):

@@ -9,6 +9,7 @@ from src.War import War
 from src.Alliance import Alliance
 from src.Player import Player
 from src.Colony import Colony
+from src.Refresh_Infos import Refresh_Infos
 from src.Role import Role
 from src.DataBase import DataBase
 from src.Dashboard import Dashboard
@@ -32,6 +33,7 @@ async def on_ready():
     await bot.load_extension("src.Alliance")
     await bot.load_extension("src.Player")
     await bot.load_extension("src.Colony")
+    await bot.load_extension("src.Refresh_Infos")
 
 @bot.command()
 async def sync(ctx: Context) -> None:

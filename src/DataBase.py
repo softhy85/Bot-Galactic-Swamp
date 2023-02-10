@@ -1,6 +1,7 @@
 import datetime
 import os
 from pymongo import MongoClient
+from pymongo.cursor import Cursor
 from models.Alliance_Model import Alliance_Model
 from models.Player_Model import Player_Model
 from models.Colony_Model import Colony_Model
@@ -16,7 +17,7 @@ class DataBase:
     mongo_client: MongoClient = None
     db_name: str = ""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.mongo_client = MongoClient(os.getenv("MONGO_CO"))
         self.db_name = "Galactic-Swamp"
         self.db = self.mongo_client[self.db_name]
@@ -24,18 +25,18 @@ class DataBase:
     def push_new_info_message(self, info_message: InfoMessage_Model) -> ObjectId | None:
         return self.db.infoMessages.insert_one(info_message).inserted_id
 
-    def update_info_message(self, info_message: InfoMessage_Model):
+    def update_info_message(self, info_message: InfoMessage_Model) -> None:
         return_info_message: Alliance_Model = self.db.infoMessages.find_one({"_id": info_message["_id"]})
         if return_info_message is not None:
             self.db.infoMessages.update_one({"_id": info_message["_id"]}, {'$set': info_message})
 
-    def remove_info_message(self, info_message: InfoMessage_Model):
+    def remove_info_message(self, info_message: InfoMessage_Model) -> None:
         self.db.infoMessages.delete_one({"_id": info_message["_id"]})
 
-    def get_one_info_message(self, name: str, value: any):
+    def get_one_info_message(self, name: str, value: any) -> InfoMessage_Model:
         return self.db.infoMessages.find_one({name: value})
 
-    def get_info_messages(self, obj: dict):
+    def get_info_messages(self, obj: dict) -> Cursor[InfoMessage_Model]:
         return self.db.infoMessages.find(obj)
 
     def push_new_alliance(self, alliance: Alliance_Model) -> ObjectId | None:
@@ -44,23 +45,23 @@ class DataBase:
             return self.db.alliances.insert_one(alliance).inserted_id
         return None
 
-    def update_alliance(self, alliance: Alliance_Model):
+    def update_alliance(self, alliance: Alliance_Model) -> None:
         return_alliance: Alliance_Model = self.db.alliances.find_one({"_id": alliance["_id"]})
         if alliance["_id"] == return_alliance["_id"]:
             self.db.alliances.update_one({"_id": alliance["_id"]}, {'$set': alliance})
 
-    def remove_alliance(self, alliance: Alliance_Model):
+    def remove_alliance(self, alliance: Alliance_Model) -> None:
         self.db.alliances.delete_one({"_id": alliance["_id"]})
         self.db.players.delete_many({"_alliance_id": alliance["_id"]})
         self.db.colonies.delete_many({"_alliance_id": alliance["_id"]})
 
-    def get_one_alliance(self, name: str, value: any):
+    def get_one_alliance(self, name: str, value: any) -> Alliance_Model:
         return self.db.alliances.find_one({name: value})
 
-    def get_alliances(self, obj: dict):
+    def get_alliances(self, obj: dict) -> Cursor[Alliance_Model]:
         return self.db.alliances.find(obj)
 
-    def get_all_alliances(self):
+    def get_all_alliances(self) -> Cursor[Alliance_Model]:
         return self.db.alliances.find()
 
     def push_new_player(self, player: Player_Model) -> ObjectId | None:
@@ -70,22 +71,22 @@ class DataBase:
             return self.db.players.insert_one(player).inserted_id
         return None
 
-    def update_player(self, player: Player_Model):
+    def update_player(self, player: Player_Model) -> None:
         return_player: Player_Model = self.db.players.find_one({"_id": player["_id"]})
         if player["_id"] == return_player["_id"]:
             self.db.players.update_one({"_id": player["_id"]}, {'$set': player})
 
-    def remove_player(self, player: Player_Model):
+    def remove_player(self, player: Player_Model) -> None:
         self.db.players.delete_one({"_id": player["_id"]})
         self.db.colonies.delete_many({"_player_id": player["_id"]})
 
-    def get_one_player(self, name: str, value: any):
+    def get_one_player(self, name: str, value: any) -> Player_Model:
         return self.db.players.find_one({name: value})
 
-    def get_players(self, obj: dict):
+    def get_players(self, obj: dict) -> Cursor[Player_Model]:
         return self.db.players.find(obj)
 
-    def get_all_players(self):
+    def get_all_players(self) -> Cursor[Player_Model]:
         return self.db.players.find()
 
     def push_new_colony(self, colony: Colony_Model) -> ObjectId | None:
@@ -96,18 +97,18 @@ class DataBase:
             return self.db.colonies.insert_one(colony).inserted_id
         return None
 
-    def update_colony(self, colony: Colony_Model):
+    def update_colony(self, colony: Colony_Model) -> None:
         return_colony: Colony_Model = self.db.colonies.find_one({"_id": colony["_id"]})
         if colony["_id"] == return_colony["_id"]:
             self.db.colonies.update_one({"_id": colony["_id"]}, {'$set': colony})
 
-    def remove_colony(self, colony: Colony_Model):
+    def remove_colony(self, colony: Colony_Model) -> None:
         self.db.colonies.delete_one({"_id": colony["_id"]})
 
-    def get_one_colony(self, name: str, value: any):
+    def get_one_colony(self, name: str, value: any) -> Colony_Model:
         return self.db.colonies.find_one({name: value})
 
-    def get_colonies(self, obj: dict):
+    def get_colonies(self, obj: dict) -> Cursor[Colony_Model]:
         return self.db.colonies.find(obj)
 
     def push_new_war(self, war: War_Model) -> ObjectId | None:
@@ -116,21 +117,21 @@ class DataBase:
             return self.db.wars.insert_one(war).inserted_id
         return None
 
-    def update_war(self, war: War_Model):
+    def update_war(self, war: War_Model) -> None:
         return_war: War_Model = self.db.wars.find_one({"_id": war["_id"]})
         if return_war is not None:
             self.db.wars.update_one({"_id": war["_id"]}, {'$set': war})
 
-    def remove_war(self, war: War_Model):
+    def remove_war(self, war: War_Model) -> None:
         self.db.wars.delete_one({"_id": war["_id"]})
 
-    def get_one_war(self, name: str, value: any):
+    def get_one_war(self, name: str, value: any) -> War_Model:
         return self.db.wars.find_one({name: value})
 
-    def get_wars(self, obj: dict):
+    def get_wars(self, obj: dict) -> Cursor[War_Model]:
         return self.db.wars.find(obj)
 
-    def close(self):
+    def close(self) -> None:
         self.mongo_client.close()
 
 
