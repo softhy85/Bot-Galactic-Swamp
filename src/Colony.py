@@ -4,7 +4,6 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from models.War_Model import War_Model
-from models.Alliance_Model import Alliance_Model
 from models.Player_Model import Player_Model
 from models.Colony_Model import Colony_Model
 from typing import List
@@ -13,13 +12,11 @@ import os
 
 class Colony(commands.Cog):
     bot: commands.Bot = None
-    synced: bool = False
     war_channel_id: int = None
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.synced = False
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
         super().__init__()
@@ -59,9 +56,6 @@ class Colony(commands.Cog):
                 for player in players
             ]
 
-# colo_sys_name: str
-# colo_lvl: int
-# colo_coord: Coord
     @app_commands.command(name="colo_add", description="Add a new Colony to the db")
     @app_commands.describe(pseudo="Player's pseudo", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
     @app_commands.autocomplete(pseudo=player_war_autocomplete)
@@ -79,11 +73,12 @@ class Colony(commands.Cog):
             await interaction.response.send_message(f"Player named {pseudo} not found.")
         else:
             date: datetime.datetime = datetime.datetime.now()
-            obj: dict = {"_player_id", act_player["_id"]}
-            number: int = self.bot.db.get_colonies(obj).count()
+            obj: dict = {"_player_id": act_player["_id"]}
+            number: int = self.bot.db.db.colonies.count_documents(obj)
             new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': colo_sys_name, 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
             self.bot.db.push_new_colony(new_colony)
             await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
+            await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="colo_scout", description="Add a new Colony to the db")
     @app_commands.describe(pseudo="Player's pseudo", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
@@ -98,11 +93,12 @@ class Colony(commands.Cog):
             await interaction.response.send_message(f"Player named {pseudo} not found.")
         else:
             date: datetime.datetime = datetime.datetime.now()
-            obj: dict = {"_player_id", act_player["_id"]}
+            obj: dict = {"_player_id": act_player["_id"]}
             number: int = self.bot.db.get_colonies(obj).count()
             new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': colo_sys_name, 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
             self.bot.db.push_new_colony(new_colony)
             await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
+            await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="colo_update", description="Update an existent Colony")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
@@ -133,6 +129,7 @@ class Colony(commands.Cog):
                     act_colony["colo_coord"]["y"] = colo_coord_y
                 self.bot.db.update_colony(act_colony)
                 await interaction.response.send_message(f"Colony updated.")
+                await self.bot.dashboard.update_Dashboard()
 
 
     @app_commands.command(name="colony_remove", description="Remove an existent Player")
@@ -151,12 +148,13 @@ class Colony(commands.Cog):
             await interaction.response.send_message(f"Player named {pseudo} not found.")
         else:
             obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
-            act_colony: Colony_Model = self.bot.db.get_colonies(obj)
+            act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             if act_colony is None:
                 await interaction.response.send_message(f"Colony not found.")
             else:
-                self.bot.db.remove_colony(act_colony)
+                self.bot.db.remove_colony(act_colony[0])
                 await interaction.response.send_message(f"Player named {pseudo} as been removed.")
+                await self.bot.dashboard.update_Dashboard()
 
 
 async def setup(bot: commands.Bot):

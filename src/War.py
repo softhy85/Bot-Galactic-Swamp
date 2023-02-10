@@ -10,7 +10,6 @@ import os
 
 class War(commands.Cog):
     bot: commands.Bot = None
-    synced: bool = False
     war_channel_id: int = None
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
     general_channel_id: int = None
@@ -18,7 +17,6 @@ class War(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.synced = False
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
         self.general_channel_id: int = int(os.getenv("GENERAL_CHANNEL"))
@@ -60,8 +58,8 @@ class War(commands.Cog):
                 return
             await interaction.response.send_message(f"Alliance named {alliance} created.")
             war_alliance = new_alliance
-        # new_message: discord.Message = await self.war_channel.send(f"@everyone nous somme en guerre contre {war_alliance['name']}")
-        new_message: discord.Message = await self.war_channel.send(f"nous somme en guerre contre {war_alliance['name']}")
+#        new_message: discord.Message = await self.war_channel.send(f"@everyone nous sommes en guerre contre {war_alliance['name']}")
+        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
         new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "enemy_point": 0, "point": 0, "status": "InProgress"}
 
