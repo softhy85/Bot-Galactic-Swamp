@@ -7,4 +7,4 @@ RUN pip install -r requirements.txt
 
 COPY ./Discord-Bot .
 
-CMD [ "python", "./Discord-Bot/main.py" ]
+CMD [ "python", "./main.py" ]
