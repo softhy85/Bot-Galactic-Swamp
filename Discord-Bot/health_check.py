@@ -11,8 +11,12 @@ class MyHandler(BaseHTTPRequestHandler):
     def handle(self):
         if self.path == '/':
             self.send_response(200)
+print()
+server_infos: tuple[str, int] = (os.getenv("URL_HEALTH_CHECK"), int(os.getenv("PORT_HEALTH_CHECK")))
+print("server_infos :", server_infos)
+httpd: socketserver.TCPServer = socketserver.TCPServer(server_address=server_infos, RequestHandlerClass=MyHandler)
 
-httpd: socketserver.TCPServer = socketserver.TCPServer(server_address=(os.getenv("URL_HEALTH_CHECK"), int(os.getenv("PORT_HEALTH_CHECK"))), RequestHandlerClass=MyHandler)
+
 def start_health_check():
     httpd.serve_forever()
 
