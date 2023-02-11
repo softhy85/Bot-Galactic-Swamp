@@ -44,6 +44,7 @@ class Refresh_Infos(commands.Cog):
                 self.bot.db.update_colony(colony)
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
+            print("refresh")
             await self.bot.dashboard.update_Dashboard()
 
 async def setup(bot: commands.Bot):

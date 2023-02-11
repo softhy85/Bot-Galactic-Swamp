@@ -64,8 +64,8 @@ class War(commands.Cog):
         new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "enemy_point": 0, "point": 0, "status": "InProgress"}
 
         new_war["_id"] = self.bot.db.push_new_war(new_war)
-        await interaction.response.send_message("New wars created.")
         await self.bot.dashboard.create_Dashboard(new_war)
+        await interaction.response.send_message("New wars created.")
 
     @app_commands.command(name="war_update", description="Update the actual war")
     @app_commands.describe(status="Status",point="The point of our alliance", enemy_point="The point of the enemy alliance")
