@@ -19,7 +19,20 @@ ENV URL_HEALTH_CHECK=$URL_HEALTH_CHECK
 ENV PORT_HEALTH_CHECK=$PORT_HEALTH_CHECK
 
 RUN echo "ENV  $BOT_TOKEN"
+RUN echo "ENV  $HISTORIC_CHANNEL"
+RUN echo "ENV  $COMMAND_CHANNEL"
+RUN echo "ENV  $WAR_CHANNEL"
+RUN echo "ENV  $GENERAL_CHANNEL"
+RUN echo "ENV  $LOG_CHANNEL"
+RUN echo "ENV  $ADM_ROLE"
+RUN echo "ENV  $GEN_ROLE"
+RUN echo "ENV  $CAP_ROLE"
+RUN echo "ENV  $SERVER_ID"
+RUN echo "ENV  $APP_ID"
+RUN echo "ENV  $MONGO_CO"
+RUN echo "ENV  $URL_HEALTH_CHECK"
+RUN echo "ENV  $PORT_HEALTH_CHECK"
 
-COPY ./Discord-Bot .
+COPY ./Discord-Bot ./Discord-Bot
 EXPOSE 1000
-CMD [ "python", "./main.py" ]
+CMD [ "python", "./Discord-Bot/main.py" ]
