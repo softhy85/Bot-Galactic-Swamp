@@ -6,4 +6,4 @@ RUN pip install -r requirements.txt
 COPY .env .
 COPY ./Discord-Bot .
 EXPOSE 1000
-CMD [ "python", "./Discord-Bot/main.py" ]
+CMD [ "python", "./main.py" ]
