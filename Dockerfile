@@ -1,8 +1,5 @@
 FROM python:3.11.1
 
-COPY requirements.txt ./
-RUN pip install -r requirements.txt
-
 ENV BOT_TOKEN=$BOT_TOKEN
 ENV HISTORIC_CHANNEL=$HISTORIC_CHANNEL
 ENV COMMAND_CHANNEL=$COMMAND_CHANNEL
@@ -32,6 +29,9 @@ RUN echo "ENV  $APP_ID"
 RUN echo "ENV  $MONGO_CO"
 RUN echo "ENV  $URL_HEALTH_CHECK"
 RUN echo "ENV  $PORT_HEALTH_CHECK"
+
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
 
 COPY ./Discord-Bot ./Discord-Bot
 EXPOSE 1000
