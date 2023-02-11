@@ -1,9 +1,7 @@
-# This example requires the 'message_content' intent.
 import os
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
-from dotenv import load_dotenv
 from src.Historic import Historic
 from src.War import War
 from src.Alliance import Alliance
@@ -13,6 +11,7 @@ from src.Refresh_Infos import Refresh_Infos
 from src.Role import Role
 from src.DataBase import DataBase
 from src.Dashboard import Dashboard
+from dotenv import load_dotenv
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
@@ -35,6 +34,8 @@ async def on_ready():
     await bot.load_extension("src.Colony")
     await bot.load_extension("src.Refresh_Infos")
 
+
+
 @bot.command()
 async def sync(ctx: Context) -> None:
     if bot.spec_role.admin_role(ctx.guild, ctx.author):
@@ -52,5 +53,5 @@ async def disconnect(ctx: Context):
         await bot.close()
         exit(0)
 
-
-bot.run(token)
+def start_bot():
+    bot.run(token)
