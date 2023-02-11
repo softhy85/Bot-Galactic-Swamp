@@ -8,9 +8,11 @@ def some_function():
     print("some_function got called")
 
 class MyHandler(BaseHTTPRequestHandler):
-    def handle(self):
-        if self.path == '/':
-            self.send_response(200)
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        return
+
 print()
 server_infos: tuple[str, int] = (os.getenv("URL_HEALTH_CHECK"), int(os.getenv("PORT_HEALTH_CHECK")))
 print("server_infos :", server_infos)
