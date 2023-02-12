@@ -58,8 +58,8 @@ class War(commands.Cog):
                 return
             await interaction.response.send_message(f"Alliance named {alliance} created.")
             war_alliance = new_alliance
-#        new_message: discord.Message = await self.war_channel.send(f"@everyone nous sommes en guerre contre {war_alliance['name']}")
-        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
+        new_message: discord.Message = await self.war_channel.send(f"@everyone nous sommes en guerre contre {war_alliance['name']}")
+#        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
         new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "enemy_point": 0, "point": 0, "status": "InProgress"}
 

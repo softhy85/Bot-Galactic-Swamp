@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import datetime
+import time
 from src.Dropdown import DropView
 from models.War_Model import War_Model
 from models.Alliance_Model import Alliance_Model
@@ -41,6 +42,7 @@ class Dashboard:
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
         for it in range(0, nb_message):
+            time.sleep(5.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             message = await thread.send(content="➖➖➖➖➖➖➖", embed=None, view=dropView[it])
@@ -72,6 +74,7 @@ class Dashboard:
         await message.edit(embed=embed)
 
         for it in range(0, nb_message):
+            time.sleep(5.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             obj = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard;" + str(it)}
