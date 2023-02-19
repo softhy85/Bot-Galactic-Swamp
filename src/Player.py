@@ -28,13 +28,15 @@ class Player(commands.Cog):
         print("Player cog loaded.")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        alliances = self.bot.db.get_all_alliances()
+        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances({"name": {"$regex": current}}))
+        alliances = alliances[0:25]
         return [
             app_commands.Choice(name=alliance["name"], value=alliance["name"])
             for alliance in alliances
         ]
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        players: Cursor[Player_Model] = self.bot.db.get_all_players()
+        players: List[Player_Model] = list(self.bot.db.get_players({"pseudo": {"$regex": current}}))
+        players = players[0:25]
         return [
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
             for player in players
@@ -42,7 +44,7 @@ class Player(commands.Cog):
 
     @app_commands.command(name="player_add", description="Add a new Player to the db")
     @app_commands.describe(pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def player_add(self, interaction: discord.Interaction, pseudo: str, lvl: int, mb_sys_name: str, mb_lvl: int):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
@@ -64,7 +66,7 @@ class Player(commands.Cog):
     @app_commands.command(name="player_scout", description="Add a new Player to the db")
     @app_commands.describe(alliance="Alliance's name", pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def player_scout(self, interaction: discord.Interaction, alliance: str, pseudo: str, lvl: int, mb_sys_name: str, mb_lvl: int):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
@@ -84,8 +86,8 @@ class Player(commands.Cog):
 
     @app_commands.command(name="player_update", description="Update an existent Player")
     @app_commands.describe(alliance="Alliance's name", pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
-    @app_commands.autocomplete(alliance=alliance_autocomplete, pseudo=player_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.autocomplete(pseudo=player_autocomplete, alliance=alliance_autocomplete)
+    @app_commands.checks.has_role('Admin')
     async def player_update(self, interaction: discord.Interaction, pseudo: str, lvl: int=-1, mb_sys_name: str="", mb_lvl: int=-1, alliance: str=""):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
@@ -126,7 +128,7 @@ class Player(commands.Cog):
     @app_commands.command(name="player_remove", description="Remove an existent Player")
     @app_commands.describe(pseudo="Player's pseudo")
     @app_commands.autocomplete(pseudo=player_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def player_remove(self, interaction: discord.Interaction, pseudo: str):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")

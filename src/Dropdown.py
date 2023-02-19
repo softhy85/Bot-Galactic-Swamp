@@ -16,7 +16,7 @@ class Select(discord.ui.Select):
     log_channel_id: int = None
     log_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
-    def __init__(self, bot : commands.Bot, player: Player_Model, colonies: Cursor[Colony_Model]) -> None:
+    def __init__(self, bot : commands.Bot, player: Player_Model, colonies: List[Colony_Model]) -> None:
         self.bot = bot
         it: int = 1
         self.log_channel_id: int = int(os.getenv("LOG_CHANNEL"))
@@ -31,7 +31,6 @@ class Select(discord.ui.Select):
         menu_label += " " + Emoji.down.value if player["MB_status"] == "Down" else " " + Emoji.SB.value
         for colony in colonies:
             menu_label += Emoji.down.value if colony["colo_status"] == "Down" else Emoji.colo.value
-        colonies.rewind()
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = "💫",description = "", value = "", default = True))
         it += 1
         if player["MB_status"] == "Down":
@@ -108,7 +107,7 @@ class Select(discord.ui.Select):
             player["MB_status"] = "Up"
             self.bot.db.update_player(player)
             obj: dict = {"_player_id": values[1]}
-            colonies: Cursor[Colony_Model] = self.bot.db.get_colonies(obj)
+            colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             for colony in colonies:
                 colony["colo_refresh_time"] = date
                 colony["colo_last_attack_time"] = date
@@ -145,6 +144,7 @@ class Select(discord.ui.Select):
             self.bot.db.update_colony(colony)
             player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
             await self.log_channel.send(f"Attaque colony {colony['number']} : {player['pseudo']} by {interaction.user.name}")
+        await interaction.response.defer(ephemeral=True)
         await self.bot.dashboard.update_Dashboard()
 
 
@@ -155,5 +155,5 @@ class DropView(discord.ui.View):
         super().__init__(timeout=timeout)
         for player in players:
             obj: dict = {"_player_id": player["_id"]}
-            colonies: Cursor[Colony_Model] = bot.db.get_colonies(obj)
+            colonies: List[Colony_Model] = list(bot.db.get_colonies(obj))
             self.add_item(Select(bot, player, colonies))

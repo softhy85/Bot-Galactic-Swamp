@@ -37,6 +37,7 @@ class War(commands.Cog):
     @app_commands.command(name="war_new", description="Start a new war")
     @app_commands.describe(alliance="The name of the alliance against which you are at war", alliance_lvl="The level of the alliance")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
+    @app_commands.checks.has_role('Admin')
     @app_commands.default_permissions()
     async def war_new(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int=-1):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
@@ -56,7 +57,6 @@ class War(commands.Cog):
             if new_alliance["_id"] is None:
                 await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to Softy.")
                 return
-            await interaction.response.send_message(f"Alliance named {alliance} created.")
             war_alliance = new_alliance
         new_message: discord.Message = await self.war_channel.send(f"@everyone nous sommes en guerre contre {war_alliance['name']}")
 #        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
@@ -69,7 +69,7 @@ class War(commands.Cog):
 
     @app_commands.command(name="war_update", description="Update the actual war")
     @app_commands.describe(status="Status",point="The point of our alliance", enemy_point="The point of the enemy alliance")
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def war_update(self, interaction: discord.Interaction, status: Status = Status.InProgress, point: int=-1, enemy_point: int=-1):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")

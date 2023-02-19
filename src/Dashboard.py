@@ -37,12 +37,14 @@ class Dashboard:
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
         nb_message: int = len(players) // 5
+        if len(players) % 5 > 0:
+            nb_message += 1
         embed: discord.Embed = self.create_embed_alliance(actual_war, war_alliance)
         message = await thread.send(embed=embed)
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
         for it in range(0, nb_message):
-            time.sleep(5.)
+            time.sleep(1.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             message = await thread.send(content="➖➖➖➖➖➖➖", embed=None, view=dropView[it])
@@ -65,6 +67,8 @@ class Dashboard:
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
         nb_message: int = len(players) // 5
+        if len(players) % 5 > 0:
+            nb_message += 1
         embed = self.create_embed_alliance(actual_war, war_alliance)
         obj: dict = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard"}
         infoMessages: List[InfoMessage_Model] = list(self.bot.db.get_info_messages(obj))
@@ -74,7 +78,7 @@ class Dashboard:
         await message.edit(embed=embed)
 
         for it in range(0, nb_message):
-            time.sleep(5.)
+            time.sleep(1.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             obj = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard;" + str(it)}
