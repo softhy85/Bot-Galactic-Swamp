@@ -114,10 +114,12 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
             await self.log_channel.send(f"Reset player : {player['pseudo']} by {interaction.user.name}")
+            await interaction.response.defer(ephemeral=True)
             await self.bot.dashboard.update_Dashboard()
             return
         if len(values) != 3:
             await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
+            await interaction.response.defer(ephemeral=True)
             await self.bot.dashboard.update_Dashboard()
             return
         if values[1] == "player":
