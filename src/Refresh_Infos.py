@@ -25,7 +25,7 @@ class Refresh_Infos(commands.Cog):
     def cog_unload(self):
         self.update_Info_Base.cancel()
 
-    @tasks.loop(minutes=5.0)
+    @tasks.loop(minutes=10.0)
     async def update_Info_Base(self) -> int:
         obj: dict = {"MB_status": "Down"}
         players: Cursor[Player_Model] = self.bot.db.get_players(obj)

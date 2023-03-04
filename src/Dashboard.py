@@ -26,8 +26,6 @@ class Dashboard:
         embed.add_field(name=f"Alliés {war['point']} | {war['enemy_point']} Ennemis",value="")
         return embed
 
-    def create_View( ):
-        return view
     async def create_Dashboard(self, actual_war: War_Model) -> int:
         thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
@@ -44,7 +42,7 @@ class Dashboard:
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
         for it in range(0, nb_message):
-            time.sleep(1.)
+            time.sleep(2.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             message = await thread.send(content="➖➖➖➖➖➖➖", embed=None, view=dropView[it])
@@ -78,7 +76,7 @@ class Dashboard:
         await message.edit(embed=embed)
 
         for it in range(0, nb_message):
-            time.sleep(1.)
+            time.sleep(2.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             obj = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard;" + str(it)}

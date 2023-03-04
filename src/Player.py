@@ -10,6 +10,7 @@ from models.Colony_Model import Colony_Model
 from pymongo.cursor import Cursor
 from typing import List
 import os
+import re
 
 
 class Player(commands.Cog):
@@ -28,14 +29,20 @@ class Player(commands.Cog):
         print("Player cog loaded.")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances({"name": {"$regex": current}}))
+        obj: dict = {}
+        if current != "":
+            obj = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
+        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
         alliances = alliances[0:25]
         return [
             app_commands.Choice(name=alliance["name"], value=alliance["name"])
             for alliance in alliances
         ]
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        players: List[Player_Model] = list(self.bot.db.get_players({"pseudo": {"$regex": current}}))
+        obj: dict = {}
+        if current != "":
+            obj = {"pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
+        players: List[Player_Model] = list(self.bot.db.get_players(obj))
         players = players[0:25]
         return [
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
@@ -58,7 +65,7 @@ class Player(commands.Cog):
             await interaction.response.send_message(f"Alliance named {act_war['alliance_name']} not found.")
         else:
             date: datetime.datetime = datetime.datetime.now()
-            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': mb_sys_name, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
+            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': str.upper(mb_sys_name), 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
             self.bot.db.push_new_player(new_player)
             await interaction.response.send_message(f"Player named {pseudo} created.")
             await self.bot.dashboard.update_Dashboard()
@@ -79,7 +86,7 @@ class Player(commands.Cog):
             await interaction.response.send_message(f"Alliance named {alliance} not found.")
         else:
             date: datetime.datetime = datetime.datetime.now()
-            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': mb_sys_name, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
+            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': str.upper(mb_sys_name), 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
             self.bot.db.push_new_player(new_player)
             await interaction.response.send_message(f"Player named {pseudo} created.")
             await self.bot.dashboard.update_Dashboard()
@@ -102,7 +109,7 @@ class Player(commands.Cog):
             if lvl != -1:
                 act_player["lvl"] = lvl
             if mb_sys_name != "":
-                act_player["MB_sys_name"] = mb_sys_name
+                act_player["MB_sys_name"] = str.upper(mb_sys_name)
             if mb_lvl != -1:
                 act_player["MB_lvl"] = mb_lvl
             if alliance != "":

@@ -6,6 +6,7 @@ from models.Alliance_Model import Alliance_Model
 from models.War_Model import War_Model, Status
 from typing import List
 import os
+import re
 
 
 class War(commands.Cog):
@@ -50,14 +51,19 @@ class War(commands.Cog):
         if actual_war is not None:
             await interaction.response.send_message(f"We are already at war with {actual_war['alliance_name']}.")
             return
-        war_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
-        if war_alliance is None:
-            new_alliance: Alliance_Model = {"name": alliance, "alliance_lvl": alliance_lvl}
+        war_alliances: List[Alliance_Model] = list(self.bot.db.get_alliance({"name": {"$regex": re.compile(alliance, re.IGNORECASE)}}))
+        if len(war_alliances) == 0:
+            new_alliance: Alliance_Model = {"name": str.upper(alliance), "alliance_lvl": alliance_lvl}
             new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
             if new_alliance["_id"] is None:
                 await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to Softy.")
                 return
             war_alliance = new_alliance
+        elif len(war_alliances) == 1:
+            war_alliance = war_alliances[0]
+        else:
+            await interaction.response.send_message(f"Error while retrieving Alliances contact Softy.")
+            return
         new_message: discord.Message = await self.war_channel.send(f"@everyone nous sommes en guerre contre {war_alliance['name']}")
 #        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
@@ -93,15 +99,15 @@ class War(commands.Cog):
                 if status.value == 2:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Win",archived=True, locked=True)
-                    await self.general_channel.send(f"The actual war again {actual_war['alliance_name']} is won.")
+                    await self.general_channel.send(f"La guerrre actuel contre {actual_war['alliance_name']} a été gagnée.")
                 if status.value == 3:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
-                    await self.general_channel.send(f"The actual war again {actual_war['alliance_name']} is lost.")
+                    await self.general_channel.send(f"La guerrre actuel contre {actual_war['alliance_name']} a été perdue.")
                 if status.value == 4:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Ended",archived=True, locked=True)
-                    await self.general_channel.send(f"The actual war again {actual_war['alliance_name']} has ended.")
+                    await self.general_channel.send(f"La guerrre actuel contre {actual_war['alliance_name']} est terminée.")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(War(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

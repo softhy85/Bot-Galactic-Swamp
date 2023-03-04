@@ -4,6 +4,7 @@ from discord.ext import commands
 from models.Alliance_Model import Alliance_Model
 from typing import List
 import os
+import re
 
 
 class Alliance(commands.Cog):
@@ -22,7 +23,10 @@ class Alliance(commands.Cog):
         print("Alliance cog loaded.")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances({"name": {"$regex": current}}))
+        obj: dict = {}
+        if current != "":
+            obj: dict = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
+        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
         alliances = alliances[0:25]
         return [
             app_commands.Choice(name=alliance["name"], value=alliance["name"])

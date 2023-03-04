@@ -28,13 +28,16 @@ async def on_ready():
     bot.dashboard = Dashboard(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
     bot.db = db
     bot.spec_role = Role()
-    print("The bot is online")
     await bot.load_extension("src.Historic")
     await bot.load_extension("src.War")
     await bot.load_extension("src.Alliance")
     await bot.load_extension("src.Player")
     await bot.load_extension("src.Colony")
     await bot.load_extension("src.Refresh_Infos")
+    print("The bot is online")
+    bot.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
+    bot.command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = bot.get_channel(bot.command_channel_id)
+    await bot.command_channel.send("@everyone - Le bot est connecté.")
 
 
 @bot.command()
@@ -63,6 +66,7 @@ async def on_command_error(ctx, error):
 @bot.command()
 async def disconnect(ctx: Context):
     if bot.spec_role.admin_role(ctx.guild, ctx.author):
+        await bot.command_channel.send("@everyone - Le bot est déconnecté !!!")
         print("Closing the bot.")
         bot.db.close()
         await bot.close()

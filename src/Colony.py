@@ -6,8 +6,11 @@ from discord.ext import commands
 from models.War_Model import War_Model
 from models.Player_Model import Player_Model
 from models.Colony_Model import Colony_Model
+from models.Emoji import Emoji
+from models.Colors import Colors
 from typing import List
 import os
+import re
 
 
 class Colony(commands.Cog):
@@ -33,7 +36,10 @@ class Colony(commands.Cog):
         ]
 
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        players: List[Player_Model] = list(self.bot.db.get_players({"pseudo": {"$regex": current}}))
+        obj: dict = {}
+        if current != "":
+            obj: dict = {"pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
+        players: List[Player_Model] = list(self.bot.db.get_players(obj))
         players = players[0:25]
         return [
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
@@ -45,7 +51,10 @@ class Colony(commands.Cog):
         if act_war is None:
             return []
         else:
-            obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": current}}
+            if current == "":
+                obj: dict = {"_alliance_id": act_war["_alliance_id"]}
+            else:
+                obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
             players: List[Player_Model] = self.bot.db.get_players(obj)
             players = players[0:25]
             return [
@@ -58,7 +67,7 @@ class Colony(commands.Cog):
     @app_commands.autocomplete(pseudo=player_war_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def colo_add(self, interaction: discord.Interaction, pseudo: str, colo_sys_name: str, colo_lvl: int, colo_coord_x: int, colo_coord_y: int):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
@@ -72,7 +81,7 @@ class Colony(commands.Cog):
             date: datetime.datetime = datetime.datetime.now()
             obj: dict = {"_player_id": act_player["_id"]}
             number: int = self.bot.db.db.colonies.count_documents(obj)
-            new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': colo_sys_name, 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
+            new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': str.upper(colo_sys_name), 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
             self.bot.db.push_new_colony(new_colony)
             await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
             await self.bot.dashboard.update_Dashboard()
@@ -82,7 +91,7 @@ class Colony(commands.Cog):
     @app_commands.autocomplete(pseudo=player_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def colo_scout(self, interaction: discord.Interaction, pseudo: str, colo_sys_name: str, colo_lvl: int, colo_coord_x: int, colo_coord_y: int):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
@@ -91,22 +100,46 @@ class Colony(commands.Cog):
         else:
             date: datetime.datetime = datetime.datetime.now()
             obj: dict = {"_player_id": act_player["_id"]}
-            number: int = self.bot.db.get_colonies(obj).count()
-            new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': colo_sys_name, 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
+            number: int = self.bot.db.db.colonies.count_documents(obj)
+            new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': str.upper(colo_sys_name), 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
             self.bot.db.push_new_colony(new_colony)
             await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
             await self.bot.dashboard.update_Dashboard()
+
+    @app_commands.command(name="colo_infos", description="Display the infos of the Colonies of a Player")
+    @app_commands.describe(pseudo="Player's pseudo")
+    @app_commands.autocomplete(pseudo=player_autocomplete)
+    async def colo_infos(self, interaction: discord.Interaction, pseudo: str):
+        if pseudo.strip() == "":
+            await interaction.response.send_message(f"Cannot retreive infos of a Player with a pseudo composed only of whitespace.")
+            return
+        player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+        if player is None:
+            await interaction.response.send_message(f"Player named {pseudo} not found.")
+        else:
+            colonies: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": player['_id']}))
+            if len(colonies) == 0:
+                await interaction.response.send_message(f"Colonies not found.")
+            else:
+                embed: discord.Embed
+                description: str = f"{ Emoji.SB.value if player['MB_status'] == 'Up' else Emoji.down.value } Base Principale : { player['MB_sys_name'] } SB ({ player['MB_lvl'] })"
+                embed = discord.Embed(title=f"Niv { player['lvl'] } : { player['pseudo'] }️", description=description, color=Colors.gold, timestamp=datetime.datetime.now())
+                it: int = 1
+                for colony in colonies:
+                    embed.add_field(name=f"{ Emoji.colo.value if colony['colo_status'] == 'Up' else Emoji.down.value } Colonie {it} : {colony['colo_sys_name']}",value=f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})", inline=False)
+                    it += 1
+                await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="colo_update", description="Update an existent Colony")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
     @app_commands.autocomplete(pseudo=player_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str="", colo_lvl: int=-1, colo_coord_x: int=-1, colo_coord_y: int=-1):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
         if pseudo.strip() == "":
-            await interaction.response.send_message(f"Cannot remove Players with a pseudo composed only of whitespace.")
+            await interaction.response.send_message(f"Cannot remove a Colony from Players with a pseudo composed only of whitespace.")
             return
         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
         if act_player is None:
@@ -118,7 +151,7 @@ class Colony(commands.Cog):
             else:
                 act_colony = act_colony[0]
                 if colo_sys_name != "":
-                    act_colony["colo_sys_name"] = colo_sys_name
+                    act_colony["colo_sys_name"] = str.upper(colo_sys_name)
                 if colo_lvl != -1:
                     act_colony["colo_lvl"] = colo_lvl
                 if colo_coord_x != -1:
@@ -130,16 +163,16 @@ class Colony(commands.Cog):
                 await self.bot.dashboard.update_Dashboard()
 
 
-    @app_commands.command(name="colony_remove", description="Remove an existent Player")
+    @app_commands.command(name="colony_remove", description="Remove an existent Colony")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony")
     @app_commands.autocomplete(pseudo=player_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def colony_remove(self, interaction: discord.Interaction, pseudo: str, colo_number: int,):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
         if pseudo.strip() == "":
-            await interaction.response.send_message(f"Cannot remove Players with a pseudo composed only of whitespace.")
+            await interaction.response.send_message(f"Cannot remove a Colony from Players with a pseudo composed only of whitespace.")
             return
         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
         if act_player is None:
