@@ -51,7 +51,7 @@ class War(commands.Cog):
         if actual_war is not None:
             await interaction.response.send_message(f"We are already at war with {actual_war['alliance_name']}.")
             return
-        war_alliances: List[Alliance_Model] = list(self.bot.db.get_alliance({"name": {"$regex": re.compile(alliance, re.IGNORECASE)}}))
+        war_alliances: List[Alliance_Model] = list(self.bot.db.get_alliances({"name": {"$regex": re.compile(alliance, re.IGNORECASE)}}))
         if len(war_alliances) == 0:
             new_alliance: Alliance_Model = {"name": str.upper(alliance), "alliance_lvl": alliance_lvl}
             new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
