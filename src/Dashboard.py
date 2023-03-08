@@ -45,7 +45,7 @@ class Dashboard:
             time.sleep(2.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
-            message = await thread.send(content="➖➖➖➖➖➖➖", embed=None, view=dropView[it])
+            message = await thread.send(content="­", embed=None, view=dropView[it])
             infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
             self.bot.db.push_new_info_message(infoMessage)
         return 0
@@ -83,9 +83,9 @@ class Dashboard:
             infoMessages = list(self.bot.db.get_info_messages(obj))
             if len(infoMessages) == 1:
                 message = await thread.fetch_message(int(infoMessages[0]["id_message"]))
-                await message.edit(content="➖➖➖➖➖➖➖", embed=None, view=dropView[it])
+                await message.edit(content="­", embed=None, view=dropView[it])
             else:
-                message = await thread.send(content="➖➖➖➖➖➖➖", embed=None, view=dropView[it])
+                message = await thread.send(content="­", embed=None, view=dropView[it])
                 infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
                 self.bot.db.push_new_info_message(infoMessage)
         return 0
