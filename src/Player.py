@@ -66,8 +66,10 @@ class Player(commands.Cog):
         else:
             date: datetime.datetime = datetime.datetime.now()
             new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': str.upper(mb_sys_name), 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
-            self.bot.db.push_new_player(new_player)
-            await interaction.response.send_message(f"Player named {pseudo} created.")
+            if self.bot.db.push_new_player(new_player) is None:
+                await interaction.response.send_message(f"Can't add player {pseudo}, already existing.")
+            else:
+                await interaction.response.send_message(f"Player named {pseudo} created.")
             await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="player_scout", description="Add a new Player to the db")
@@ -126,7 +128,7 @@ class Player(commands.Cog):
                     colonies: Cursor[Colony_Model] = self.bot.db.get_colonies(obj)
                     for colony in colonies:
                         colony["_alliance_id"] = return_alliance["_id"]
-                        self.bot.db.upadte_colony(colony)
+                        self.bot.db.update_colony(colony)
             self.bot.db.update_player(act_player)
             await interaction.response.send_message(f"Player named {pseudo} updated.")
             await self.bot.dashboard.update_Dashboard()
