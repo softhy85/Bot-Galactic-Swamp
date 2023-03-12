@@ -4,6 +4,7 @@ from discord.ext import commands
 from models.Alliance_Model import Alliance_Model
 from typing import List
 import os
+import re
 
 
 class Alliance(commands.Cog):
@@ -22,7 +23,11 @@ class Alliance(commands.Cog):
         print("Alliance cog loaded.")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        alliances = self.bot.db.get_all_alliances()
+        obj: dict = {}
+        if current != "":
+            obj: dict = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
+        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
+        alliances = alliances[0:25]
         return [
             app_commands.Choice(name=alliance["name"], value=alliance["name"])
             for alliance in alliances
@@ -30,7 +35,7 @@ class Alliance(commands.Cog):
 
     @app_commands.command(name="alliance_add", description="Add a new Alliance to the db")
     @app_commands.describe(alliance="Alliance's name", alliance_lvl="Alliance's level")
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def alliance_add(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int=-1):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
@@ -52,7 +57,7 @@ class Alliance(commands.Cog):
     @app_commands.command(name="alliance_update", description="Update an existent Alliance")
     @app_commands.describe(alliance="Alliance's name", alliance_lvl="Alliance's level")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def alliance_update(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int):
         return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
@@ -71,7 +76,7 @@ class Alliance(commands.Cog):
     @app_commands.command(name="alliance_remove", description="Remove an existent Alliance")
     @app_commands.describe(alliance="Alliance's name")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def alliance_remove(self, interaction: discord.Interaction, alliance: str):
         return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):

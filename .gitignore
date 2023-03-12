@@ -1,4 +1,6 @@
+/__pycache__/
+/bot-env/
+/Discord-Bot/
+/.idea/
+*.pyc
 .env
-/.idea/*
-*/__pycache__/*
-bot-end/*

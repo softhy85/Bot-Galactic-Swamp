@@ -10,6 +10,7 @@ from models.Colony_Model import Colony_Model
 from pymongo.cursor import Cursor
 from typing import List
 import os
+import re
 
 
 class Player(commands.Cog):
@@ -28,13 +29,21 @@ class Player(commands.Cog):
         print("Player cog loaded.")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        alliances = self.bot.db.get_all_alliances()
+        obj: dict = {}
+        if current != "":
+            obj = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
+        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
+        alliances = alliances[0:25]
         return [
             app_commands.Choice(name=alliance["name"], value=alliance["name"])
             for alliance in alliances
         ]
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        players: Cursor[Player_Model] = self.bot.db.get_all_players()
+        obj: dict = {}
+        if current != "":
+            obj = {"pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
+        players: List[Player_Model] = list(self.bot.db.get_players(obj))
+        players = players[0:25]
         return [
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
             for player in players
@@ -42,8 +51,8 @@ class Player(commands.Cog):
 
     @app_commands.command(name="player_add", description="Add a new Player to the db")
     @app_commands.describe(pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
-    @app_commands.default_permissions()
-    async def player_add(self, interaction: discord.Interaction, pseudo: str, lvl: int, mb_sys_name: str, mb_lvl: int):
+    @app_commands.checks.has_role('Admin')
+    async def player_add(self, interaction: discord.Interaction, pseudo: str, lvl: int, mb_lvl: int, mb_sys_name: str = ""):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
@@ -56,16 +65,18 @@ class Player(commands.Cog):
             await interaction.response.send_message(f"Alliance named {act_war['alliance_name']} not found.")
         else:
             date: datetime.datetime = datetime.datetime.now()
-            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': mb_sys_name, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
-            self.bot.db.push_new_player(new_player)
-            await interaction.response.send_message(f"Player named {pseudo} created.")
+            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': str.upper(mb_sys_name), 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
+            if self.bot.db.push_new_player(new_player) is None:
+                await interaction.response.send_message(f"Can't add player {pseudo}, already existing.")
+            else:
+                await interaction.response.send_message(f"Player named {pseudo} created.")
             await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="player_scout", description="Add a new Player to the db")
     @app_commands.describe(alliance="Alliance's name", pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.default_permissions()
-    async def player_scout(self, interaction: discord.Interaction, alliance: str, pseudo: str, lvl: int, mb_sys_name: str, mb_lvl: int):
+    @app_commands.checks.has_role('Admin')
+    async def player_scout(self, interaction: discord.Interaction, alliance: str, pseudo: str, lvl: int, mb_lvl: int, mb_sys_name: str = ""):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
@@ -77,15 +88,15 @@ class Player(commands.Cog):
             await interaction.response.send_message(f"Alliance named {alliance} not found.")
         else:
             date: datetime.datetime = datetime.datetime.now()
-            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': mb_sys_name, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
+            new_player: Player_Model = {'_alliance_id': return_alliance["_id"], 'pseudo': pseudo, 'lvl': lvl, 'MB_sys_name': str.upper(mb_sys_name), 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
             self.bot.db.push_new_player(new_player)
             await interaction.response.send_message(f"Player named {pseudo} created.")
             await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="player_update", description="Update an existent Player")
     @app_commands.describe(alliance="Alliance's name", pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")
-    @app_commands.autocomplete(alliance=alliance_autocomplete, pseudo=player_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.autocomplete(pseudo=player_autocomplete, alliance=alliance_autocomplete)
+    @app_commands.checks.has_role('Admin')
     async def player_update(self, interaction: discord.Interaction, pseudo: str, lvl: int=-1, mb_sys_name: str="", mb_lvl: int=-1, alliance: str=""):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
@@ -100,7 +111,7 @@ class Player(commands.Cog):
             if lvl != -1:
                 act_player["lvl"] = lvl
             if mb_sys_name != "":
-                act_player["MB_sys_name"] = mb_sys_name
+                act_player["MB_sys_name"] = str.upper(mb_sys_name)
             if mb_lvl != -1:
                 act_player["MB_lvl"] = mb_lvl
             if alliance != "":
@@ -117,7 +128,7 @@ class Player(commands.Cog):
                     colonies: Cursor[Colony_Model] = self.bot.db.get_colonies(obj)
                     for colony in colonies:
                         colony["_alliance_id"] = return_alliance["_id"]
-                        self.bot.db.upadte_colony(colony)
+                        self.bot.db.update_colony(colony)
             self.bot.db.update_player(act_player)
             await interaction.response.send_message(f"Player named {pseudo} updated.")
             await self.bot.dashboard.update_Dashboard()
@@ -126,7 +137,7 @@ class Player(commands.Cog):
     @app_commands.command(name="player_remove", description="Remove an existent Player")
     @app_commands.describe(pseudo="Player's pseudo")
     @app_commands.autocomplete(pseudo=player_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.checks.has_role('Admin')
     async def player_remove(self, interaction: discord.Interaction, pseudo: str):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
