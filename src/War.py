@@ -11,6 +11,7 @@ import os
 import requests
 import json
 import datetime
+import time
 
 class War(commands.Cog):
     bot: commands.Bot = None
@@ -44,7 +45,10 @@ class War(commands.Cog):
     @app_commands.checks.has_role('Admin')
     @app_commands.default_permissions()
     async def war_new(self, interaction: discord.Interaction, alliance: str):
-        steamToken = "B8D87A555C403CD7C16250A103F3A5E7"
+        steamToken: str = os.getenv("STEAM_TOKEN")
+        self.log_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
+        self.log_channel = self.bot.get_channel(self.log_channel_id)
+            
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
@@ -58,18 +62,22 @@ class War(commands.Cog):
         
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
         if war_alliance is None:
-            new_alliance: Alliance_Model = {"name": alliance}
+            new_alliance: Alliance_Model = {"name": alliance, "alliance_lvl": alliance_lvl}
             new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
             if new_alliance["_id"] is None:
                 await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to @Softy(léo).")
                 return
             war_alliance = new_alliance
-
+        await interaction.response.send_message("> Loading alliance...")
+        
         # Récupération des informations de l'alliance avec l'API
         alliance_details = requests.get(f'https://api.galaxylifegame.net/alliances/get?name={alliance}', timeout=2.50)
         parsed_alliance_details = json.loads(alliance_details.content)
         alliance_size =  len(parsed_alliance_details['Members'])
-        alliance_winRate = round(parsed_alliance_details['WarsWon'] / (parsed_alliance_details['WarsLost'] + parsed_alliance_details['WarsWon']) * 100, 2)
+        if parsed_alliance_details['WarsWon'] != 0 and parsed_alliance_details['WarsLost'] != 0:
+            alliance_winRate = round(parsed_alliance_details['WarsWon'] / (parsed_alliance_details['WarsLost'] + parsed_alliance_details['WarsWon']) * 100, 2)
+        else:
+            alliance_winRate = -1
         alliance_lvl = parsed_alliance_details['AllianceLevel'] 
         
         # Attribution de ces infos à la guerre actuelle
@@ -79,18 +87,19 @@ class War(commands.Cog):
         
         # Récupération des joueurs de l'alliance
         for alliance_size in range(alliance_size):
-            
+            print(f"it {alliance_size}")
             # Récupération des données générales du joueur
             player_name = parsed_alliance_details['Members'][alliance_size]['Name']
             player_id = parsed_alliance_details['Members'][alliance_size]['Id']
             player_details = requests.get(f'https://api.galaxylifegame.net/Users/name?name={player_name}', timeout=2.50)
+            
             parsed_player_details = json.loads(player_details.content)
             player_level = parsed_player_details['Level']
             
             # Infos relatives aux planètes
             planets_number = len(parsed_player_details['Planets'])
             colo_number = planets_number - 1
-            mb_lvl = parsed_player_details['Planets'][i]['HQLevel']
+            mb_lvl = parsed_player_details['Planets'][0]['HQLevel']
             
             # Obtention de l'ID Steam
             steamId = requests.get(f'https://api.galaxylifegame.net/Users/platformId?userId={player_id}').content
@@ -110,31 +119,37 @@ class War(commands.Cog):
                     playerStatus = "Offline"
             else: 
                 playerStatus = "Offline"
-                
+            
             # Création du joueur et de sa main base
-            new_player: Player_Model = {'_alliance_id': actual_war["_alliance_id"], '_steam_id': parsed_steamId, 'pseudo': player_name, 'lvl': player_level, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'colo_total_number': colo_number, 'status': playerStatus}
+            new_player: Player_Model = {'_alliance_id': war_alliance["_id"], '_steam_id': parsed_steamId, 'pseudo': player_name, 'lvl': player_level, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'colo_total_number': colo_number, 'status': playerStatus}
             self.bot.db.push_new_player(new_player)
-            await interaction.response.send_message(f"Player named {player_name} created.")
+            #await self.log_channel.send(f"> Player named __**{player_name}**__ created.")
             
             # Récupération des niveaux des colonies et création des colonies
             i = 1
             while i != planets_number:
-                colo_level : parsed_player_details['Planets'][i]['HQLevel']
+                colo_level = parsed_player_details['Planets'][i]['HQLevel']
                 act_player: Player_Model = self.bot.db.get_one_player("pseudo", player_name)
                 obj: dict = {"_player_id": act_player["_id"]}
                 number: int = self.bot.db.db.colonies.count_documents(obj)
-                new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': -1, 'colo_lvl': colo_level, 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
+                new_colony: Colony_Model = {"_alliance_id": war_alliance["_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': "-1", 'colo_lvl': colo_level, 'colo_coord': {"x": '-1', "y": '-1'}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
                 self.bot.db.push_new_colony(new_colony)
-                await interaction.response.send_message(f"A colony as been added to Player named {player_name}.")
+                
+                #await self.log_channel.send(f"Colony number {i} has been added to Player named **{player_name}**.")
                 i = i + 1   
-        
+            #await self.log_channel.send(f"> **{colo_number}** 🪐 colonies have been added to Player named __**{player_name}**__.")
+            
         # Communication et création du Thread    
-        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
+        
+        await self.log_channel.send("> New war started.")
+        
+        
+        new_message: discord.Message = await self.war_channel.send(f"Nous sommes en guerre contre **{war_alliance['name']}** !!")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
         new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "enemy_point": 0, "point": 0, "status": "InProgress"}
-
+        
         new_war["_id"] = self.bot.db.push_new_war(new_war)
-        await interaction.response.send_message("New wars created.")
+        
         await self.bot.dashboard.create_Dashboard(new_war)
 
     @app_commands.command(name="war_update", description="Update the actual war")
@@ -163,15 +178,15 @@ class War(commands.Cog):
                 if status.value == 2:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Win",archived=True, locked=True)
-                    await self.general_channel.send(f"La guerrre actuel contre {actual_war['alliance_name']} a été gagnée.")
+                    await self.general_channel.send(f"La guerre actuelle contre {actual_war['alliance_name']} a été gagnée.")
                 if status.value == 3:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
-                    await self.general_channel.send(f"La guerrre actuel contre {actual_war['alliance_name']} a été perdue.")
+                    await self.general_channel.send(f"La guerre actuelle contre {actual_war['alliance_name']} a été perdue.")
                 if status.value == 4:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Ended",archived=True, locked=True)
-                    await self.general_channel.send(f"La guerrre actuel contre {actual_war['alliance_name']} est terminée.")
+                    await self.general_channel.send(f"La guerre actuelle contre {actual_war['alliance_name']} est terminée.")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(War(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])
