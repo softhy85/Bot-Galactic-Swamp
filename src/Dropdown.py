@@ -27,11 +27,15 @@ class Select(discord.ui.Select):
         act_thirty_date: datetime.datetime = act_date + datetime.timedelta(minutes=30)
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
+        if player['status'] == "Online": 
+            status_emoji = Emoji.online.value
+        else: 
+            status_emoji = Emoji.offline.value
         menu_label: str = f"Niv {player['lvl'] if player['lvl'] != -1 else 'Non connue'} : {player['pseudo']}"
         menu_label += " " + Emoji.down.value if player["MB_status"] == "Down" else " " + Emoji.SB.value
         for colony in colonies:
             menu_label += Emoji.down.value if colony["colo_status"] == "Down" else Emoji.colo.value
-        player_drop_down.append(discord.SelectOption(label = menu_label, emoji = "💫",description = "", value = "", default = True))
+        player_drop_down.append(discord.SelectOption(label = menu_label, emoji = status_emoji ,description = "", value = "", default = True))
         it += 1
         if player["MB_status"] == "Down":
             MB_refresh_date: datetime.datetime = player['MB_refresh_time']

@@ -21,7 +21,7 @@ class Dashboard:
     @staticmethod
     def create_embed_alliance(war: War_Model, alliance: Alliance_Model) -> discord.Embed:
         embed: discord.Embed
-        description: str = f"lvl : {alliance['alliance_lvl'] if alliance['alliance_lvl'] != -1 else 'Non connue'}"
+        description: str = f"lvl : {alliance['alliance_lvl'] if alliance['alliance_lvl'] != -1 else 'Non connue'}\n Winrate : {alliance['winrate']} %\n Players : {alliance['player_number']}"
         embed = discord.Embed(title=f"⚔️ {war['alliance_name']} ⚔️️", description=description, color=Colors.purple,timestamp=datetime.datetime.now())
         embed.add_field(name=f"Alliés {war['point']} | {war['enemy_point']} Ennemis",value="")
         return embed

@@ -15,3 +15,4 @@ class Colony_Model(TypedDict):
     colo_status: str
     colo_last_attack_time: datetime
     colo_refresh_time: datetime
+    updated: bool

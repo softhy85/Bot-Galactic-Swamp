@@ -48,6 +48,7 @@ class Player(commands.Cog):
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
             for player in players
         ]
+        
 
     @app_commands.command(name="player_add", description="Add a new Player to the db")
     @app_commands.describe(pseudo="Player's pseudo", lvl="Player's level", mb_sys_name="Main Base's system name", mb_lvl="Main Base's level")

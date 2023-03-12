@@ -4,10 +4,13 @@ from discord.app_commands import Choice
 from discord.ext import commands
 from models.Alliance_Model import Alliance_Model
 from models.War_Model import War_Model, Status
+from models.Player_Model import Player_Model
+from models.Colony_Model import Colony_Model
 from typing import List
 import os
-import re
-
+import requests
+import json
+import datetime
 
 class War(commands.Cog):
     bot: commands.Bot = None
@@ -36,36 +39,97 @@ class War(commands.Cog):
         ]
 
     @app_commands.command(name="war_new", description="Start a new war")
-    @app_commands.describe(alliance="The name of the alliance against which you are at war", alliance_lvl="The level of the alliance")
+    @app_commands.describe(alliance="The name of the alliance against which you are at war")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
     @app_commands.checks.has_role('Admin')
     @app_commands.default_permissions()
-    async def war_new(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int=-1):
+    async def war_new(self, interaction: discord.Interaction, alliance: str):
+        steamToken = "B8D87A555C403CD7C16250A103F3A5E7"
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
         if alliance.strip() == "":
-            await interaction.response.send_message(f"Cannot create Alliances with a name composed only of whitespace.")
+            await interaction.response.send_message(f"Cannot create alliances with a name composed only of whitespace.")
             return
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
             await interaction.response.send_message(f"We are already at war with {actual_war['alliance_name']}.")
             return
-        war_alliances: List[Alliance_Model] = list(self.bot.db.get_alliances({"name": {"$regex": re.compile(alliance, re.IGNORECASE)}}))
-        if len(war_alliances) == 0:
-            new_alliance: Alliance_Model = {"name": str.upper(alliance), "alliance_lvl": alliance_lvl}
+        
+        war_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+        if war_alliance is None:
+            new_alliance: Alliance_Model = {"name": alliance}
             new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
             if new_alliance["_id"] is None:
-                await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to Softy.")
+                await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to @Softy(léo).")
                 return
             war_alliance = new_alliance
-        elif len(war_alliances) == 1:
-            war_alliance = war_alliances[0]
-        else:
-            await interaction.response.send_message(f"Error while retrieving Alliances contact Softy.")
-            return
-        new_message: discord.Message = await self.war_channel.send(f"@everyone nous sommes en guerre contre {war_alliance['name']}")
-#        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
+
+        # Récupération des informations de l'alliance avec l'API
+        alliance_details = requests.get(f'https://api.galaxylifegame.net/alliances/get?name={alliance}', timeout=2.50)
+        parsed_alliance_details = json.loads(alliance_details.content)
+        alliance_size =  len(parsed_alliance_details['Members'])
+        alliance_winRate = round(parsed_alliance_details['WarsWon'] / (parsed_alliance_details['WarsLost'] + parsed_alliance_details['WarsWon']) * 100, 2)
+        alliance_lvl = parsed_alliance_details['AllianceLevel'] 
+        
+        # Attribution de ces infos à la guerre actuelle
+        war_alliance['alliance_lvl'] = alliance_lvl
+        war_alliance['winrate'] = alliance_winRate
+        war_alliance['player_number'] = alliance_size
+        
+        # Récupération des joueurs de l'alliance
+        for alliance_size in range(alliance_size):
+            
+            # Récupération des données générales du joueur
+            player_name = parsed_alliance_details['Members'][alliance_size]['Name']
+            player_id = parsed_alliance_details['Members'][alliance_size]['Id']
+            player_details = requests.get(f'https://api.galaxylifegame.net/Users/name?name={player_name}', timeout=2.50)
+            parsed_player_details = json.loads(player_details.content)
+            player_level = parsed_player_details['Level']
+            
+            # Infos relatives aux planètes
+            planets_number = len(parsed_player_details['Planets'])
+            colo_number = planets_number - 1
+            mb_lvl = parsed_player_details['Planets'][i]['HQLevel']
+            
+            # Obtention de l'ID Steam
+            steamId = requests.get(f'https://api.galaxylifegame.net/Users/platformId?userId={player_id}').content
+            parsed_steamId =  json.loads(steamId)     
+            date: datetime.datetime = datetime.datetime.now()
+            
+            # Détermination du status du joueur via Steam
+            steamPlayerState = requests.get(f'https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=B8D87A555C403CD7C16250A103F3A5E7&format=json&steamids={steamId}')
+            parsed_steamPlayerState = json.loads(steamPlayerState.content)
+            playerSteamStatus = parsed_steamPlayerState['response']['players'][0]['personastate']
+            
+            if playerSteamStatus == 1:
+                if "gameextrainfo" in parsed_steamPlayerState['response']['players'][0]:
+                    if parsed_steamPlayerState['response']['players'][0]['gameextrainfo'] == "Galaxy Life":    
+                        playerStatus = "Online"
+                else:
+                    playerStatus = "Offline"
+            else: 
+                playerStatus = "Offline"
+                
+            # Création du joueur et de sa main base
+            new_player: Player_Model = {'_alliance_id': actual_war["_alliance_id"], '_steam_id': parsed_steamId, 'pseudo': player_name, 'lvl': player_level, 'MB_lvl': mb_lvl, 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'colo_total_number': colo_number, 'status': playerStatus}
+            self.bot.db.push_new_player(new_player)
+            await interaction.response.send_message(f"Player named {player_name} created.")
+            
+            # Récupération des niveaux des colonies et création des colonies
+            i = 1
+            while i != planets_number:
+                colo_level : parsed_player_details['Planets'][i]['HQLevel']
+                act_player: Player_Model = self.bot.db.get_one_player("pseudo", player_name)
+                obj: dict = {"_player_id": act_player["_id"]}
+                number: int = self.bot.db.db.colonies.count_documents(obj)
+                new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': -1, 'colo_lvl': colo_level, 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
+                self.bot.db.push_new_colony(new_colony)
+                await interaction.response.send_message(f"A colony as been added to Player named {player_name}.")
+                i = i + 1   
+        
+        # Communication et création du Thread    
+        new_message: discord.Message = await self.war_channel.send(f"nous sommes en guerre contre {war_alliance['name']}")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
         new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "enemy_point": 0, "point": 0, "status": "InProgress"}
 

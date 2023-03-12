@@ -10,3 +10,7 @@ class Emoji(Enum):
     fifteen_min: str = "🕘"
     thirty_min: str = "🕧"
     forty_five_min: str = "🕒"
+    online : str = "🚨"
+    offline : str = "💫"
+    updated : str = "✅"
+    native : str = "🟨"
