@@ -12,11 +12,11 @@ import os
 
 
 class Select(discord.ui.Select):
-    bot : commands.Bot
+    bot: commands.Bot
     log_channel_id: int = None
     log_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
-    def __init__(self, bot : commands.Bot, player: Player_Model, colonies: List[Colony_Model]) -> None:
+    def __init__(self, bot: commands.Bot, player: Player_Model, colonies: List[Colony_Model]) -> None:
         self.bot = bot
         it: int = 1
         self.log_channel_id: int = int(os.getenv("LOG_CHANNEL"))
@@ -27,10 +27,10 @@ class Select(discord.ui.Select):
         act_thirty_date: datetime.datetime = act_date + datetime.timedelta(minutes=30)
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
-        if player['status'] == "Online": 
-            status_emoji = Emoji.online.value
-        else: 
-            status_emoji = Emoji.offline.value
+        # if player['status'] == "Online": 
+        #     status_emoji = Emoji.online.value
+        # else: 
+        status_emoji = Emoji.offline.value
         menu_label: str = f"Niv {player['lvl'] if player['lvl'] != -1 else 'Non connue'} : {player['pseudo']}"
         menu_label += " " + Emoji.down.value if player["MB_status"] == "Down" else " " + Emoji.SB.value
         for colony in colonies:

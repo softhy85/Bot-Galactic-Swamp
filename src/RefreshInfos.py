@@ -12,7 +12,7 @@ import os
 from models.Alliance_Model import Alliance_Model
 import json
 
-class Refresh_Infos(commands.Cog):
+class RefreshInfos(commands.Cog):
     bot: commands.Bot = None
 
     def __init__(self, bot: commands.Bot):
@@ -22,7 +22,7 @@ class Refresh_Infos(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Refresh_Infos cog loaded.")
+        print("RefreshInfos cog loaded.")
 
     def cog_unload(self):
         self.update_Info_Base.cancel()
@@ -77,4 +77,4 @@ class Refresh_Infos(commands.Cog):
             
             
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Refresh_Infos(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])
+    await bot.add_cog(RefreshInfos(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

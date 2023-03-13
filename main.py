@@ -10,7 +10,7 @@ from src.War import War
 from src.Alliance import Alliance
 from src.Player import Player
 from src.Colony import Colony
-from src.Refresh_Infos import Refresh_Infos
+from src.RefreshInfos import RefreshInfos
 from src.Role import Role
 from src.DataBase import DataBase
 from src.Dashboard import Dashboard
@@ -33,7 +33,7 @@ async def on_ready():
     await bot.load_extension("src.Alliance")
     await bot.load_extension("src.Player")
     await bot.load_extension("src.Colony")
-    await bot.load_extension("src.Refresh_Infos")
+    await bot.load_extension("src.RefreshInfos")
     print("The bot is online")
     bot.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = bot.get_channel(bot.command_channel_id)
