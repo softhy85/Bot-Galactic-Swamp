@@ -84,7 +84,7 @@ class War(commands.Cog):
             act_player: Player_Model =  self.bot.db.push_new_player(new_player)
             if act_player == None:
                 act_player = self.bot.db.get_one_player("pseudo", player["Name"])
-                await self.log_channel.send(f"> Player named __**{player['Name']}**__ recovered.")
+                #await self.log_channel.send(f"> Player named __**{player['Name']}**__ recovered.")
             else:
                 await self.log_channel.send(f"> Player named __**{player['Name']}**__ created.")
             print("OK 2")
@@ -120,7 +120,7 @@ class War(commands.Cog):
                 if it == len(colo_list):
                     break  
                 
-            await self.log_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{player['Name']}**__.")
+           # await self.log_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{player['Name']}**__.")
             
         # Communication et création du Thread    
         await self.log_channel.send("> New war started.")

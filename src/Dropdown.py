@@ -32,10 +32,12 @@ class Select(discord.ui.Select):
             status_emoji = Emoji.online.value 
         menu_label: str = f"Niv {player['lvl'] if player['lvl'] != -1 else 'Non connue'} : {player['pseudo']}"
         menu_label += " " + Emoji.down.value if player["MB_status"] == "Down" else " " + Emoji.SB.value
+        print(menu_label)
+        
         #modification pour mettre les colos non complétées
         #if colony["updated"] == True:
-        for colony in colonies:
-            menu_label += Emoji.down.value if colony["colo_status"] == "Down" else Emoji.colo.value
+        # for colony in colonies:
+        #     menu_label += Emoji.down.value if colony["colo_status"] == "Down" else Emoji.colo.value
         #else:
                # menu_label += Emoji.colo_empty.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = status_emoji ,description = "", value = "", default = True))
@@ -65,35 +67,40 @@ class Select(discord.ui.Select):
         print("OK 7")
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
-        for colony in colonies:
-            if colony["colo_status"] == "Down" :
-                colo_refresh_date: datetime.datetime = player['MB_refresh_time']
-                if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
-                    if colo_refresh_date < act_five_date:
-                        menu_emoji = Emoji.five_min.value
-                    elif colo_refresh_date < act_fifteen_date:
-                        menu_emoji = Emoji.fifteen_min.value
-                    elif colo_refresh_date < act_thirty_date:
-                        menu_emoji = Emoji.thirty_min.value
-                    elif colo_refresh_date < act_forty_five_date:
-                        menu_emoji = Emoji.forty_five_min.value
-                    else:
-                        menu_emoji = Emoji.down.value
-                else:
-                    menu_emoji = Emoji.down.value
-                menu_label = f"{colony['colo_sys_name']}"
-                date_refresh: datetime.datetime = colony['colo_refresh_time']
-                menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) (Retour {date_refresh.strftime('%m/%d/%Y, %H:%M:%S')})"
-            else :
-                menu_label = f"{colony['colo_sys_name']}"
-                menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
-                menu_emoji = Emoji.colo.value
+        #for colony in colonies: #probablement la source des problèmes: ou est défini colonies?
+            # if colony["colo_status"] == "Down" :
+            #     colo_refresh_date: datetime.datetime = player['MB_refresh_time']
+            #     if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
+            #         if colo_refresh_date < act_five_date:
+            #             menu_emoji = Emoji.five_min.value
+            #         elif colo_refresh_date < act_fifteen_date:
+            #             menu_emoji = Emoji.fifteen_min.value
+            #         elif colo_refresh_date < act_thirty_date:
+            #             menu_emoji = Emoji.thirty_min.value
+            #         elif colo_refresh_date < act_forty_five_date:
+            #             menu_emoji = Emoji.forty_five_min.value
+            #         else:
+            #             menu_emoji = Emoji.down.value
+            #     else:
+            #         menu_emoji = Emoji.down.value
+            #     menu_label = f"{colony['colo_sys_name']}"
+            #     date_refresh: datetime.datetime = colony['colo_refresh_time']
+            #     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) (Retour {date_refresh.strftime('%m/%d/%Y, %H:%M:%S')})"
+            # else :
+        menu_label = f"{colony['colo_sys_name']}" #3 lignes partie du else
+        menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
+        menu_emoji = Emoji.colo.value
             player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "colony" + ";" + str(colony["_id"])))
             it += 1
+            print(it)
+        print('fin de la boucle for')
         menu_label = "Reset"
         menu_emoji = Emoji.Reset.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = '', value = "Reset;" + str(player["_id"])))
         options = player_drop_down
+        print(menu_label)
+        print(menu_description)
+        print(menu_emoji)
         super().__init__(placeholder="Select an option", max_values=1, min_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
@@ -167,6 +174,7 @@ class DropView(discord.ui.View):
     def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], timeout: int = 180) -> None:
         super().__init__(timeout=timeout)
         for player in players:
+            print(f"players: {players}")
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(bot.db.get_colonies(obj))
             self.add_item(Select(bot, player, colonies))
