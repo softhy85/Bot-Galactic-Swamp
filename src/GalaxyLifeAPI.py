@@ -1,28 +1,32 @@
 import discord
 import json
 import requests
+import os
 
 class GalaxyLifeAPI:
-    url: str 
+    url_gl: str 
+    steamToken: str
     
     def __init__(self):
-        self.url = "https://api.galaxylifegame.net"
+        self.url_gl = "https://api.galaxylifegame.net"
+        self.steamToken = os.getenv("STEAM_TOKEN")
+        url_steam = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2"
     
     def get_emblem(self, shape: str, pattern: str, icon: str) -> str:
         return f"https://cdn.galaxylifegame.net/content/img/alliance_flag/AllianceLogos/flag_{shape}_{pattern}_{icon}.png"
       
-    def get_request(self, url: str) -> Any:
-        response = requests.get(url, timeout = 2.50)
+    def get_request(self, url: str):
+        response: str = requests.get(url, timeout = 2.50)
         if response.status_code != 200:
             return None
-        if response.content[0] != "{":   
-            return None
+        if chr(response.content[0]) != "{":   
+            return None 
         else: 
             return json.loads(response.content)    
     
-    def get_alliance(self, alliance: str) ->  Any:
+    def get_alliance(self, alliance: str):
         return_value: dict = {}
-        url: str = self.url + f"/alliances/get?name={alliance}"
+        url: str = self.url_gl + f"/Alliances/get?name={alliance}"
         alliance_infos = self.get_request(url)
         if alliance_infos == None:
             return None
@@ -41,17 +45,35 @@ class GalaxyLifeAPI:
     
     def get_player_infos(self, player_id):
         return_value: dict = {}
-        url = self.url + f"/Users/get?id={player_id}"
+        url: str = self.url_gl + f"/Users/get?id={player_id}"
         player_infos = self.get_request(url)
+        print("OK 2.0.1")
         return_value["mb_lvl"] = player_infos['Planets'][0]['HQLevel']
         return_value["player_lvl"] = player_infos['Level']
         return_value["colo_list"] = []
         player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
-        for colo in player_infos['Planets']:
-            return_value["colo_list"].append(player_infos['Planets'][colo]['HQLevel'])
-        return None    
+        print("OK 2.0.2")
+        it: int = 1
+        for colonies in player_infos['Planets']:
+            return_value["colo_list"].append(player_infos['Planets'][it]['HQLevel'])
+            it = it + 1
+            if it == len(player_infos['Planets']):
+                 break
+        print("fin de for")
+        return return_value    
         
-    def get_player_steam_ID(self, player_id):
-        url: str = self.url + f"/Users/platformId?userId={player_id}"
+    def get_player_steam_ID(self, player_id_gl):
+        url: str = self.url_gl + f"/Users/platformId?userId={player_id_gl}"
         return self.get_request(url)
-        
+
+    def get_player_status(self, player_id_gl):
+        player_id_steam: str = self.get_player_steam_ID(player_id_gl)
+        url: str = self.url_steam + f'/?key={self.steamToken}&format=json&steamids={player_id_steam}'
+        response_info: str = requests.get(url)
+        response_parse: dict = json.loads(response_info.content)
+        if len(response_parse['response']['players']) == 1:
+            if response_parse['response']['players'][0]['personastate'] == 1:
+                if "gameextrainfo" in response_parse['response']['players'][0]:
+                    if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life":    
+                        return 1
+        return 0

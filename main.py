@@ -14,6 +14,7 @@ from src.RefreshInfos import RefreshInfos
 from src.Role import Role
 from src.DataBase import DataBase
 from src.Dashboard import Dashboard
+from src.GalaxyLifeAPI import GalaxyLifeAPI
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
@@ -26,6 +27,7 @@ bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, applicatio
 @bot.event
 async def on_ready():
     bot.dashboard = Dashboard(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
+    bot.galaxylifeapi = GalaxyLifeAPI()
     bot.db = db
     bot.spec_role = Role()
     await bot.load_extension("src.Historic")
@@ -37,7 +39,7 @@ async def on_ready():
     print("The bot is online")
     bot.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = bot.get_channel(bot.command_channel_id)
-    await bot.command_channel.send("@everyone - Le bot est connecté.")
+    await bot.command_channel.send("@personne - Le bot est connecté.")
 
 
 @bot.command()

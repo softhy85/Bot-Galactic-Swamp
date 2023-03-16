@@ -6,5 +6,4 @@ class Alliance_Model(TypedDict):
     _id: ObjectId
     name: str
     alliance_lvl: int
-    player_number: int
-    winrate: float
+    alliance_winrate: float

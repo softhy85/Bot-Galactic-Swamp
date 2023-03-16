@@ -27,14 +27,17 @@ class Select(discord.ui.Select):
         act_thirty_date: datetime.datetime = act_date + datetime.timedelta(minutes=30)
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
-        # if player['status'] == "Online": 
-        #     status_emoji = Emoji.online.value
-        # else: 
-        status_emoji = Emoji.offline.value
+        status_emoji: str = Emoji.offline.value
+        if player["player_online"]:
+            status_emoji = Emoji.online.value 
         menu_label: str = f"Niv {player['lvl'] if player['lvl'] != -1 else 'Non connue'} : {player['pseudo']}"
         menu_label += " " + Emoji.down.value if player["MB_status"] == "Down" else " " + Emoji.SB.value
+        #modification pour mettre les colos non complétées
+        #if colony["updated"] == True:
         for colony in colonies:
             menu_label += Emoji.down.value if colony["colo_status"] == "Down" else Emoji.colo.value
+        #else:
+               # menu_label += Emoji.colo_empty.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = status_emoji ,description = "", value = "", default = True))
         it += 1
         if player["MB_status"] == "Down":
@@ -59,7 +62,7 @@ class Select(discord.ui.Select):
             menu_label = "Base Principale"
             menu_description = f"SB ({player['MB_lvl']})"
             menu_emoji = Emoji.SB.value
-
+        print("OK 7")
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
         for colony in colonies:
@@ -144,12 +147,16 @@ class Select(discord.ui.Select):
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
                 await self.bot.dashboard.update_Dashboard()
                 return
-            colony["colo_refresh_time"] = date_resfresh
-            colony["colo_last_attack_time"] = date
-            colony["colo_status"] = "Down"
-            self.bot.db.update_colony(colony)
-            player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
-            await self.log_channel.send(f"Attaque colony {colony['number']} : {player['pseudo']} by {interaction.user.name}")
+            # pas d'attaque si la colo n'est pas updated
+            if colony["updated"] == True:
+                colony["colo_refresh_time"] = date_resfresh
+                colony["colo_last_attack_time"] = date
+                colony["colo_status"] = "Down"
+                self.bot.db.update_colony(colony)
+                player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
+                await self.log_channel.send(f"Attaque colony {colony['number']} : {player['pseudo']} by {interaction.user.name}")
+            else: 
+                return
         await interaction.response.defer(ephemeral=True)
         await self.bot.dashboard.update_Dashboard()
 
