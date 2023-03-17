@@ -91,6 +91,10 @@ class Dashboard:
         for it in range(0, len(players)):
             if "id_gl" in players[it]:
                 players[it]["player_online"] = self.bot.galaxylifeapi.get_player_status(players[it]['id_gl'])
+                if players[it]["player_online"] == 1:
+                    print('player online')
+                else:
+                    print('player offline')
             else:
                 players[it]["player_online"] = 0
         nb_message: int = len(players) // 5

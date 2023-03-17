@@ -79,42 +79,45 @@ class War(commands.Cog):
             act_player: Player_Model =  self.bot.db.push_new_player(new_player)
             if act_player == None:
                 act_player = self.bot.db.get_one_player("pseudo", player["Name"])
-                await self.log_channel.send(f"> Player named __**{player['Name']}**__ recovered.")
+               # await self.log_channel.send(f"> Player named __**{player['Name']}**__ recovered.")
             else:
                 act_player = self.bot.db.get_one_player("pseudo", player["Name"])
-                await self.log_channel.send(f"> Player named __**{player['Name']}**__ created.")
+               # await self.log_channel.send(f"> Player named __**{player['Name']}**__ created.")
             # Récupération des niveaux des colonies et création des colonies
             colo_list: list = self.bot.galaxylifeapi.get_player_infos(player["Id"])["colo_list"]
-            it: int = 1
-            for colo in colo_list:
-                colo_level = colo_list[it]
-                colo_number = len(colo_list) 
-                obj: dict = {"_player_id": act_player["_id"]}
-                new_colony: Colony_Model = {"_alliance_id": war_alliance["_id"], '_player_id': act_player["_id"], 'number': it, 'colo_sys_name': "-1", 'colo_lvl': colo_level, 'colo_coord': {"x": '-1', "y": '-1'}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date, 'updated': False} 
-                stored_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": act_player["_id"], "number": it}))
-                if len(stored_colony) == 1: 
-                    new_colony["_id"] = stored_colony[0]["_id"]
-                    new_colony["colo_sys_name"] = stored_colony[0]["colo_sys_name"]
-                    new_colony["colo_coord"] = stored_colony[0]["colo_coord"]
-                    new_colony["updated"] = stored_colony[0]["updated"]
-                    self.bot.db.update_colony(new_colony)
-                    # await self.log_channel.send(f"Colony number {it} was updated for Player named **{player['Name']}**.")
-                elif len(stored_colony) == 0: 
-                    self.bot.db.push_new_colony(new_colony)
-                    # await self.log_channel.send(f"Colony number {it} was added to Player named **{player['Name']}**.")
-                else:
-                    new_colony["_id"] = stored_colony[0]["_id"]
-                    self.bot.db.update_colony(new_colony)
-                    await self.log_channel.send(f"Some duplicate colonies was found for **{player['Name']}**. Updating the first one.")
-                    stored_colony = stored_colony[1:]
-                    for colony in stored_colony:
-                        self.bot.db.remove_colony(colony)
-                it += 1
-                if it == len(colo_list):
-                    break  
-                
-            await self.log_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{player['Name']}**__.")
-            
+            it: int = 0
+            if len(colo_list) != 0:
+                for colo in colo_list:
+                    colo_level = colo_list[it]
+                    colo_number = len(colo_list) 
+                    obj: dict = {"_player_id": act_player["_id"]}
+                    new_colony: Colony_Model = {"_alliance_id": war_alliance["_id"], '_player_id': act_player["_id"], 'number': it + 1, 'colo_sys_name': "-1", 'colo_lvl': colo_level, 'colo_coord': {"x": '-1', "y": '-1'}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date, 'updated': False} 
+                    stored_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": act_player["_id"], "number": it + 1}))
+                    if len(stored_colony) == 1: 
+                        new_colony["_id"] = stored_colony[0]["_id"]
+                        new_colony["colo_sys_name"] = stored_colony[0]["colo_sys_name"]
+                        new_colony["colo_coord"] = stored_colony[0]["colo_coord"]
+                        new_colony["updated"] = stored_colony[0]["updated"]
+                        self.bot.db.update_colony(new_colony)
+                        #await self.log_channel.send(f"Colony number {it + 1} was updated for Player named **{player['Name']}**.")
+                    elif len(stored_colony) == 0: 
+                        self.bot.db.push_new_colony(new_colony)
+                       # await self.log_channel.send(f"Colony number {it + 1} was added to Player named **{player['Name']}**.")
+                    else:
+                        new_colony["_id"] = stored_colony[0]["_id"]
+                        self.bot.db.update_colony(new_colony)
+                        await self.log_channel.send(f"Some duplicate colonies was found for **{player['Name']}**. Updating the first one.")
+                        stored_colony = stored_colony[1:]
+                        for colony in stored_colony:
+                            self.bot.db.remove_colony(colony)
+                    if it == len(colo_list):
+                        break  
+                    it += 1
+                    
+                await self.log_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{player['Name']}**__.")
+            else: 
+                print("PAS DE COLONIES")
+                await self.log_channel.send(f"> No colony was added to Player named __**{player['Name']}**__.")    
         # Communication et création du Thread    
         await self.log_channel.send("> New war started.")
         new_message: discord.Message = await self.war_channel.send(f"Nous sommes en guerre contre **{war_alliance['name']}** !!")

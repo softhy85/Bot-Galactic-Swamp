@@ -30,6 +30,8 @@ class Select(discord.ui.Select):
         status_emoji: str = Emoji.offline.value
         if player["player_online"]:
             status_emoji = Emoji.online.value 
+        else:
+            status_emoji = Emoji.offline.value 
         player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
         player_lvl: str = player_temp["player_lvl"]
         player_MB_lvl: str = player_temp["mb_lvl"]
@@ -71,30 +73,34 @@ class Select(discord.ui.Select):
             menu_emoji = Emoji.SB.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
-        for colony in colonies: #probablement la source des problème
-            
-            if colony["colo_status"] == "Down" :
-                colo_refresh_date: datetime.datetime = player['MB_refresh_time']
-                if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
-                    if colo_refresh_date < act_five_date:
-                        menu_emoji = Emoji.five_min.value
-                    elif colo_refresh_date < act_fifteen_date:
-                        menu_emoji = Emoji.fifteen_min.value
-                    elif colo_refresh_date < act_thirty_date:
-                        menu_emoji = Emoji.thirty_min.value
-                    elif colo_refresh_date < act_forty_five_date:
-                        menu_emoji = Emoji.forty_five_min.value
+        for colony in colonies: 
+            if colony["updated"] == True:
+                if colony["colo_status"] == "Down" :
+                    colo_refresh_date: datetime.datetime = player['MB_refresh_time']
+                    if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
+                        if colo_refresh_date < act_five_date:
+                            menu_emoji = Emoji.five_min.value
+                        elif colo_refresh_date < act_fifteen_date:
+                            menu_emoji = Emoji.fifteen_min.value
+                        elif colo_refresh_date < act_thirty_date:
+                            menu_emoji = Emoji.thirty_min.value
+                        elif colo_refresh_date < act_forty_five_date:
+                            menu_emoji = Emoji.forty_five_min.value
+                        else:
+                            menu_emoji = Emoji.down.value
                     else:
                         menu_emoji = Emoji.down.value
-                else:
-                    menu_emoji = Emoji.down.value
-                menu_label = f"{colony['colo_sys_name']}"
-                date_refresh: datetime.datetime = colony['colo_refresh_time']
-                menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) (Retour {date_refresh.strftime('%m/%d/%Y, %H:%M:%S')})"
-            else :
-                menu_label = f"{colony['colo_sys_name']}" #3 lignes partie du else
-                menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
-                menu_emoji = Emoji.colo.value
+                    menu_label = f"{colony['colo_sys_name']}"
+                    date_refresh: datetime.datetime = colony['colo_refresh_time']
+                    menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) (Retour {date_refresh.strftime('%m/%d/%Y, %H:%M:%S')})"
+                else :
+                    menu_label = f"{colony['colo_sys_name']}"
+                    menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
+                    menu_emoji = Emoji.colo.value
+            else:
+                menu_label = f" ?????"
+                menu_description = f"( ? ; ? ) - SB ({colony['colo_lvl']})"
+                menu_emoji = Emoji.colo_empty.value
             if colony["number"] <= 10:
                 player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "colony" + ";" + str(colony["_id"])))
             it += 1

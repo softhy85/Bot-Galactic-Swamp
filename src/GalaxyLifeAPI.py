@@ -19,7 +19,7 @@ class GalaxyLifeAPI:
         response: str = requests.get(url, timeout = 2.50)
         if response.status_code != 200:
             return None
-        if chr(response.content[0]) != "{":   
+        if chr(response.content[0]) != "{" and chr(response.content[1]).isdigit() != True:  
             return None 
         else: 
             return json.loads(response.content)    
@@ -51,26 +51,31 @@ class GalaxyLifeAPI:
         return_value["player_lvl"] = player_infos['Level']
         return_value["colo_list"] = []
         player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
-        it: int = 1
+        it: int = 0
         for colonies in player_infos['Planets']:
             return_value["colo_list"].append(player_infos['Planets'][it]['HQLevel'])
-            it = it + 1
             if it == len(player_infos['Planets']):
-                 break
+                break
+            it = it + 1
+
         return return_value    
         
     def get_player_steam_ID(self, player_id_gl):
         url: str = self.url_gl + f"/Users/platformId?userId={player_id_gl}"
         return self.get_request(url)
+       
 
     def get_player_status(self, player_id_gl):
         player_id_steam: str = self.get_player_steam_ID(player_id_gl)
         url: str = self.url_steam + f'/?key={self.steamToken}&format=json&steamids={player_id_steam}'
         response_info: str = requests.get(url)
         response_parse: dict = json.loads(response_info.content)
-        if len(response_parse['response']['players']) == 1:
+        print(response_parse)
+        print(len(response_parse['response']['players'][0]))
+        if len(response_parse['response']['players'][0]) >= 1:
             if response_parse['response']['players'][0]['personastate'] == 1:
                 if "gameextrainfo" in response_parse['response']['players'][0]:
-                    if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life":    
+                    if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life": 
+                        print('player online')   
                         return 1
         return 0
