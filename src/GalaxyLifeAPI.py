@@ -10,7 +10,7 @@ class GalaxyLifeAPI:
     def __init__(self):
         self.url_gl = "https://api.galaxylifegame.net"
         self.steamToken = os.getenv("STEAM_TOKEN")
-        url_steam = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2"
+        self.url_steam = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2"
     
     def get_emblem(self, shape: str, pattern: str, icon: str) -> str:
         return f"https://cdn.galaxylifegame.net/content/img/alliance_flag/AllianceLogos/flag_{shape}_{pattern}_{icon}.png"
@@ -47,19 +47,16 @@ class GalaxyLifeAPI:
         return_value: dict = {}
         url: str = self.url_gl + f"/Users/get?id={player_id}"
         player_infos = self.get_request(url)
-        print("OK 2.0.1")
         return_value["mb_lvl"] = player_infos['Planets'][0]['HQLevel']
         return_value["player_lvl"] = player_infos['Level']
         return_value["colo_list"] = []
         player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
-        print("OK 2.0.2")
         it: int = 1
         for colonies in player_infos['Planets']:
             return_value["colo_list"].append(player_infos['Planets'][it]['HQLevel'])
             it = it + 1
             if it == len(player_infos['Planets']):
                  break
-        print("fin de for")
         return return_value    
         
     def get_player_steam_ID(self, player_id_gl):

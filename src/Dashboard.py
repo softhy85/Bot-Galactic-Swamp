@@ -60,10 +60,8 @@ class Dashboard:
             time.sleep(2.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
-            print("OK 10")
             message = await thread.send(content=" ­", embed=None, view=dropView[it])
             infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
-            print("OK 11")
             self.bot.db.push_new_info_message(infoMessage)
         return 0
 

@@ -5,6 +5,7 @@ from discord.ext import commands
 from models.War_Model import War_Model
 from models.Player_Model import Player_Model
 from models.Colony_Model import Colony_Model
+from models.Alliance_Model import Alliance_Model
 from models.Emoji import Emoji
 from models.Colors import Colors
 from typing import List
@@ -53,15 +54,16 @@ class Colony(commands.Cog):
         if act_war is None:
             return []
         else:
-            obj: dict = {"_alliance_id": act_war["_alliance_id"]}
-            colos: List[Colony_Model] = self.bot.db.get_colonies(obj)                
+            pseudo = interaction.namespace.pseudo
+            player_id: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+            obj: dict = {"_player_id": player_id['_id']}
+            colos: List[Colony_Model] = self.bot.db.get_colonies(obj)     
             colos = colos[0:25]
             return [
                 app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]})', value=colo["number"])
                 for colo in colos
             ]
-
-
+            
     async def player_war_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if act_war is None:
@@ -72,6 +74,7 @@ class Colony(commands.Cog):
             else:
                 obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
             players: List[Player_Model] = self.bot.db.get_players(obj)
+            print(players)
             players = players[0:25]
             return [
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
@@ -124,10 +127,10 @@ class Colony(commands.Cog):
             
     # Retravaillée car les infos à fournir ont changé
     @app_commands.command(name="colo_update", description="Update an existent Colony")
-    @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
+    @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
     @app_commands.autocomplete(pseudo=player_autocomplete, colo_number=colo_autocomplete)
     @app_commands.default_permissions()
-    async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str="", colo_lvl: int=-1, colo_coord_x: int=-1, colo_coord_y: int=-1):
+    async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str, colo_coord_x: int, colo_coord_y: int):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
