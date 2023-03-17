@@ -30,28 +30,20 @@ class Select(discord.ui.Select):
         status_emoji: str = Emoji.offline.value
         if player["player_online"]:
             status_emoji = Emoji.online.value 
-        print(player)
         player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
-        print(f"\n player temps : {player_temp}\n")
         player_lvl: str = player_temp["player_lvl"]
         player_MB_lvl: str = player_temp["mb_lvl"]
-        print(player_lvl)
         menu_label: str = f"Niv {player_lvl if player_lvl != -1 else 'Non connue'} : {player['pseudo']}"
         menu_label += " " + Emoji.down.value if player["MB_status"] == "Down" else " " + Emoji.SB.value
-        print(menu_label)
         
         # modification pour mettre les colos non complétées
         
         for colony in colonies:
-            print(colony)
             if colony["number"] >= 10:
-                print('break')
                 break
             if colony["updated"] == True:
-                print('updated')
                 menu_label += Emoji.down.value if colony["colo_status"] == "Down" else Emoji.colo.value
             else:
-                print('empty')
                 menu_label += Emoji.colo_empty.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = status_emoji ,description = "", value = "", default = True))
         it += 1
@@ -106,8 +98,6 @@ class Select(discord.ui.Select):
             if colony["number"] <= 10:
                 player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "colony" + ";" + str(colony["_id"])))
             it += 1
-            print(it)
-        print('fin de la boucle for')
         menu_label = "Reset"
         menu_emoji = Emoji.Reset.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = '', value = "Reset;" + str(player["_id"])))
@@ -150,7 +140,6 @@ class Select(discord.ui.Select):
         if values[1] == "player":
             player: Player_Model = self.bot.db.get_one_player("_id", ObjectId(values[2]))
             if player is None:
-                print(values)
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
                 await self.bot.dashboard.update_Dashboard()
                 return
@@ -185,7 +174,6 @@ class DropView(discord.ui.View):
     def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], timeout: int = 180) -> None:
         super().__init__(timeout=timeout)
         for player in players:
-            print(f"players: {players}")
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(bot.db.get_colonies(obj))
             self.add_item(Select(bot, player, colonies))
