@@ -69,13 +69,13 @@ class GalaxyLifeAPI:
         player_id_steam: str = self.get_player_steam_ID(player_id_gl)
         url: str = self.url_steam + f'/?key={self.steamToken}&format=json&steamids={player_id_steam}'
         response_info: str = requests.get(url)
-        response_parse: dict = json.loads(response_info.content)
-        print(response_parse)
-        print(len(response_parse['response']['players'][0]))
-        if len(response_parse['response']['players'][0]) >= 1:
-            if response_parse['response']['players'][0]['personastate'] == 1:
-                if "gameextrainfo" in response_parse['response']['players'][0]:
-                    if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life": 
-                        print('player online')   
-                        return 1
+        #response_info.raise_for_status() 
+        if response_info.status_code != 204 and response_info.status_code != 500:   
+            response_parse: dict = json.loads(response_info.content)
+            if len(response_parse['response']['players'][0]) >= 1:
+                if response_parse['response']['players'][0]['personastate'] == 1:
+                    if "gameextrainfo" in response_parse['response']['players'][0]:
+                        if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life": 
+                           # print('player online')   
+                            return 1
         return 0

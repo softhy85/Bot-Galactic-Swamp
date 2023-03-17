@@ -1,6 +1,6 @@
 import discord
 from discord import app_commands
-import datetime
+from datetime import datetime
 import requests
 from discord.ext import tasks, commands
 from models.War_Model import War_Model
@@ -11,6 +11,7 @@ from typing import List
 import os
 from models.Alliance_Model import Alliance_Model
 import json
+
 
 class RefreshInfos(commands.Cog):
     bot: commands.Bot = None
@@ -27,12 +28,15 @@ class RefreshInfos(commands.Cog):
     def cog_unload(self):
         self.update_Info_Base.cancel()
 
-    @tasks.loop(minutes=10.0)
+    @tasks.loop(minutes=1)
     async def update_Info_Base(self) -> int:
+        now = datetime.now()
+        date_time_str = now.strftime("%H:%M:%S")
+        print(f"Update at {date_time_str}")
         obj: dict = {"MB_status": "Down"}
         players: Cursor[Player_Model] = self.bot.db.get_players(obj)
         for player in players:
-            date: datetime.datetime = datetime.datetime.now()
+            date: datetime = datetime.now()
             date_next: datetime.datetime = player["MB_refresh_time"]
             if date > date_next:
                 player["MB_status"] = "Up"
@@ -40,7 +44,7 @@ class RefreshInfos(commands.Cog):
         obj = {"colo_status": "Down"}
         colonies: Cursor[Colony_Model] = self.bot.db.get_colonies(obj)
         for colony in colonies:
-            date: datetime.datetime = datetime.datetime.now()
+            date: datetime = datetime.now()
             date_next: datetime.datetime = colony["colo_refresh_time"]
             if date > date_next:
                 colony["colo_status"] = "Up"

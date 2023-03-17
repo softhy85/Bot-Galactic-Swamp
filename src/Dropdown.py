@@ -9,7 +9,7 @@ from pymongo.cursor import Cursor
 from bson.objectid import ObjectId
 from models.Emoji import Emoji
 import os
-
+import asyncio
 
 class Select(discord.ui.Select):
     bot: commands.Bot
@@ -111,6 +111,7 @@ class Select(discord.ui.Select):
         super().__init__(placeholder="Select an option", max_values=1, min_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         if self.values[0] == "":
             return
         date: datetime.datetime = datetime.datetime.now()
@@ -127,7 +128,7 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = date
             player["MB_status"] = "Up"
             self.bot.db.update_player(player)
-            obj: dict = {"_player_id": values[1]}
+            obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             for colony in colonies:
                 colony["colo_refresh_time"] = date
@@ -135,12 +136,12 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
             await self.log_channel.send(f"Reset player : {player['pseudo']} by {interaction.user.name}")
-            await interaction.response.defer(ephemeral=True)
+            
             await self.bot.dashboard.update_Dashboard()
             return
         if len(values) != 3:
             await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-            await interaction.response.defer(ephemeral=True)
+            #await interaction.response.defer(ephemeral=True)
             await self.bot.dashboard.update_Dashboard()
             return
         if values[1] == "player":
@@ -170,7 +171,7 @@ class Select(discord.ui.Select):
                 await self.log_channel.send(f"Attaque colony {colony['number']} : {player['pseudo']} by {interaction.user.name}")
             else: 
                 return
-        await interaction.response.defer(ephemeral=True)
+        #await interaction.response.defer(ephemeral=True)
         await self.bot.dashboard.update_Dashboard()
 
 

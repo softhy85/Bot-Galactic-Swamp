@@ -57,7 +57,7 @@ class Dashboard:
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
         for it in range(0, nb_message):
-            time.sleep(2.)
+            time.sleep(1.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             message = await thread.send(content=" ­", embed=None, view=dropView[it])
@@ -91,10 +91,10 @@ class Dashboard:
         for it in range(0, len(players)):
             if "id_gl" in players[it]:
                 players[it]["player_online"] = self.bot.galaxylifeapi.get_player_status(players[it]['id_gl'])
-                if players[it]["player_online"] == 1:
-                    print('player online')
-                else:
-                    print('player offline')
+                #if players[it]["player_online"] == 1:
+                  #  print('player online')
+                #else:
+                  #  print('player offline')
             else:
                 players[it]["player_online"] = 0
         nb_message: int = len(players) // 5
@@ -109,7 +109,7 @@ class Dashboard:
         await message.edit(embed=embed)
 
         for it in range(0, nb_message):
-            time.sleep(2.)
+            time.sleep(1.)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
             obj = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard;" + str(it)}

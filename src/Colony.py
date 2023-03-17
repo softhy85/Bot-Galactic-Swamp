@@ -81,49 +81,49 @@ class Colony(commands.Cog):
                 for player in players
             ]
 
-    @app_commands.command(name="colo_add", description="Add a new Colony to the db")
-    @app_commands.describe(pseudo="Player's pseudo", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
-    @app_commands.autocomplete(pseudo=player_war_autocomplete)
-    @app_commands.checks.has_any_role('Admin', 'Assistant')
-    async def colo_add(self, interaction: discord.Interaction, pseudo: str, colo_sys_name: str, colo_lvl: int, colo_coord_x: int, colo_coord_y: int):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        if act_war is None:
-            await interaction.response.send_message("No war in progress, to add a colony with a specific player out of war, use /colony_scout.")
-            return
-        act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
-        if act_player is None:
-            await interaction.response.send_message(f"Player named {pseudo} not found.")
-        else:
-            date: datetime.datetime = datetime.datetime.now()
-            obj: dict = {"_player_id": act_player["_id"]}
-            number: int = self.bot.db.db.colonies.count_documents(obj)
-            new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': str.upper(colo_sys_name), 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
-            self.bot.db.push_new_colony(new_colony)
-            await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
-            await self.bot.dashboard.update_Dashboard()
-###
-    @app_commands.command(name="colo_scout", description="Add a new Colony to the db")
-    @app_commands.describe(pseudo="Player's pseudo", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
-    @app_commands.autocomplete(pseudo=player_autocomplete)
-    @app_commands.checks.has_any_role('Admin', 'Assistant')
-    async def colo_scout(self, interaction: discord.Interaction, pseudo: str, colo_sys_name: str, colo_lvl: int, colo_coord_x: int, colo_coord_y: int):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
-        if act_player is None:
-            await interaction.response.send_message(f"Player named {pseudo} not found.")
-        else:
-            date: datetime.datetime = datetime.datetime.now()
-            obj: dict = {"_player_id": act_player["_id"]}
-            number: int = self.bot.db.db.colonies.count_documents(obj)
-            new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': str.upper(colo_sys_name), 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
-            self.bot.db.push_new_colony(new_colony)
-            await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
-            await self.bot.dashboard.update_Dashboard()
+#     @app_commands.command(name="colo_add", description="Add a new Colony to the db")
+#     @app_commands.describe(pseudo="Player's pseudo", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
+#     @app_commands.autocomplete(pseudo=player_war_autocomplete)
+#     @app_commands.checks.has_any_role('Admin', 'Assistant')
+#     async def colo_add(self, interaction: discord.Interaction, pseudo: str, colo_sys_name: str, colo_lvl: int, colo_coord_x: int, colo_coord_y: int):
+#         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
+#             await interaction.response.send_message("You don't have the permission to use this command.")
+#             return
+#         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+#         if act_war is None:
+#             await interaction.response.send_message("No war in progress, to add a colony with a specific player out of war, use /colony_scout.")
+#             return
+#         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+#         if act_player is None:
+#             await interaction.response.send_message(f"Player named {pseudo} not found.")
+#         else:
+#             date: datetime.datetime = datetime.datetime.now()
+#             obj: dict = {"_player_id": act_player["_id"]}
+#             number: int = self.bot.db.db.colonies.count_documents(obj)
+#             new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': str.upper(colo_sys_name), 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
+#             self.bot.db.push_new_colony(new_colony)
+#             await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
+#             await self.bot.dashboard.update_Dashboard()
+# ###
+#     @app_commands.command(name="colo_scout", description="Add a new Colony to the db")
+#     @app_commands.describe(pseudo="Player's pseudo", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
+#     @app_commands.autocomplete(pseudo=player_autocomplete)
+#     @app_commands.checks.has_any_role('Admin', 'Assistant')
+#     async def colo_scout(self, interaction: discord.Interaction, pseudo: str, colo_sys_name: str, colo_lvl: int, colo_coord_x: int, colo_coord_y: int):
+#         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
+#             await interaction.response.send_message("You don't have the permission to use this command.")
+#             return
+#         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+#         if act_player is None:
+#             await interaction.response.send_message(f"Player named {pseudo} not found.")
+#         else:
+#             date: datetime.datetime = datetime.datetime.now()
+#             obj: dict = {"_player_id": act_player["_id"]}
+#             number: int = self.bot.db.db.colonies.count_documents(obj)
+#             new_colony: Colony_Model = {"_alliance_id": act_player["_alliance_id"], '_player_id': act_player["_id"], 'number': number + 1, 'colo_sys_name': str.upper(colo_sys_name), 'colo_lvl': colo_lvl, 'colo_coord': {"x": colo_coord_x, "y": colo_coord_y}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date}
+#             self.bot.db.push_new_colony(new_colony)
+#             await interaction.response.send_message(f"A colony as been added to Player named {pseudo}.")
+#             await self.bot.dashboard.update_Dashboard()
             
     # Retravaillée car les infos à fournir ont changé
     @app_commands.command(name="colo_update", description="Update an existent Colony")
