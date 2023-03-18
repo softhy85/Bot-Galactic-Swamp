@@ -42,6 +42,30 @@ class GalaxyLifeAPI:
         else:
             return_value["alliance_winrate"] = -1
         return return_value    
+ 
+    def get_player_infos_from_name(self, player_name):
+        return_value: dict = {}
+        url: str = self.url_gl + f"/Users/name?name={player_name}"
+        player_infos = self.get_request(url)
+        return_value["mb_lvl"] = player_infos['Planets'][0]['HQLevel']
+        return_value["player_lvl"] = player_infos['Level']
+        if player_infos['AllianceId'] != None:
+            return_value["alliance_name"] = player_infos['AllianceId'].upper()
+        else:
+            return_value["alliance_name"] = None
+        return_value["colo_list"] = []
+        return_value["player_id_gl"] = player_infos['Id']
+        return_value["avatar_url"] = player_infos['Avatar']
+        player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
+        it: int = 0
+        for colonies in player_infos['Planets']:
+            return_value["colo_list"].append(player_infos['Planets'][it]['HQLevel'])
+            if it == len(player_infos['Planets']):
+                break
+            it = it + 1
+
+        return return_value    
+        
     
     def get_player_infos(self, player_id):
         return_value: dict = {}
@@ -64,7 +88,13 @@ class GalaxyLifeAPI:
         url: str = self.url_gl + f"/Users/platformId?userId={player_id_gl}"
         return self.get_request(url)
        
-
+    def get_steam_url(self, player_id_gl):
+        player_id_steam: str = self.get_player_steam_ID(player_id_gl)
+        url: str = self.url_steam + f'/?key={self.steamToken}&format=json&steamids={player_id_steam}'
+        response_info: str = requests.get(url)
+        response_parse: dict = json.loads(response_info.content)
+        return response_parse["response"]["players"][0]["profileurl"]
+    
     def get_player_status(self, player_id_gl):
         player_id_steam: str = self.get_player_steam_ID(player_id_gl)
         url: str = self.url_steam + f'/?key={self.steamToken}&format=json&steamids={player_id_steam}'
