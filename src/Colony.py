@@ -29,7 +29,11 @@ class Colony(commands.Cog):
         print("Player cog loaded.")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        alliances = self.bot.db.get_all_alliances()
+        obj: dict = {}
+        if current != "":
+            obj: dict = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
+        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
+        alliances = alliances[0:25]
         return [
             app_commands.Choice(name=alliance["name"], value=alliance["name"])
             for alliance in alliances
@@ -47,8 +51,6 @@ class Colony(commands.Cog):
                 for player in players
             ]
             
-    # Pas très sûr de moi: je veux que l'utilisateur puisse choisir le numéro de colonie. Si la colonie est déjà remplie, un coche ✅ (colo["completion"]) s'affiche devant. Autre possibilité: n'afficher que les colonies non remplies       
-    # Il faut recup le joueur 
     async def  colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if act_war is None:
@@ -80,6 +82,10 @@ class Colony(commands.Cog):
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
                 for player in players
             ]
+    
+    
+
+
 
 #     @app_commands.command(name="colo_add", description="Add a new Colony to the db")
 #     @app_commands.describe(pseudo="Player's pseudo", colo_sys_name="Colony's system name", colo_lvl="Colony's level", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
@@ -129,7 +135,7 @@ class Colony(commands.Cog):
     @app_commands.command(name="colo_update", description="Update an existent Colony")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
     @app_commands.autocomplete(pseudo=player_autocomplete, colo_number=colo_autocomplete)
-    @app_commands.default_permissions()
+    @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str, colo_coord_x: int, colo_coord_y: int):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")

@@ -2,6 +2,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from models.Alliance_Model import Alliance_Model
+from models.Player_Model import Player_Model
+from models.Colony_Model import Colony_Model
+from models.Colors import Colors
 from typing import List
 import os
 import re
@@ -16,6 +19,8 @@ class Alliance(commands.Cog):
         self.bot = bot
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
+        self.log_channel_id: int = int(os.getenv("COLO_BACKUP_CHANNEL"))
+        self.log_channel = self.bot.get_channel(self.log_channel_id)
         super().__init__()
 
     @commands.Cog.listener()
@@ -91,6 +96,31 @@ class Alliance(commands.Cog):
             self.bot.db.remove_alliance(return_alliance)
             await interaction.response.send_message(f"Alliance named {alliance} as been removed.")
 
+    @app_commands.command(name="alliance_colonies", description="Get all colonies from an alliance")
+    @app_commands.describe(alliance="Alliance's name")
+    @app_commands.autocomplete(alliance=alliance_autocomplete)
+    @app_commands.checks.has_any_role('Admin')
+    async def alliance_colonies(self, interaction: discord.Interaction,  alliance: str): 
+        alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+        alliance_api_info = self.bot.galaxylifeapi.get_alliance(alliance_info["name"])
+        obj: dict = {"_alliance_id": alliance_info["_id"]}
+        players: List[Player_Model] = self.bot.db.get_players(obj)
+        
+        await interaction.response.send_message(f"Here's the database for {alliance_info['name']}:")
+        embed: discord.Embed = discord.Embed(title=f"➖➖➖➖ {alliance_info['name']} ➖➖➖➖", description=" \n ", color=discord.Color.from_rgb(8, 1, 31))
+        embed.set_thumbnail(url=alliance_api_info["emblem_url"])
+        
+        for player in players:
+            value: str = ""
+            obj: dict = {"_player_id": player["_id"]}
+            colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+            for colo in colonies:
+                if colo['colo_coord']['x'] != "-1":
+                    value = value + f"\n🪐 **__(SB{colo['colo_lvl']}):__**\n/colo_update pseudo:{player['pseudo']} colo_number:{colo['number']} colo_sys_name:{colo['colo_sys_name']} colo_coord_x:{colo['colo_coord']['x']} colo_coord_y:{colo['colo_coord']['y']}\n"
+            if value != "": 
+                embed.add_field(name=f"\n✅ {player['pseudo']}",value=value, inline=False)
+        await self.log_channel.send(embed=embed)        
+       
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Alliance(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

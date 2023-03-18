@@ -12,6 +12,7 @@ import requests
 import json
 import datetime
 import time
+import re
 
 class War(commands.Cog):
     bot: commands.Bot = None
@@ -33,7 +34,11 @@ class War(commands.Cog):
         print("War cog loaded.")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        alliances = self.bot.db.get_all_alliances()
+        obj: dict = {}
+        if current != "":
+            obj: dict = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
+        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
+        alliances = alliances[0:25]
         return [
             app_commands.Choice(name=alliance["name"], value=alliance["name"])
             for alliance in alliances
