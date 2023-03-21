@@ -48,8 +48,12 @@ class Player(commands.Cog):
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
             for player in players
         ]
-      
-      
+ 
+    async def bunker_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
+        data = []
+        for choice in ["full", "empty"]:
+            data.append(app_commands.Choice(name=choice, value=choice))
+        return data   
       
     @app_commands.command(name="player_infos", description="Displays player's informations")
     @app_commands.describe(pseudo="Player's pseudo")
@@ -174,6 +178,24 @@ class Player(commands.Cog):
             await interaction.response.send_message(f"Player named {pseudo} as been removed.")
             await self.bot.dashboard.update_Dashboard()
 
+    @app_commands.command(name="player_bunkers", description="Tell if player usually refills their bunkers")
+    @app_commands.describe(pseudo="Player's pseudo", bunker_state="Etat du bunker")
+    @app_commands.autocomplete(pseudo=player_autocomplete, bunker_state=bunker_autocomplete)
+    @app_commands.checks.has_any_role('Admin', 'Assistant')
+    async def player_bunkers(self, interaction: discord.Interaction, pseudo: str, bunker_state: str):
+        return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+        if return_player is None:
+            await interaction.response.send_message(f"Player named {pseudo} does not exist.")
+        else:
+            if bunker_state == "full":
+                return_player["bunker_full"] = True
+            else:
+                return_player["bunker_full"] = False
+            self.bot.db.update_player(return_player)
+            await interaction.response.send_message(f"Bunkers of {pseudo} have been updated.")
+            await self.bot.dashboard.update_Dashboard()
+            
 
+            
 async def setup(bot: commands.Bot):
     await bot.add_cog(Player(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

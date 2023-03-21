@@ -111,7 +111,7 @@ class Colony(commands.Cog):
                     act_colony["colo_coord"]["y"] = colo_coord_y
                 act_colony["updated"] = True
                 self.bot.db.update_colony(act_colony)
-                await interaction.response.send_message(f"Colony updated.")
+                await interaction.response.send_message(f"Colony n°{colo_number} of {pseudo} updated.")
                 await self.bot.dashboard.update_Dashboard()
 
 

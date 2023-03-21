@@ -70,20 +70,32 @@ class War(commands.Cog):
                 await interaction.response.send_message(f"{alliance} doesn't seem to exist")
                 return
             else:
-                new_alliance: Alliance_Model = {"name": alliance}
+                new_alliance: Alliance_Model = {"name": alliance.upper()}
                 new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
                 if new_alliance["_id"] is None:
                     await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to @Softy(léo).")
                     return
                 war_alliance = new_alliance
+        ennemy = self.bot.galaxylifeapi.get_alliance(alliance)
+        ally = self.bot.galaxylifeapi.get_alliance("GALACTIC SWAMP")
         await interaction.response.send_message("> Loading alliance...")  
         # Création du joueur et de sa main base
         alliance_info = self.bot.galaxylifeapi.get_alliance(alliance)
+        obj: dict = {"_alliance_id": war_alliance["_id"]}
+        db_players: List[Player_Model] = self.bot.db.get_players(obj)
+        for db_player in db_players:
+            for player in alliance_info["members_list"]:
+                if db_player["pseudo"] != player["Name"]:
+                    db_player["_alliance_id"] = None
+                    self.bot.db.update_player(db_player)
         for player in alliance_info["members_list"]:
-            new_player: Player_Model = {'_alliance_id': war_alliance["_id"], 'pseudo': player["Name"], 'id_gl': player["Id"], 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date}
+            new_player: Player_Model = {'_alliance_id': war_alliance["_id"], 'pseudo': player["Name"], 'id_gl': player["Id"], 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'bunker_full': False}
             act_player: Player_Model =  self.bot.db.push_new_player(new_player)
             if act_player == None:
                 act_player = self.bot.db.get_one_player("pseudo", player["Name"])
+                if act_player["_alliance_id"] != war_alliance["_id"]:
+                    act_player["_alliance_id"] = war_alliance["_id"]
+                    self.bot.db.update_player(act_player)
                # await self.log_channel.send(f"> Player named __**{player['Name']}**__ recovered.")
             else:
                 act_player = self.bot.db.get_one_player("pseudo", player["Name"])
@@ -125,9 +137,10 @@ class War(commands.Cog):
                 await self.log_channel.send(f"> No colony was added to Player named __**{player['Name']}**__.")    
         # Communication et création du Thread    
         await self.log_channel.send("> New war started.")
-        new_message: discord.Message = await self.war_channel.send(f"Nous sommes en guerre contre **{war_alliance['name']}** !!")
+        new_message: discord.Message = await self.war_channel.send(f"@Soldat Nous sommes en guerre contre **{war_alliance['name']}** !!")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
-        new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "enemy_point": 0, "point": 0, "status": "InProgress"}
+        # new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": 0, "ally_initial_score": 0, "status": "InProgress"}
+        new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": ennemy['alliance_score'], "ally_initial_score": ally['alliance_score'], "status": "InProgress"}
         new_war["_id"] = self.bot.db.push_new_war(new_war)
         await self.bot.dashboard.create_Dashboard(new_war)
 
@@ -166,6 +179,9 @@ class War(commands.Cog):
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Ended",archived=True, locked=True)
                     await self.general_channel.send(f"La guerre actuelle contre {actual_war['alliance_name']} est terminée.")
+
+
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(War(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

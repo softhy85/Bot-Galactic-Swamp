@@ -34,6 +34,7 @@ class GalaxyLifeAPI:
         return_value["alliance_size"] =  len(alliance_infos['Members'])
         return_value["emblem_url"] = self.get_emblem(alliance_infos['Emblem']['Shape'], alliance_infos['Emblem']['Pattern'], alliance_infos['Emblem']['Icon'])   
         return_value["members_list"] = []
+        return_value["alliance_score"] = alliance_infos['WarPoints']
         for member in alliance_infos['Members']:
             return_value["members_list"].append({"Name": member["Name"], "Id": member["Id"]})
             

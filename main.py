@@ -39,7 +39,7 @@ async def on_ready():
     print("The bot is online")
     bot.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = bot.get_channel(bot.command_channel_id)
-    await bot.command_channel.send("@personne - Le bot est connecté.")
+    await bot.command_channel.send("@personne - Le bot est connecté. <:O_:1043627742723317770>")
 
 
 @bot.command()
