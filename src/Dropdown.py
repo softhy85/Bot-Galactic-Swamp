@@ -29,7 +29,7 @@ class Select(discord.ui.Select):
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
         status_emoji: str = Emoji.offline.value
-        if player["player_online"]:
+        if player["player_online"] == 1:
             status_emoji = Emoji.online.value 
             player["MB_refresh_time"] = self.date
             player["MB_last_attack_time"] = self.date
@@ -43,11 +43,16 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
         else:
-            if "bunker_full" in player:
-                if player["bunker_full"] == True:
-                    status_emoji = Emoji.bouclier.value
-                else:   
-                    status_emoji = Emoji.offline.value
+            if player["player_online"] == 2:
+                status_emoji = Emoji.maybe.value
+            else:
+                if "bunker_full" in player:
+                    if player["bunker_full"] == "MB_full":
+                        status_emoji = Emoji.bouclier_MB.value
+                    elif player["bunker_full"] == "everything_full":
+                        status_emoji = Emoji.bouclier_tout.value
+                    else:   
+                        status_emoji = Emoji.offline.value
         player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
         player_lvl: str = player_temp["player_lvl"]
         player_MB_lvl: str = player_temp["mb_lvl"]
@@ -205,7 +210,7 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Down"
             self.bot.db.update_player(player)
-            await self.log_channel.send(f"Attaque main base : {player['pseudo']} by {interaction.user.display_name}")
+            await self.log_channel.send(f"💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🌍 main base destroyed by {interaction.user.display_name}")
         elif values[1] == "colony":
             colony: Colony_Model = self.bot.db.get_one_colony("_id", ObjectId(values[2]))
             if colony is None:
@@ -219,7 +224,9 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Down"
                 self.bot.db.update_colony(colony)
                 player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
-                await self.log_channel.send(f"Attaque colony {colony['number']} : {player['pseudo']} by {interaction.user.display_name}")
+                player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
+                player_lvl: str = player_temp["player_lvl"]
+                await self.log_channel.send(f"💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
             else: 
                 return
         #await interaction.response.defer(ephemeral=True)

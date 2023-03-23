@@ -137,15 +137,15 @@ class War(commands.Cog):
                 await self.log_channel.send(f"> No colony was added to Player named __**{player['Name']}**__.")    
         # Communication et création du Thread    
         await self.log_channel.send("> New war started.")
-        new_message: discord.Message = await self.war_channel.send(f"@Soldat Nous sommes en guerre contre **{war_alliance['name']}** !!")
+        new_message: discord.Message = await self.war_channel.send(f"<@&1043541214319874058> We are at war against **{war_alliance['name']}** !!")
         new_thread: discord.Thread = await new_message.create_thread(name=war_alliance["name"])
         # new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": 0, "ally_initial_score": 0, "status": "InProgress"}
         new_war: War_Model = {"_alliance_id": war_alliance["_id"], "alliance_name": war_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": ennemy['alliance_score'], "ally_initial_score": ally['alliance_score'], "status": "InProgress"}
         new_war["_id"] = self.bot.db.push_new_war(new_war)
         await self.bot.dashboard.create_Dashboard(new_war)
 
-    @app_commands.command(name="war_update", description="Update the actual war")
-    @app_commands.describe(status="Status",point="The point of our alliance", enemy_point="The point of the enemy alliance")
+    @app_commands.command(name="war_update", description="Update the current war")
+    @app_commands.describe(status="Status",point="Our alliance's score", enemy_point="The ennemie's score")
     @app_commands.checks.has_role('Admin')
     async def war_update(self, interaction: discord.Interaction, status: Status = Status.InProgress, point: int=-1, enemy_point: int=-1):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
@@ -170,15 +170,15 @@ class War(commands.Cog):
                 if status.value == 2:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Win",archived=True, locked=True)
-                    await self.general_channel.send(f"La guerre actuelle contre {actual_war['alliance_name']} a été gagnée.")
+                    await self.general_channel.send(f"War against {actual_war['alliance_name']} has been won.")
                 if status.value == 3:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
-                    await self.general_channel.send(f"La guerre actuelle contre {actual_war['alliance_name']} a été perdue.")
+                    await self.general_channel.send(f"War against {actual_war['alliance_name']} has been lost.")
                 if status.value == 4:
                     if war_thread is not None:
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Ended",archived=True, locked=True)
-                    await self.general_channel.send(f"La guerre actuelle contre {actual_war['alliance_name']} est terminée.")
+                    await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
 
 
 

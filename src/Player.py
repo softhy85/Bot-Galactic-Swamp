@@ -49,9 +49,9 @@ class Player(commands.Cog):
             for player in players
         ]
  
-    async def bunker_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
+    async def bunker_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
         data = []
-        for choice in ["full", "empty"]:
+        for choice in ["MB full","MB + Colonies full", "Empty"]:
             data.append(app_commands.Choice(name=choice, value=choice))
         return data   
       
@@ -178,17 +178,19 @@ class Player(commands.Cog):
             await interaction.response.send_message(f"Player named {pseudo} as been removed.")
             await self.bot.dashboard.update_Dashboard()
 
-    @app_commands.command(name="player_bunkers", description="Tell if player usually refills their bunkers")
+    @app_commands.command(name="player_bunkers", description="Tell if player usually refills their bunkers (Only main base, or colonies too)")
     @app_commands.describe(pseudo="Player's pseudo", bunker_state="Etat du bunker")
-    @app_commands.autocomplete(pseudo=player_autocomplete, bunker_state=bunker_autocomplete)
+    @app_commands.autocomplete(pseudo=player_autocomplete, bunker_state=bunker_state_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def player_bunkers(self, interaction: discord.Interaction, pseudo: str, bunker_state: str):
         return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
         if return_player is None:
             await interaction.response.send_message(f"Player named {pseudo} does not exist.")
         else:
-            if bunker_state == "full":
-                return_player["bunker_full"] = True
+            if bunker_state == "MB full":
+                return_player["bunker_full"] = "MB_full"
+            elif bunker_state == "MB + Colonies full":
+                return_player["bunker_full"] = "everything_full"
             else:
                 return_player["bunker_full"] = False
             self.bot.db.update_player(return_player)

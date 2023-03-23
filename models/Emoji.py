@@ -11,8 +11,13 @@ class Emoji(Enum):
     fifteen_min: str = "🕘"
     thirty_min: str = "🕧"
     forty_five_min: str = "🕒"
-    online : str =  "⛔" #"<:shield2:1087132930381455513>"
+    online : str =  "⛔" 
+    maybe : str =  "<:maybe:1088513189911724093>"
     offline : str = "💫"
     updated : str = "✅"
     native : str = "🟨"
-    bouclier: str = "<:shield3:1087133582574768218>"
+    bouclier_MB: str = "<:shield3:1087133582574768218>"
+    bouclier_tout: str = "<:shield2:1087132930381455513>"
+    
+    
+   

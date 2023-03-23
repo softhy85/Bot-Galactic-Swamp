@@ -11,6 +11,7 @@ from models.InfoMessage_Model import InfoMessage_Model
 from pymongo.cursor import Cursor
 from typing import List
 from models.Colors import Colors
+import math
 
 class Dashboard:
     bot: commands.Bot
@@ -22,13 +23,61 @@ class Dashboard:
     @staticmethod
     def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model]) -> discord.Embed:
         embed: discord.Embed
+        title = self.centered_title(war)
+        score = self.score_bar(alliance, players)
         war_progress: dict = self.war_progress(alliance["name"], players)
-        description: str = f"lvl: {alliance['alliance_lvl'] if alliance['alliance_lvl'] != -1 else 'Inconnu'}\n Winrate: {alliance['alliance_winrate'] if alliance['alliance_winrate'] != -1 else '❔'}%\n­ "
-        embed = discord.Embed(title=f"⚔️ {war['alliance_name'].upper()} ⚔️️", description=description, color=Colors.purple,timestamp=datetime.datetime.now())
+        # # lvl: {alliance['alliance_lvl'] if alliance['alliance_lvl'] != -1 else 'Inconnu'}\n 
+        description: str = score["description"]
+        winrate: str = f"Winrate: {alliance['alliance_winrate'] if alliance['alliance_winrate'] != -1 else '?'}%­ "
+        embed = discord.Embed(title=title, description=description,timestamp=datetime.datetime.now())
+        embed.add_field(name=f"{score['title']}",value=f"<:empty:1088454928474841108>\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}")
         embed.set_thumbnail(url=alliance["emblem_url"])
-        embed.add_field(name=f"Alliés 💫 {war_progress['ally_alliance_score']} | {war_progress['ennemy_alliance_score']} 💫 Ennemis\n",value=f"\n­ \n💥 Planètes détruites: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐Colonies découvertes: {war_progress['known_colonies']}/{war_progress['total_colonies']}")
         return embed
 
+    def centered_title(self, war):
+        title = war['alliance_name'].upper()
+        title_space =  len(str(title))
+        it: int = 0
+        filler = ""
+        #largeur = 15 emojis, 25 char
+        filler_number_char = (25 - title_space)/2
+        filler_number_emojis =  round(filler_number_char * 15 / 25) - 2
+        while it <= filler_number_emojis:
+            filler = filler + "<:empty:1088454928474841108>"
+            it += 1
+        centered_title = f"{filler}⚔️  {title}  ⚔️"
+        
+        return centered_title 
+        
+    def score_bar(self, alliance: Alliance_Model, players: List[Player_Model]):
+        it: int = 1
+        return_value: dict = {}
+        war_progress: dict = self.war_progress(alliance["name"], players)
+        score_space =  (len(str(war_progress['ally_alliance_score'])) - 1 + len(str(war_progress['ennemy_alliance_score']))- 1)
+        filler = "  "
+        filler_number = 20 - score_space
+        while it <= filler_number:
+            filler = filler + " "
+            it += 1
+        slider: str = ""
+        slider_length = 15
+        if (war_progress['ally_alliance_score'] + war_progress['ennemy_alliance_score']) != 0:
+            slider_score = int(war_progress['ally_alliance_score'] / (war_progress['ally_alliance_score'] + war_progress['ennemy_alliance_score']) * slider_length)
+        else:
+            slider_score = 0.5 * slider_length + 1
+        it = 1
+        while it < slider_score:
+            slider = slider + "<:progressbar:1088095117841281115>"
+            it += 1
+        slider = slider + "<:slider:1088096728697278484>"
+        it = 1  
+        while slider_score + it <= slider_length:
+            slider = slider + "<:progressbar2:1088096726184886292>"
+            it += 1
+        return_value["title"] =  f"💫 {war_progress['ally_alliance_score']}{filler}{war_progress['ennemy_alliance_score']} 💫"
+        return_value["description"] = f"{slider}"
+        return return_value
+        
     async def create_Dashboard(self, actual_war: War_Model) -> int:
         thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
@@ -101,10 +150,10 @@ class Dashboard:
         for it in range(0, len(players)):
             if "id_gl" in players[it]:
                 players[it]["player_online"] = self.bot.galaxylifeapi.get_player_status(players[it]['id_gl'])
-                #if players[it]["player_online"] == 1:
-                  #  print('player online')
-                #else:
-                  #  print('player offline')
+                if players[it]["player_online"] == 1:
+                   print('player online')
+                # else:
+                #    print('player offline')
             else:
                 players[it]["player_online"] = 0
         nb_message: int = len(players) // 5
@@ -117,6 +166,7 @@ class Dashboard:
             return -1
         message = await thread.fetch_message(int(infoMessages[0]["id_message"]))
         await message.edit(embed=embed)
+
 
         for it in range(0, nb_message):
             time.sleep(1.)
