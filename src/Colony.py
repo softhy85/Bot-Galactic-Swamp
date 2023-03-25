@@ -82,6 +82,12 @@ class Colony(commands.Cog):
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
                 for player in players
             ]
+            
+    async def gift_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
+        data = []
+        for choice in ["Always Free","Free Once", "Not Free"]:
+            data.append(app_commands.Choice(name=choice, value=choice))
+        return data   
     
     @app_commands.command(name="colo_update", description="Update an existent Colony")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
@@ -139,6 +145,23 @@ class Colony(commands.Cog):
                 await interaction.response.send_message(f"Player named {pseudo} as been removed.")
                 await self.bot.dashboard.update_Dashboard()
 
-
+    @app_commands.command(name="gift_colony", description="Gift colony to low level players / Or tell if a colony never has defenses")
+    @app_commands.describe(pseudo="Player's pseudo", colo_number="Wich colony", gift_state="x")
+    @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete,  gift_state=gift_state_autocomplete)
+    async def player_bunkers(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
+        act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+        obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
+        act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+        if act_player is None:
+            await interaction.response.send_message(f"Player named {pseudo} does not exist.")
+        else:
+            act_colony = act_colony[0]
+            act_colony["gift_state"]: str = gift_state
+            self.bot.db.update_colony(act_colony)
+            await interaction.response.send_message(f"The free state of colony n°{act_colony['number']} of {pseudo} has been updated.")
+            await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁")
+            await self.bot.dashboard.update_Dashboard()
+            
+        
 async def setup(bot: commands.Bot):
     await bot.add_cog(Colony(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

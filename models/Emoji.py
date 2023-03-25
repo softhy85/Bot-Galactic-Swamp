@@ -4,7 +4,7 @@ from enum import Enum
 class Emoji(Enum):
     SB: str = "🌎"
     colo: str = "🪐"
-    colo_empty: str = "❔" #sinon "🔍" ou "❓"
+    colo_empty: str = "❔"
     down: str = "💥"
     Reset: str = "♻"
     five_min: str = "🕚"
@@ -18,6 +18,7 @@ class Emoji(Enum):
     native : str = "🟨"
     bouclier_MB: str = "<:shield3:1087133582574768218>"
     bouclier_tout: str = "<:shield2:1087132930381455513>"
+    gift: str = "🎁"
     
     
    

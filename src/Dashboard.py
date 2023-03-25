@@ -207,6 +207,7 @@ class Dashboard:
         return_value["known_colonies"] = known_colonies
         return_value["total_colonies"] = known_colonies + hidden_colonies
         return_value["total_known_planets"] = main_planet + known_colonies
+        return_value["main_planet"] = main_planet
         
         war_infos: War_Model = self.bot.db.get_one_war("status", "InProgress")
         ally_alliance_name: str = "GALACTIC SWAMP"

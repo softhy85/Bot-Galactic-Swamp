@@ -26,7 +26,9 @@ bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, applicatio
 
 @bot.event
 async def on_ready():
+    bot.refreshinfo = RefreshInfos(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
     bot.dashboard = Dashboard(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
+    bot.war = War(bot)
     bot.galaxylifeapi = GalaxyLifeAPI()
     bot.db = db
     bot.spec_role = Role()

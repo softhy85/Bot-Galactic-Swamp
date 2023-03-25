@@ -111,6 +111,9 @@ class DataBase:
     def get_colonies(self, obj: dict) -> Cursor[Colony_Model]:
         return self.db.colonies.find(obj)
 
+    # def get_scouted_colonies(self, obj: dict) -> Cursor[Colony_Model]:
+    #     return self.db.colonies.find(obj)
+        
     def push_new_war(self, war: War_Model) -> ObjectId | None:
         actual_war: War_Model = self.db.wars.find_one({"status": "InProgress"})
         if actual_war is None:

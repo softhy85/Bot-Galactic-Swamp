@@ -35,6 +35,8 @@ class GalaxyLifeAPI:
         return_value["emblem_url"] = self.get_emblem(alliance_infos['Emblem']['Shape'], alliance_infos['Emblem']['Pattern'], alliance_infos['Emblem']['Icon'])   
         return_value["members_list"] = []
         return_value["alliance_score"] = alliance_infos['WarPoints']
+        return_value["war_status"] = alliance_infos["InWar"]
+        return_value["ennemy_name"] = alliance_infos["OpponentAllianceId"]
         for member in alliance_infos['Members']:
             return_value["members_list"].append({"Name": member["Name"], "Id": member["Id"]})
             
@@ -103,7 +105,7 @@ class GalaxyLifeAPI:
         if response_info.status_code != 204 and response_info.status_code != 500:   
             response_parse: dict = json.loads(response_info.content)
             if len(response_parse['response']['players'][0]) >= 1:
-                if response_parse['response']['players'][0]['personastate'] == 1:
+                if response_parse['response']['players'][0]['personastate'] != 0:
                     if "gameextrainfo" in response_parse['response']['players'][0]:
                         if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life":   
                             return 1

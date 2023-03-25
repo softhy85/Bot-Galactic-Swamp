@@ -97,8 +97,14 @@ class Select(discord.ui.Select):
                     else:
                         menu_emoji = Emoji.down.value
                     menu_label += menu_emoji 
-                else:   
-                    menu_emoji = Emoji.colo.value
+                else:
+                    if "gift_state" in colony:
+                        if colony["gift_state"] != "Not Free":  
+                            menu_emoji = Emoji.gift.value
+                        else:
+                            menu_emoji = Emoji.colo.value 
+                    else:
+                        menu_emoji = Emoji.colo.value
                     menu_label += menu_emoji 
             else:
                 menu_label += Emoji.colo_empty.value
@@ -151,7 +157,13 @@ class Select(discord.ui.Select):
                 else :
                     menu_label = f"{colony['colo_sys_name']}"
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
-                    menu_emoji = Emoji.colo.value
+                    if "gift_state" in colony:
+                        if colony["gift_state"] != "Not Free":  
+                            menu_emoji = Emoji.gift.value
+                        else:
+                            menu_emoji = Emoji.colo.value
+                    else:
+                        menu_emoji = Emoji.colo.value
             else:
                 menu_label = f" ?????"
                 menu_description = f"( ? ; ? ) - SB ({colony['colo_lvl']})"
@@ -166,11 +178,15 @@ class Select(discord.ui.Select):
         super().__init__(placeholder="Select an option", max_values=1, min_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
+        date = datetime.datetime.now()
         await interaction.response.defer(ephemeral=True)
         if self.values[0] == "":
             return
-        refresh_duration: float = 5.0
-        date_resfresh: datetime.datetime = self.date + datetime.timedelta(hours=refresh_duration)
+        refresh_duration: float = 4.0
+        date_resfresh: datetime.datetime = date + datetime.timedelta(hours=refresh_duration)
+        print(date)
+        print(refresh_duration)
+        
         values: List[str] = self.values[0].split(";")
         self.values[0] = ""
         if len(values) == 2 and values[0] == "Reset":
@@ -210,7 +226,9 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Down"
             self.bot.db.update_player(player)
-            await self.log_channel.send(f"💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🌍 main base destroyed by {interaction.user.display_name}")
+            player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
+            player_lvl: str = player_temp["player_lvl"]
+            await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🌍 main base destroyed by {interaction.user.display_name}")
         elif values[1] == "colony":
             colony: Colony_Model = self.bot.db.get_one_colony("_id", ObjectId(values[2]))
             if colony is None:
@@ -219,6 +237,9 @@ class Select(discord.ui.Select):
                 return
             # pas d'attaque si la colo n'est pas updated
             if colony["updated"] == True:
+                if "gift_state" in colony:
+                    if colony['gift_state'] == "Free Once":
+                        colony['gift_state'] = "Not Free"
                 colony["colo_refresh_time"] = date_resfresh
                 colony["colo_last_attack_time"] = self.date
                 colony["colo_status"] = "Down"
@@ -226,7 +247,8 @@ class Select(discord.ui.Select):
                 player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
                 player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
                 player_lvl: str = player_temp["player_lvl"]
-                await self.log_channel.send(f"💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
+                print(colony)
+                await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
             else: 
                 return
         #await interaction.response.defer(ephemeral=True)

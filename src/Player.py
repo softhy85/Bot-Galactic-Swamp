@@ -48,7 +48,24 @@ class Player(commands.Cog):
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
             for player in players
         ]
- 
+        
+    async def player_war_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+        act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+        if act_war is None:
+            return []
+        else:
+            if current == "":
+                obj: dict = {"_alliance_id": act_war["_alliance_id"]}
+            else:
+                obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
+            players: List[Player_Model] = self.bot.db.get_players(obj)
+            print(players)
+            players = players[0:25]
+            return [
+                app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
+                for player in players
+            ]
+            
     async def bunker_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
         data = []
         for choice in ["MB full","MB + Colonies full", "Empty"]:
@@ -180,7 +197,7 @@ class Player(commands.Cog):
 
     @app_commands.command(name="player_bunkers", description="Tell if player usually refills their bunkers (Only main base, or colonies too)")
     @app_commands.describe(pseudo="Player's pseudo", bunker_state="Etat du bunker")
-    @app_commands.autocomplete(pseudo=player_autocomplete, bunker_state=bunker_state_autocomplete)
+    @app_commands.autocomplete(pseudo=player_war_autocomplete, bunker_state=bunker_state_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def player_bunkers(self, interaction: discord.Interaction, pseudo: str, bunker_state: str):
         return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
@@ -196,7 +213,6 @@ class Player(commands.Cog):
             self.bot.db.update_player(return_player)
             await interaction.response.send_message(f"Bunkers of {pseudo} have been updated.")
             await self.bot.dashboard.update_Dashboard()
-            
 
             
 async def setup(bot: commands.Bot):
