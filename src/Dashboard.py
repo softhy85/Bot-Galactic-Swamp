@@ -61,17 +61,18 @@ class Dashboard:
             it += 1
         slider: str = ""
         slider_length = 15
+
         if (war_progress['ally_alliance_score'] + war_progress['ennemy_alliance_score']) != 0:
-            slider_score = int(war_progress['ally_alliance_score'] / (war_progress['ally_alliance_score'] + war_progress['ennemy_alliance_score']) * slider_length)
+            slider_score = int(war_progress['ally_alliance_score'] / (war_progress['ally_alliance_score']+ war_progress['ennemy_alliance_score']) * slider_length)
         else:
             slider_score = 0.5 * slider_length + 1
-        it = 1
+        it = 0
         while it < slider_score:
             slider = slider + "<:progressbar:1088095117841281115>"
             it += 1
         slider = slider + "<:slider:1088096728697278484>"
         it = 1  
-        while slider_score + it <= slider_length:
+        while slider_score + it <= slider_length - 1:
             slider = slider + "<:progressbar2:1088096726184886292>"
             it += 1
         return_value["title"] =  f"💫 {war_progress['ally_alliance_score']}{filler}{war_progress['ennemy_alliance_score']} 💫"
@@ -150,10 +151,6 @@ class Dashboard:
         for it in range(0, len(players)):
             if "id_gl" in players[it]:
                 players[it]["player_online"] = self.bot.galaxylifeapi.get_player_status(players[it]['id_gl'])
-                if players[it]["player_online"] == 1:
-                   print('player online')
-                # else:
-                #    print('player offline')
             else:
                 players[it]["player_online"] = 0
         nb_message: int = len(players) // 5

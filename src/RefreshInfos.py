@@ -18,31 +18,38 @@ import json
 
 
 class RefreshInfos(commands.Cog):
-    guild: discord.Guild
+    guild: discord.Guild = None
+    bot: commands.bot = None
+    experiment_channel_id: int = 0
+    experiment_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
+    war_channel_id: int = 0
+    war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
+    general_channel_id: int = 0
+    general_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
     def __init__(self, bot: commands.Bot, guild: discord.Guild):
         self.bot = bot
         self.guild = guild
-        self.update_Info_Base.start()
-        self.experiment_channel_id: int = int(os.getenv("EXPERIMENT_CHANNEL"))
+        self.experiment_channel_id = int(os.getenv("EXPERIMENT_CHANNEL"))
         self.experiment_channel = self.bot.get_channel(self.experiment_channel_id)
-        self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
+        self.war_channel_id  = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
-        self.general_channel_id: int = int(os.getenv("GENERAL_CHANNEL"))
+        self.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
         self.general_channel = self.bot.get_channel(self.war_channel_id)
         super().__init__()
+        self.update_Info_Base.start()
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("RefreshInfos cog loaded.")
+        print("Cog Loaded : RefreshInfos")
 
     def cog_unload(self):
         self.update_Info_Base.cancel()
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=3)
     async def update_Info_Base(self) -> int:
         now = datetime.now()
         date_time_str = now.strftime("%H:%M:%S")
-        print(f"Update at {date_time_str}")
+        print(f"Info: Update at {date_time_str}")
         obj: dict = {"MB_status": "Down"}
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
@@ -139,10 +146,7 @@ class RefreshInfos(commands.Cog):
                     await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
             else:
                 await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
-            print("war ended")
             self.bot.db.update_war(actual_war)
-        else: 
-            print("war still ongoing.")
         return
     
     async def is_war_started(self):
@@ -151,5 +155,6 @@ class RefreshInfos(commands.Cog):
         if alliance_infos['war_status'] == True:
             await self.bot.war.new_war(alliance_infos["ennemy_name"].upper())         
             
-async def setup(bot: commands.Bot):
-    await bot.add_cog(RefreshInfos(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])
+# async def setup(bot: commands.Bot):
+    # guild: discord.Guild = bot.get_guild(int(os.getenv("SERVER_ID")))
+    # await bot.add_cog(RefreshInfos(bot=bot, guild=guild), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

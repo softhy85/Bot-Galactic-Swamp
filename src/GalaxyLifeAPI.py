@@ -100,15 +100,21 @@ class GalaxyLifeAPI:
     
     def get_player_status(self, player_id_gl):
         player_id_steam: str = self.get_player_steam_ID(player_id_gl)
-        url: str = self.url_steam + f'/?key={self.steamToken}&format=json&steamids={player_id_steam}'
-        response_info: str = requests.get(url) 
-        if response_info.status_code != 204 and response_info.status_code != 500:   
-            response_parse: dict = json.loads(response_info.content)
-            if len(response_parse['response']['players'][0]) >= 1:
-                if response_parse['response']['players'][0]['personastate'] != 0:
-                    if "gameextrainfo" in response_parse['response']['players'][0]:
-                        if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life":   
-                            return 1
-                    else: 
-                        return 2
-        return 0
+        if player_id_steam:
+            url: str = self.url_steam + f'/?key={self.steamToken}&format=json&steamids={player_id_steam}'
+            response_info: str = requests.get(url) 
+            if response_info.status_code != 204 and response_info.status_code != 500:   
+                response_parse: dict = json.loads(response_info.content)
+                #print(response_parse['response'])
+                if response_parse['response']['players'][0]:
+                    if len(response_parse['response']['players'][0]) >= 1:
+                        if response_parse['response']['players'][0]['personastate'] != 0:
+                            if "gameextrainfo" in response_parse['response']['players'][0]:
+                                if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life":   
+                                    return 1
+                            else: 
+                                return 2
+                else:
+                    return 2
+        else:
+            return 0

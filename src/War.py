@@ -33,7 +33,7 @@ class War(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("War cog loaded.")
+        print("Cog Loaded: War")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         obj: dict = {}
@@ -151,7 +151,6 @@ class War(commands.Cog):
                 #     await self.log_channel.send(f"> {colo_message}")
                 await self.log_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{player['Name']}**__.")
             else: 
-                print("PAS DE COLONIES")
                 await self.log_channel.send(f"> No colony was added to Player named __**{player['Name']}**__.")    
         # Communication et création du Thread    
         await self.log_channel.send("> New war started.")
@@ -244,19 +243,8 @@ class War(commands.Cog):
                     if it == len(colo_list):
                         break  
                     it += 1
-                # obj: dict = {"gl_id": player['_Id']}
-                # returned_colonies: dict = self.bot.db.check_scouted_colonies(obj)
-                # if returned_colonies != None:
-                #     await self.log_channel.send(f"> Some colonies might be found for Player named __**{player['Name']}**__:")
-                #     colo_message: str = ""
-                #     it_colo = 0
-                #     for colo in returned_colonies:
-                #             colo_message += f"{colo[it_colo]}\n"
-                #             it_colo += 1
-                #     await self.log_channel.send(f"> {colo_message}")
                 await self.log_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{player['Name']}**__.")
             else: 
-                print("PAS DE COLONIES")
                 await self.log_channel.send(f"> No colony was added to Player named __**{player['Name']}**__.")    
         # Communication et création du Thread    
         await self.log_channel.send("> New war started.")

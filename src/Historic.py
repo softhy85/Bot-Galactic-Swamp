@@ -19,11 +19,11 @@ class Historic(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Historic cog loaded.")
+        print("Cog Loaded: Historic")
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        print(f"New member : {member.display_name}")
+        print(f"Info: New member - {member.display_name}")
         avatar: discord.User.avatar = member.avatar
         if avatar is None:
             avatar = member.display_avatar
@@ -37,7 +37,7 @@ class Historic(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        print(f"Member leave : {member.display_name}")
+        print(f"Info: Member leave - {member.display_name}")
         avatar: discord.User.avatar = member.avatar
         if avatar is None:
             avatar = member.display_avatar

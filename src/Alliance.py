@@ -25,7 +25,7 @@ class Alliance(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Alliance cog loaded.")
+        print("Cog Loaded: Alliance")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         obj: dict = {}
@@ -38,26 +38,98 @@ class Alliance(commands.Cog):
             for alliance in alliances
         ]
 
-    # @app_commands.command(name="alliance_add", description="Add a new Alliance to the db")
-    # @app_commands.describe(alliance="Alliance's name", alliance_lvl="Alliance's level")
-    # @app_commands.checks.has_role('Admin')
-    # async def alliance_add(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int=-1):
-    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-    #         await interaction.response.send_message("You don't have the permission to use this command.")
-    #         return
-    #     if alliance.strip() == "":
-    #         await interaction.response.send_message(f"Cannot create Alliances with a name composed only of whitespace.")
-    #         return
-    #     return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
-    #     if return_alliance is None:
-    #         new_alliance: Alliance_Model = {"name": alliance, "alliance_lvl": alliance_lvl}
-    #         new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
-    #         if new_alliance["_id"] is None:
-    #             await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to Softy.")
-    #             return
-    #         await interaction.response.send_message(f"Alliance named {alliance} created.")
-    #     else:
-    #         await interaction.response.send_message(f"Alliance named {alliance} already exist.")
+    @app_commands.command(name="alliance_add", description="Add a new Alliance to the db")
+    @app_commands.describe(alliance="The name of the alliance")
+    @app_commands.checks.has_role('Admin')
+    @app_commands.default_permissions()
+    async def alliance_add(self, interaction: discord.Interaction, alliance: str):
+        self.log_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
+        self.log_channel = self.bot.get_channel(self.log_channel_id)
+            
+        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+            await interaction.response.send_message("You don't have the permission to use this command.")
+            return
+        if alliance.strip() == "":
+            await interaction.response.send_message(f"Cannot create alliances with a name composed only of whitespace.")
+            return
+        add_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+        if add_alliance is None:
+            if self.bot.galaxylifeapi.get_alliance(alliance) is None:
+                await interaction.response.send_message(f"{alliance} doesn't seem to exist")
+                return
+            else:
+                new_alliance: Alliance_Model = {"name": alliance.upper()}
+                new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
+                if new_alliance["_id"] is None:
+                    await interaction.response.send_message(f"Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to @Softy(léo).")
+                    return
+                add_alliance = new_alliance
+        ennemy = self.bot.galaxylifeapi.get_alliance(alliance)
+        await interaction.response.send_message("> Loading alliance...")  
+        # Création du joueur et de sa main base
+        alliance_info = self.bot.galaxylifeapi.get_alliance(alliance)
+        obj: dict = {"_alliance_id": add_alliance["_id"]}
+        db_players: List[Player_Model] = self.bot.db.get_players(obj)
+        for db_player in db_players:
+            for player in alliance_info["members_list"]:
+                if db_player["pseudo"] != player["Name"]:
+                    db_player["_alliance_id"] = None
+                    self.bot.db.update_player(db_player)
+        for player in alliance_info["members_list"]:
+            new_player: Player_Model = {'_alliance_id': add_alliance["_id"], 'pseudo': player["Name"], 'id_gl': player["Id"], 'bunker_full': False}
+            act_player: Player_Model =  self.bot.db.push_new_player(new_player)
+            if act_player == None:
+                act_player = self.bot.db.get_one_player("pseudo", player["Name"])
+                if act_player["_alliance_id"] != add_alliance["_id"]:
+                    act_player["_alliance_id"] = add_alliance["_id"]
+                    act_player['id_gl'] = player['Id']
+                    self.bot.db.update_player(act_player)        
+            else:
+                act_player = self.bot.db.get_one_player("pseudo", player["Name"])
+                act_player['id_gl'] = player['Id']
+                self.bot.db.update_player(act_player)
+            colo_list: list = self.bot.galaxylifeapi.get_player_infos(player["Id"])["colo_list"]
+            it: int = 0
+            if len(colo_list) != 0:
+                for colo in colo_list:
+                    colo_level = colo_list[it]
+                    colo_number = len(colo_list) 
+                    obj: dict = {"_player_id": act_player["_id"]}
+                    new_colony: Colony_Model = {"_alliance_id": add_alliance["_id"], '_player_id': act_player["_id"], 'number': it + 1, 'colo_sys_name': "-1", 'colo_lvl': colo_level, 'colo_coord': {"x": '-1', "y": '-1'}, 'colo_status': "Up", 'updated': False, 'gift_state': "Not Free"} 
+                    stored_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": act_player["_id"], "number": it + 1}))
+                    if len(stored_colony) == 1: 
+                        new_colony["_id"] = stored_colony[0]["_id"]
+                        new_colony["colo_sys_name"] = stored_colony[0]["colo_sys_name"]
+                        new_colony["colo_coord"] = stored_colony[0]["colo_coord"]
+                        if "updated" in stored_colony:
+                            new_colony["updated"] = stored_colony[0]["updated"]
+                        else:
+                            new_colony["updated"] = False
+                        self.bot.db.update_colony(new_colony)
+                        #await self.log_channel.send(f"Colony number {it + 1} was updated for Player named **{player['Name']}**.")
+                    elif len(stored_colony) == 0: 
+                        self.bot.db.push_new_colony(new_colony)
+                       # await self.log_channel.send(f"Colony number {it + 1} was added to Player named **{player['Name']}**.")
+                    else:
+                        new_colony["_id"] = stored_colony[0]["_id"]
+                        self.bot.db.update_colony(new_colony)
+                        await self.log_channel.send(f"Some duplicate colonies was found for **{player['Name']}**. Updating the first one.")
+                        stored_colony = stored_colony[1:]
+                        for colony in stored_colony:
+                            self.bot.db.remove_colony(colony)
+                    if it == len(colo_list):
+                        break  
+                    it += 1
+                #await self.log_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{player['Name']}**__.")
+            else: 
+                await self.log_channel.send(f"> No colony was added to Player named __**{player['Name']}**__.")    
+        # Communication et création du Thread    
+        await self.log_channel.send("> Alliance Added")
+
+        
+
+
+   
 
     @app_commands.command(name="alliance_update", description="Update an existent Alliance")
     @app_commands.describe(alliance="Alliance's name", alliance_lvl="Alliance's level")
@@ -122,9 +194,7 @@ class Alliance(commands.Cog):
                 field_count += 1
         
             total_size += len(value) + len(player) + 5
-            print(total_size)
             if total_size >= 2500 or field_count >= 20:
-            #     print(value)
                 await self.log_channel.send(embed=embed)
                 embed: discord.Embed = discord.Embed(title="", description="", color=discord.Color.from_rgb(8, 1, 31)) 
                 total_size: int = 0
@@ -132,8 +202,7 @@ class Alliance(commands.Cog):
         if total_size != 0:
             await self.log_channel.send(embed=embed)
                       
-            
-                 
+               
        
 
 async def setup(bot: commands.Bot):

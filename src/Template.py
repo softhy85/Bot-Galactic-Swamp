@@ -18,7 +18,7 @@ class Template(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Template cog loaded.")
+        print("Cog Loaded: Template")
 
 #    async def template_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
 #        alliances = self.bot.db.get_all_alliances()

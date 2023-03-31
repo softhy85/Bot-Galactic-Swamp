@@ -37,7 +37,7 @@ async def on_ready():
     await bot.load_extension("src.Alliance")
     await bot.load_extension("src.Player")
     await bot.load_extension("src.Colony")
-    await bot.load_extension("src.RefreshInfos")
+    # await bot.load_extension("src.RefreshInfos")
     print("The bot is online")
     bot.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = bot.get_channel(bot.command_channel_id)

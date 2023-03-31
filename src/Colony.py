@@ -26,7 +26,7 @@ class Colony(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Player cog loaded.")
+        print("Cog Loaded: Player")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         obj: dict = {}
@@ -52,19 +52,15 @@ class Colony(commands.Cog):
             ]
             
     async def  colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        if act_war is None:
-            return []
-        else:
-            pseudo = interaction.namespace.pseudo
-            player_id: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
-            obj: dict = {"_player_id": player_id['_id']}
-            colos: List[Colony_Model] = self.bot.db.get_colonies(obj)     
-            colos = colos[0:25]
-            return [
-                app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]})', value=colo["number"])
-                for colo in colos
-            ]
+        pseudo = interaction.namespace.pseudo
+        player_id: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})  
+        obj: dict = {"_player_id": player_id['_id']}
+        colos: List[Colony_Model] = self.bot.db.get_colonies(obj)     
+        colos = colos[0:25]
+        return [
+            app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]})', value=colo["number"])
+            for colo in colos
+        ]
             
     async def player_war_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
@@ -76,7 +72,6 @@ class Colony(commands.Cog):
             else:
                 obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
             players: List[Player_Model] = self.bot.db.get_players(obj)
-            print(players)
             players = players[0:25]
             return [
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
@@ -89,18 +84,44 @@ class Colony(commands.Cog):
             data.append(app_commands.Choice(name=choice, value=choice))
         return data   
     
+    
+    @app_commands.command(name="colo_infos", description="Display the infos of the Colonies of a Player")
+    @app_commands.describe(pseudo="Player's pseudo")
+    @app_commands.autocomplete(pseudo=player_autocomplete)
+    async def colo_infos(self, interaction: discord.Interaction, pseudo: str):
+        if pseudo.strip() == "":
+            await interaction.response.send_message(f"Cannot retreive infos of a Player with a pseudo composed only of whitespace.")
+            return
+        player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})
+        if player is None:
+            await interaction.response.send_message(f"Player named {pseudo} not found.")
+        else:
+            colonies: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": player['_id']}))
+            if len(colonies) == 0:
+                await interaction.response.send_message(f"Colonies not found.")
+            else:
+                embed: discord.Embed
+                embed = discord.Embed(title=f"Niv  : { player['pseudo'] }️", description="", color=Colors.gold, timestamp=datetime.datetime.now())
+                it: int = 1
+                for colony in colonies:
+                    if colony['colo_sys_name'] != "-1":
+                        embed.add_field(name=f"{ Emoji.colo.value if colony['colo_status'] == 'Up' else Emoji.down.value } Colonie {it} : {colony['colo_sys_name']}",value=f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})", inline=False)
+                    it += 1
+                await interaction.response.send_message(embed=embed)
+                
+                
     @app_commands.command(name="colo_update", description="Update an existent Colony")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
     @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
-    async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str, colo_coord_x: int, colo_coord_y: int):
+    async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str = "", colo_coord_x: int = -1, colo_coord_y: int = -1):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
             await interaction.response.send_message("You don't have the permission to use this command.")
             return
         if pseudo.strip() == "":
             await interaction.response.send_message(f"Cannot remove a Colony from Players with a pseudo composed only of whitespace.")
             return
-        act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+        act_player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})
         if act_player is None:
             await interaction.response.send_message(f"Player named {pseudo} not found.")
         else:
@@ -118,8 +139,7 @@ class Colony(commands.Cog):
                 act_colony["updated"] = True
                 self.bot.db.update_colony(act_colony)
                 await interaction.response.send_message(f"Colony n°{colo_number} of {pseudo} updated.")
-                await self.bot.dashboard.update_Dashboard()
-
+                # await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="colony_remove", description="Remove an existent Colony")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony")
@@ -148,7 +168,7 @@ class Colony(commands.Cog):
     @app_commands.command(name="gift_colony", description="Gift colony to low level players / Or tell if a colony never has defenses")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="Wich colony", gift_state="x")
     @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete,  gift_state=gift_state_autocomplete)
-    async def player_bunkers(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
+    async def gift_colony(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
         obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
         act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
@@ -158,9 +178,10 @@ class Colony(commands.Cog):
             act_colony = act_colony[0]
             act_colony["gift_state"]: str = gift_state
             self.bot.db.update_colony(act_colony)
-            await interaction.response.send_message(f"The free state of colony n°{act_colony['number']} of {pseudo} has been updated.")
-            await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁")
+            await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁") #j'ai juste changé l'ordre
             await self.bot.dashboard.update_Dashboard()
+            await interaction.response.send_message(f"The free state of colony n°{act_colony['number']} of {pseudo} has been updated.")  
+            
             
         
 async def setup(bot: commands.Bot):

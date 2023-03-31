@@ -46,17 +46,21 @@ class Select(discord.ui.Select):
             if player["player_online"] == 2:
                 status_emoji = Emoji.maybe.value
             else:
-                if "bunker_full" in player:
-                    if player["bunker_full"] == "MB_full":
+                if "state" in player:
+                    if player["state"] == "MB_full":
                         status_emoji = Emoji.bouclier_MB.value
-                    elif player["bunker_full"] == "everything_full":
+                    elif player["state"] == "everything_full":
                         status_emoji = Emoji.bouclier_tout.value
+                    elif player["state"] == "afk":
+                        status_emoji = Emoji.afk.value
+                    elif player["state"] == "unknown":
+                        status_emoji = Emoji.unknown.value
                     else:   
                         status_emoji = Emoji.offline.value
         player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
         player_lvl: str = player_temp["player_lvl"]
         player_MB_lvl: str = player_temp["mb_lvl"]
-        menu_label: str = f"Niv {player_lvl if player_lvl != -1 else 'Non connue'} : {player['pseudo']}"
+        menu_label: str = f"{player_lvl if player_lvl != -1 else 'Non connue'}: {player['pseudo']}"
         
         if player["MB_status"] == "Down":
             MB_refresh_date: datetime.datetime = player['MB_refresh_time']
@@ -168,7 +172,7 @@ class Select(discord.ui.Select):
                 menu_label = f" ?????"
                 menu_description = f"( ? ; ? ) - SB ({colony['colo_lvl']})"
                 menu_emoji = Emoji.colo_empty.value
-            if colony["number"] <= 10:
+            if colony["number"] <= 12:
                 player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "colony" + ";" + str(colony["_id"])))
             it += 1
         menu_label = "Reset"
@@ -182,10 +186,9 @@ class Select(discord.ui.Select):
         await interaction.response.defer(ephemeral=True)
         if self.values[0] == "":
             return
-        refresh_duration: float = 4.0
+        refresh_duration: float = 6.0
         date_resfresh: datetime.datetime = date + datetime.timedelta(hours=refresh_duration)
-        print(date)
-        print(refresh_duration)
+
         
         values: List[str] = self.values[0].split(";")
         self.values[0] = ""
@@ -247,12 +250,11 @@ class Select(discord.ui.Select):
                 player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
                 player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
                 player_lvl: str = player_temp["player_lvl"]
-                print(colony)
                 await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
             else: 
                 return
         #await interaction.response.defer(ephemeral=True)
-        await self.bot.dashboard.update_Dashboard()
+        # await self.bot.dashboard.update_Dashboard()
 
 
 class DropView(discord.ui.View):
