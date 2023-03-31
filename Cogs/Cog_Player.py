@@ -2,31 +2,36 @@ import datetime
 import discord
 from discord import app_commands
 from discord.ext import commands
-from models.War_Model import War_Model
-from models.Alliance_Model import Alliance_Model
-from models.Player_Model import Player_Model
-from models.Colony_Model import Colony_Model
+from Models.War_Model import War_Model
+from Models.Alliance_Model import Alliance_Model
+from Models.Player_Model import Player_Model
+from Models.Colony_Model import Colony_Model
 from pymongo.cursor import Cursor
 from typing import List
 import os
 import re
 
 
-class Player(commands.Cog):
+class Cog_Player(commands.Cog):
     bot: commands.Bot = None
     war_channel_id: int = None
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
+        super().__init__()
         self.bot = bot
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
-        super().__init__()
+
+    #<editor-fold desc="listener">
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Cog Loaded: Player")
+        print("Cog Loaded: Cog_Player")
 
+    #</editor-fold>
+
+    #<editor-fold desc="autocomplete">
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         obj: dict = {}
         if current != "":
@@ -37,6 +42,7 @@ class Player(commands.Cog):
             app_commands.Choice(name=alliance["name"], value=alliance["name"])
             for alliance in alliances
         ]
+
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         obj: dict = {}
         if current != "":
@@ -47,7 +53,7 @@ class Player(commands.Cog):
             app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
             for player in players
         ]
-        
+
     async def player_war_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if act_war is None:
@@ -63,19 +69,23 @@ class Player(commands.Cog):
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
                 for player in players
             ]
-            
+
     async def player_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
         data = []
         for choice in [f"🛡️ Bunker MB", "🛡️ All Bunkers", "♻️ Reset", "🕸️ AFK", "❓ Unknown" ]:
             data.append(app_commands.Choice(name=choice, value=choice))
-        return data   
-      
+        return data
+
+    #</editor-fold>
+
+    #<editor-fold desc="command">
+
     @app_commands.command(name="player_infos", description="Displays player's informations")
     @app_commands.describe(pseudo="Player's pseudo")
     @app_commands.checks.has_any_role('Admin','Assistant')
     async def player_add(self, interaction: discord.Interaction, pseudo: str):
-        player: Player_Model = self.bot.galaxylifeapi.get_player_infos_from_name(pseudo)
-        steam_url = self.bot.galaxylifeapi.get_steam_url(player["player_id_gl"])
+        player: Player_Model = self.bot.galaxyLifeAPI.get_player_infos_from_name(pseudo)
+        steam_url = self.bot.galaxyLifeAPI.get_steam_url(player["player_id_gl"])
         avatar_url = player["avatar_url"]
         title: str = f"{pseudo}" 
         if player['alliance_name'] != None:
@@ -88,8 +98,8 @@ class Player(commands.Cog):
         embed.add_field(name=field[0],value=field[1], inline=True)
         embed.add_field(name=field[2],value=steam_url, inline=True)
         await interaction.response.send_message(embed=embed)     
-   
-    @app_commands.command(name="player_remove", description="Remove an existent Player")
+
+    @app_commands.command(name="player_remove", description="Remove an existent Cog_Player")
     @app_commands.describe(pseudo="Player's pseudo")
     @app_commands.autocomplete(pseudo=player_autocomplete)
     @app_commands.checks.has_role('Admin')
@@ -130,6 +140,9 @@ class Player(commands.Cog):
             self.bot.db.update_player(return_player)
             await interaction.response.send_message(f"Bunkers of {pseudo} have been updated.")
             await self.bot.dashboard.update_Dashboard()
-            
+
+    #</editor-fold>
+
+
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Player(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])
+    await bot.add_cog(Cog_Player(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

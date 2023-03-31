@@ -36,7 +36,7 @@ class GalaxyLifeAPI:
         return_value["members_list"] = []
         return_value["alliance_score"] = alliance_infos['WarPoints']
         return_value["war_status"] = alliance_infos["InWar"]
-        return_value["ennemy_name"] = alliance_infos["OpponentAllianceId"]
+        return_value["enemy_name"] = alliance_infos["OpponentAllianceId"]
         for member in alliance_infos['Members']:
             return_value["members_list"].append({"Name": member["Name"], "Id": member["Id"]})
             

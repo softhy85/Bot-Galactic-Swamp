@@ -8,7 +8,7 @@ a = Analysis(
     ['D:/GitHub/Bot-Galactic-Swamp/main.py'],
     pathex=['D:/GitHub/Bot-Galactic-Swamp/bot-env/Lib/site-packages'],
     binaries=[],
-    datas=[('D:/GitHub/Bot-Galactic-Swamp/models', 'models/'), ('D:/GitHub/Bot-Galactic-Swamp/src', 'src/')],
+    datas=[('D:/GitHub/Bot-Galactic-Swamp/Models', 'Models/'), ('D:/GitHub/Bot-Galactic-Swamp/Utils', 'Utils/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

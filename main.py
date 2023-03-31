@@ -5,16 +5,17 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
-from src.Historic import Historic
-from src.War import War
-from src.Alliance import Alliance
-from src.Player import Player
-from src.Colony import Colony
-from src.RefreshInfos import RefreshInfos
-from src.Role import Role
-from src.DataBase import DataBase
-from src.Dashboard import Dashboard
-from src.GalaxyLifeAPI import GalaxyLifeAPI
+from Cogs.Cog_Historic import Cog_Historic
+from Cogs.Cog_War import Cog_War
+from Cogs.Cog_Alliance import Cog_Alliance
+from Cogs.Cog_Player import Cog_Player
+from Cogs.Cog_Colony import Cog_Colony
+from Utils.Alliance import Alliance
+from Utils.RefreshInfos import RefreshInfos
+from Utils.Role import Role
+from Utils.DataBase import DataBase
+from Utils.Dashboard import Dashboard
+from Utils.GalaxyLifeAPI import GalaxyLifeAPI
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
@@ -26,22 +27,16 @@ bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, applicatio
 
 @bot.event
 async def on_ready():
-    bot.refreshinfo = RefreshInfos(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
+    bot.alliance = Alliance(bot)
+    bot.refreshInfos = RefreshInfos(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
     bot.dashboard = Dashboard(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
-    bot.war = War(bot)
-    bot.galaxylifeapi = GalaxyLifeAPI()
+    bot.galaxyLifeAPI = GalaxyLifeAPI()
     bot.db = db
     bot.spec_role = Role()
-    await bot.load_extension("src.Historic")
-    await bot.load_extension("src.War")
-    await bot.load_extension("src.Alliance")
-    await bot.load_extension("src.Player")
-    await bot.load_extension("src.Colony")
-    # await bot.load_extension("src.RefreshInfos")
-    print("The bot is online")
-    bot.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
-    bot.command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = bot.get_channel(bot.command_channel_id)
+    bot.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
+    bot.command_channel = bot.get_channel(bot.command_channel_id)
     await bot.command_channel.send("@personne - Le bot est connecté. <:O_:1043627742723317770>")
+    print("The bot is online")
 
 
 @bot.command()
@@ -77,4 +72,9 @@ async def disconnect(ctx: Context):
         exit(0)
 
 
+await bot.load_extension("Utils.Cog_Historic")
+await bot.load_extension("Utils.Cog_War")
+await bot.load_extension("Utils.Cog_Alliance")
+await bot.load_extension("Utils.Cog_Player")
+await bot.load_extension("Utils.Cog_Colony")
 bot.run(token)

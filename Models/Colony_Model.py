@@ -1,6 +1,6 @@
 from typing import TypedDict
 from bson.objectid import ObjectId
-from models.Coord import Coord
+from Models.Coord import Coord
 import datetime
 
 

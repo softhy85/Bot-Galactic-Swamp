@@ -5,34 +5,46 @@ from typing import List
 import os
 
 
-class Template(commands.Cog):
+class Cog_Template(commands.Cog):
     bot: commands.Bot = None
     war_channel_id: int = None
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
+        super().__init__()
         self.bot = bot
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
-        super().__init__()
+
+    #<editor-fold desc="listener">
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Cog Loaded: Template")
+        print("Cog Loaded: Cog_Template")
 
-#    async def template_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-#        alliances = self.bot.db.get_all_alliances()
-#        return [
-#            app_commands.Choice(name=alliance["name"], value=alliance["name"])
-#            for alliance in alliances
-#        ]
+    #</editor-fold>
+
+    #<editor-fold desc="autocomplete">
+    async def template_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+        alliances = self.bot.db.get_all_alliances()
+        return [
+            app_commands.Choice(name=alliance["name"], value=alliance["name"])
+            for alliance in alliances
+        ]
+
+   #</editor-fold>
+
+    #<editor-fold desc="command">
 
     @app_commands.command(name="template", description="template")
     @app_commands.describe()
-#    @app_commands.autocomplete(template=template_autocomplete)
+    @app_commands.autocomplete(template=template_autocomplete)
     @app_commands.default_permissions()
     async def template(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int=-1):
         print("a")
 
+    #</editor-fold>
+
+
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Template(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])
+    await bot.add_cog(Cog_Template(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

@@ -7,19 +7,22 @@ import os
 from Image.Image import arrived_image, leave_image
 
 
-class Historic(commands.Cog):
+class Cog_Historic(commands.Cog):
     bot: commands.Bot = None
     historic_channel_id: int = None
     historic_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
+        super().__init__()
         self.bot = bot
         self.historic_channel_id = int(os.getenv("HISTORIC_CHANNEL"))
         self.historic_channel = bot.get_channel(self.historic_channel_id)
 
+    #<editor-fold desc="listener">
+
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Cog Loaded: Historic")
+        print("Cog Loaded: Cog_Historic")
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -49,6 +52,7 @@ class Historic(commands.Cog):
         embed: Embed = Embed(title=f'{member.display_name} a déserté !')
         await self.historic_channel.send(embed=embed)
 
+    #</editor-fold>
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(Historic(bot))
+    await bot.add_cog(Cog_Historic(bot))

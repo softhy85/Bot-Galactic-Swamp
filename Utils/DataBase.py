@@ -2,11 +2,11 @@ import datetime
 import os
 from pymongo import MongoClient
 from pymongo.cursor import Cursor
-from models.Alliance_Model import Alliance_Model
-from models.Player_Model import Player_Model
-from models.Colony_Model import Colony_Model
-from models.InfoMessage_Model import InfoMessage_Model
-from models.War_Model import War_Model
+from Models.Alliance_Model import Alliance_Model
+from Models.Player_Model import Player_Model
+from Models.Colony_Model import Colony_Model
+from Models.InfoMessage_Model import InfoMessage_Model
+from Models.War_Model import War_Model
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
 

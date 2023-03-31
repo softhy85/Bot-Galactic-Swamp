@@ -2,12 +2,12 @@ import discord
 from discord.ext import commands
 import datetime
 import time
-from models.Player_Model import Player_Model
-from models.Colony_Model import Colony_Model
+from Models.Player_Model import Player_Model
+from Models.Colony_Model import Colony_Model
 from typing import List
 from pymongo.cursor import Cursor
 from bson.objectid import ObjectId
-from models.Emoji import Emoji
+from Models.Emoji import Emoji
 import os
 import asyncio
 
@@ -57,7 +57,7 @@ class Select(discord.ui.Select):
                         status_emoji = Emoji.unknown.value
                     else:   
                         status_emoji = Emoji.offline.value
-        player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
+        player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
         player_lvl: str = player_temp["player_lvl"]
         player_MB_lvl: str = player_temp["mb_lvl"]
         menu_label: str = f"{player_lvl if player_lvl != -1 else 'Non connue'}: {player['pseudo']}"
@@ -229,7 +229,7 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Down"
             self.bot.db.update_player(player)
-            player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
+            player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
             player_lvl: str = player_temp["player_lvl"]
             await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🌍 main base destroyed by {interaction.user.display_name}")
         elif values[1] == "colony":
@@ -248,7 +248,7 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Down"
                 self.bot.db.update_colony(colony)
                 player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
-                player_temp: dict = self.bot.galaxylifeapi.get_player_infos(player["id_gl"])
+                player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
                 player_lvl: str = player_temp["player_lvl"]
                 await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
             else: 

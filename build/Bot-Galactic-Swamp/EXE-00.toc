@@ -983,9 +983,9 @@
   ('tcl\\tzdata\\Pacific\\Pohnpei',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Pacific\\Pohnpei',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\window.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\window.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\window.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\window.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\db\\backends\\ddl_references.pyi',
    'D:\\Python\\Python '
@@ -1072,9 +1072,9 @@
   ('tcl\\tzdata\\Etc\\GMT-7',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Etc\\GMT-7',
    'DATA'),
-  ('jedi\\third_party\\typeshed\\third_party\\2and3\\geoip2\\models.pyi',
+  ('jedi\\third_party\\typeshed\\third_party\\2and3\\geoip2\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\geoip2\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\geoip2\\Models.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\2and3\\pwd.pyi',
    'D:\\Python\\Python '
@@ -1184,9 +1184,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\redis\\__init__.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\signals.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\signals.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\signals.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\signals.pyi',
    'DATA'),
   ('tcl\\tzdata\\Pacific\\Saipan',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Pacific\\Saipan',
@@ -1384,9 +1384,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\chardet\\universaldetector.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\files.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\files.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\files.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\files.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\contenttypes\\admin.pyi',
    'D:\\Python\\Python '
@@ -1522,13 +1522,13 @@
   ('tcl\\tzdata\\Asia\\Qyzylorda',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Asia\\Qyzylorda',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\aggregates.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\aggregates.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\aggregates.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\aggregates.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\lookups.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\lookups.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\lookups.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\lookups.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\2\\Queue.pyi',
    'D:\\Python\\Python '
@@ -1647,16 +1647,16 @@
   ('tcl\\tzdata\\America\\Puerto_Rico',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\America\\Puerto_Rico',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\mixins.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\mixins.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\mixins.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\mixins.pyi',
    'DATA'),
   ('tk\\images\\tai-ku.gif',
    'D:\\Python\\Python 3.11.1\\tcl\\tk8.6\\images\\tai-ku.gif',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\indexes.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\indexes.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\indexes.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\indexes.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\2and3\\google\\protobuf\\util\\__init__.pyi',
    'D:\\Python\\Python '
@@ -1689,9 +1689,9 @@
   ('tcl\\tzdata\\Africa\\Lubumbashi',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Africa\\Lubumbashi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\deletion.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\deletion.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\deletion.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\deletion.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\2and3\\lib2to3\\pgen2\\driver.pyi',
    'D:\\Python\\Python '
@@ -1877,9 +1877,9 @@
   ('tcl\\msgs\\en_in.msg',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\msgs\\en_in.msg',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\reverse_related.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\reverse_related.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\reverse_related.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\reverse_related.pyi',
    'DATA'),
   ('tcl\\tzdata\\Asia\\Nicosia',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Asia\\Nicosia',
@@ -2182,9 +2182,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\3\\email\\contentmanager.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\mixins.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\mixins.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\mixins.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\mixins.pyi',
    'DATA'),
   ('tcl\\tzdata\\Australia\\Melbourne',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Australia\\Melbourne',
@@ -2515,9 +2515,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\boto\\s3\\user.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\related_lookups.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\related_lookups.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\related_lookups.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\related_lookups.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\3\\smtplib.pyi',
    'D:\\Python\\Python '
@@ -2840,9 +2840,9 @@
   ('tcl\\encoding\\macCyrillic.enc',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\encoding\\macCyrillic.enc',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\__init__.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\__init__.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\__init__.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\__init__.pyi',
    'DATA'),
   ('tcl\\msgs\\ko_kr.msg',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\msgs\\ko_kr.msg',
@@ -3394,9 +3394,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\utils\\dateformat.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\compiler.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\compiler.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\compiler.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\compiler.pyi',
    'DATA'),
   ('tcl\\tzdata\\Asia\\Chongqing',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Asia\\Chongqing',
@@ -3448,9 +3448,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2\\encodings\\__init__.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\redirects\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\redirects\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\redirects\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\redirects\\Models.pyi',
    'DATA'),
   ('tcl\\msgs\\ta.msg',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\msgs\\ta.msg',
@@ -3706,9 +3706,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2and3\\code.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\constants.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\constants.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\constants.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\constants.pyi',
    'DATA'),
   ('tcl\\tzdata\\Africa\\Johannesburg',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Africa\\Johannesburg',
@@ -4828,9 +4828,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\utils\\termcolors.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\admin\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\admin\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\admin\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\admin\\Models.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\2and3\\boto\\s3\\connection.pyi',
    'D:\\Python\\Python '
@@ -4895,9 +4895,9 @@
   ('tcl\\tzdata\\America\\Bahia_Banderas',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\America\\Bahia_Banderas',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\query.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\query.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\query.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\query.pyi',
    'DATA'),
   ('tcl\\tzdata\\Iran',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Iran',
@@ -4927,9 +4927,9 @@
   ('tcl\\msgs\\pt_br.msg',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\msgs\\pt_br.msg',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\migrations\\operations\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\migrations\\operations\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\migrations\\operations\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\migrations\\operations\\Models.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\utils\\__init__.pyi',
    'D:\\Python\\Python '
@@ -4989,9 +4989,9 @@
   ('tk\\ttk\\classicTheme.tcl',
    'D:\\Python\\Python 3.11.1\\tcl\\tk8.6\\ttk\\classicTheme.tcl',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\comparison.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\comparison.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\comparison.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\comparison.pyi',
    'DATA'),
   ('tcl\\tzdata\\Atlantic\\Jan_Mayen',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Atlantic\\Jan_Mayen',
@@ -5055,13 +5055,13 @@
   ('tcl\\msgs\\es_cl.msg',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\msgs\\es_cl.msg',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\models\\fields.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\Models\\fields.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\models\\fields.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\Models\\fields.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\query.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\query.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\query.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\query.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\2and3\\werkzeug\\utils.pyi',
    'D:\\Python\\Python '
@@ -5157,9 +5157,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\utils\\translation\\trans_real.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\where.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\where.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\where.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\where.pyi',
    'DATA'),
   ('tcl\\tzdata\\America\\Kentucky\\Louisville',
    'D:\\Python\\Python '
@@ -5311,9 +5311,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\google\\protobuf\\json_format.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\constraints.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\constraints.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\constraints.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\constraints.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\3\\six\\moves\\builtins.pyi',
    'D:\\Python\\Python '
@@ -5839,9 +5839,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\emoji\\unicode_codes.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\utils.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\utils.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\utils.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\utils.pyi',
    'DATA'),
   ('gevent-22.10.2.dist-info\\METADATA',
    'd:\\python\\python '
@@ -5979,9 +5979,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2and3\\modulefinder.pyi',
    'DATA'),
-  ('jedi\\third_party\\typeshed\\third_party\\2and3\\pynamodb\\models.pyi',
+  ('jedi\\third_party\\typeshed\\third_party\\2and3\\pynamodb\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\pynamodb\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\pynamodb\\Models.pyi',
    'DATA'),
   ('tcl\\tzdata\\America\\Panama',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\America\\Panama',
@@ -6115,9 +6115,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2and3\\decimal.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\enums.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\enums.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\enums.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\enums.pyi',
    'DATA'),
   ('jsonschema\\schemas\\vocabularies\\draft2019-09\\applicator',
    'D:\\Python\\Python '
@@ -6958,9 +6958,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2\\multiprocessing\\util.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\flatpages\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\flatpages\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\flatpages\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\flatpages\\Models.pyi',
    'DATA'),
   ('tcl\\encoding\\macUkraine.enc',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\encoding\\macUkraine.enc',
@@ -7248,9 +7248,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\3\\distutils\\command\\bdist_dumb.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\options.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\options.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\options.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\options.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\3\\tokenize.pyi',
    'D:\\Python\\Python '
@@ -7364,9 +7364,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\requests\\packages\\urllib3\\packages\\ssl_match_hostname\\__init__.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\subqueries.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\subqueries.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\subqueries.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\subqueries.pyi',
    'DATA'),
   ('tcl\\tzdata\\Australia\\ACT',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Australia\\ACT',
@@ -7631,9 +7631,9 @@
   ('tcl\\tzdata\\Pacific\\Kanton',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Pacific\\Kanton',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\proxy.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\proxy.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\proxy.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\proxy.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\2and3\\codeop.pyi',
    'D:\\Python\\Python '
@@ -7820,9 +7820,9 @@
   ('tcl\\tzdata\\Africa\\Mbabane',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Africa\\Mbabane',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\__init__.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\__init__.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\__init__.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\__init__.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\2and3\\werkzeug\\middleware\\shared_data.pyi',
    'D:\\Python\\Python '
@@ -7994,9 +7994,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\boto\\elb\\__init__.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\datetime.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\datetime.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\datetime.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\datetime.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\2and3\\pynamodb\\exceptions.pyi',
    'D:\\Python\\Python '
@@ -8148,9 +8148,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\3\\unittest\\main.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sessions\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sessions\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sessions\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sessions\\Models.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\views\\decorators\\clickjacking.pyi',
    'D:\\Python\\Python '
@@ -8159,9 +8159,9 @@
   ('tcl\\tzdata\\US\\Samoa',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\US\\Samoa',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\text.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\text.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\text.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\text.pyi',
    'DATA'),
   ('tcl\\encoding\\cp437.enc',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\encoding\\cp437.enc',
@@ -8201,13 +8201,13 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\redirects\\__init__.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sites\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sites\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sites\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\sites\\Models.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\contenttypes\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\contenttypes\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\contenttypes\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\contenttypes\\Models.pyi',
    'DATA'),
   ('tcl\\tzdata\\Asia\\Novosibirsk',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Asia\\Novosibirsk',
@@ -8881,9 +8881,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\cachetools\\rr.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\__init__.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\__init__.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\__init__.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\__init__.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\core\\checks\\security\\base.pyi',
    'D:\\Python\\Python '
@@ -8967,9 +8967,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2and3\\xml\\etree\\ElementPath.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\forms\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\forms\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\forms\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\forms\\Models.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\views\\decorators\\http.pyi',
    'D:\\Python\\Python '
@@ -9019,9 +9019,9 @@
   ('tcl\\tzdata\\America\\Rainy_River',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\America\\Rainy_River',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\query_utils.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\query_utils.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\query_utils.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\query_utils.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\2\\email\\mime\\multipart.pyi',
    'D:\\Python\\Python '
@@ -9120,9 +9120,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2\\multiprocessing\\dummy\\__init__.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\manager.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\manager.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\manager.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\manager.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\2and3\\tty.pyi',
    'D:\\Python\\Python '
@@ -9173,9 +9173,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\middleware\\cache.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\datastructures.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\datastructures.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\sql\\datastructures.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\sql\\datastructures.pyi',
    'DATA'),
   ('tcl\\tzdata\\America\\Juneau',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\America\\Juneau',
@@ -9464,9 +9464,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2\\mutex.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\math.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\math.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\functions\\math.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\functions\\math.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\admin\\widgets.pyi',
    'D:\\Python\\Python '
@@ -9874,9 +9874,9 @@
   ('tcl\\msgs\\es_ec.msg',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\msgs\\es_ec.msg',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\related_descriptors.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\related_descriptors.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\related_descriptors.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\related_descriptors.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\core\\files\\uploadhandler.pyi',
    'D:\\Python\\Python '
@@ -9885,9 +9885,9 @@
   ('tcl\\tzdata\\Pacific\\Auckland',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Pacific\\Auckland',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\related.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\related.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\related.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\related.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\stdlib\\3\\asyncio\\base_futures.pyi',
    'D:\\Python\\Python '
@@ -10014,9 +10014,9 @@
   ('tcl\\tzdata\\Africa\\Bamako',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Africa\\Bamako',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\__init__.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\__init__.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\fields\\__init__.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\fields\\__init__.pyi',
    'DATA'),
   ('tcl\\tzdata\\America\\Buenos_Aires',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\America\\Buenos_Aires',
@@ -10053,9 +10053,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\3\\distutils\\cygwinccompiler.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\models\\__init__.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\Models\\__init__.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\models\\__init__.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\gis\\db\\Models\\__init__.pyi',
    'DATA'),
   ('tcl\\tzdata\\Europe\\London',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Europe\\London',
@@ -10116,9 +10116,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\views\\generic\\__init__.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\auth\\models.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\contrib\\auth\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\auth\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\contrib\\auth\\Models.pyi',
    'DATA'),
   ('tcl\\tzdata\\Africa\\El_Aaiun',
    'D:\\Python\\Python 3.11.1\\tcl\\tcl8.6\\tzdata\\Africa\\El_Aaiun',
@@ -10134,9 +10134,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\attr\\filters.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\expressions.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\expressions.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\expressions.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\expressions.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\2and3\\paramiko\\common.pyi',
    'D:\\Python\\Python '
@@ -10612,9 +10612,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\certifi.pyi',
    'DATA'),
-  ('jedi\\third_party\\typeshed\\third_party\\2and3\\requests\\models.pyi',
+  ('jedi\\third_party\\typeshed\\third_party\\2and3\\requests\\Models.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\requests\\models.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\third_party\\2and3\\requests\\Models.pyi',
    'DATA'),
   ('jedi\\third_party\\django-stubs\\django-stubs\\core\\cache\\backends\\filebased.pyi',
    'D:\\Python\\Python '
@@ -10756,9 +10756,9 @@
    'D:\\Python\\Python '
    '3.11.1\\Lib\\site-packages\\jedi\\third_party\\typeshed\\stdlib\\2\\textwrap.pyi',
    'DATA'),
-  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\base.pyi',
+  ('jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\base.pyi',
    'D:\\Python\\Python '
-   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\models\\base.pyi',
+   '3.11.1\\Lib\\site-packages\\jedi\\third_party\\django-stubs\\django-stubs\\db\\Models\\base.pyi',
    'DATA'),
   ('jedi\\third_party\\typeshed\\third_party\\2and3\\pynamodb\\types.pyi',
    'D:\\Python\\Python '
@@ -10881,108 +10881,108 @@
    'd:\\python\\python '
    '3.11.1\\lib\\site-packages\\nbformat-5.7.1.dist-info\\entry_points.txt',
    'DATA'),
-  ('src\\Player.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Player.py', 'DATA'),
-  ('models\\__pycache__\\Emoji.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\Emoji.cpython-311.pyc',
+  ('Utils\\Player.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Player.py', 'DATA'),
+  ('Models\\__pycache__\\Emoji.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\Emoji.cpython-311.pyc',
    'DATA'),
-  ('src\\Refresh_Infos.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Refresh_Infos.py',
+  ('Utils\\Refresh_Infos.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Refresh_Infos.py',
    'DATA'),
-  ('models\\Player_Model.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\Player_Model.py',
+  ('Models\\Player_Model.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\Player_Model.py',
    'DATA'),
-  ('models\\War_Model.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\War_Model.py',
+  ('Models\\War_Model.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\War_Model.py',
    'DATA'),
-  ('src\\__pycache__\\Alliance.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Alliance.cpython-311.pyc',
+  ('Utils\\__pycache__\\Alliance.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Alliance.cpython-311.pyc',
    'DATA'),
-  ('models\\__pycache__\\Colors.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\Colors.cpython-311.pyc',
+  ('Models\\__pycache__\\Colors.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\Colors.cpython-311.pyc',
    'DATA'),
-  ('src\\Dropdown.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Dropdown.py',
+  ('Utils\\Dropdown.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Dropdown.py',
    'DATA'),
-  ('models\\__pycache__\\InfoMessage_Model.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\InfoMessage_Model.cpython-311.pyc',
+  ('Models\\__pycache__\\InfoMessage_Model.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\InfoMessage_Model.cpython-311.pyc',
    'DATA'),
-  ('models\\InfoMessage_Model.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\InfoMessage_Model.py',
+  ('Models\\InfoMessage_Model.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\InfoMessage_Model.py',
    'DATA'),
-  ('models\\__pycache__\\Alliance_Model.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\Alliance_Model.cpython-311.pyc',
+  ('Models\\__pycache__\\Alliance_Model.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\Alliance_Model.cpython-311.pyc',
    'DATA'),
-  ('src\\__pycache__\\Refresh_Infos.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Refresh_Infos.cpython-311.pyc',
+  ('Utils\\__pycache__\\Refresh_Infos.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Refresh_Infos.cpython-311.pyc',
    'DATA'),
-  ('src\\__pycache__\\War.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\War.cpython-311.pyc',
+  ('Utils\\__pycache__\\War.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\War.cpython-311.pyc',
    'DATA'),
-  ('models\\Colors.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\Colors.py',
+  ('Models\\Colors.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\Colors.py',
    'DATA'),
-  ('src\\Template.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Template.py',
+  ('Utils\\Template.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Template.py',
    'DATA'),
-  ('src\\__pycache__\\Role.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Role.cpython-311.pyc',
+  ('Utils\\__pycache__\\Role.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Role.cpython-311.pyc',
    'DATA'),
-  ('src\\DataBase.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\DataBase.py',
+  ('Utils\\DataBase.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\DataBase.py',
    'DATA'),
-  ('src\\Dashboard.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Dashboard.py',
+  ('Utils\\Dashboard.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Dashboard.py',
    'DATA'),
-  ('src\\__pycache__\\Dropdown.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Dropdown.cpython-311.pyc',
+  ('Utils\\__pycache__\\Dropdown.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Dropdown.cpython-311.pyc',
    'DATA'),
-  ('models\\Coord.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\Coord.py',
+  ('Models\\Coord.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\Coord.py',
    'DATA'),
-  ('models\\Colony_Model.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\Colony_Model.py',
+  ('Models\\Colony_Model.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\Colony_Model.py',
    'DATA'),
-  ('src\\__pycache__\\Colony.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Colony.cpython-311.pyc',
+  ('Utils\\__pycache__\\Colony.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Colony.cpython-311.pyc',
    'DATA'),
-  ('models\\__pycache__\\Coord.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\Coord.cpython-311.pyc',
+  ('Models\\__pycache__\\Coord.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\Coord.cpython-311.pyc',
    'DATA'),
-  ('src\\Historic.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Historic.py',
+  ('Utils\\Historic.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Historic.py',
    'DATA'),
-  ('src\\War.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\src\\War.py', 'DATA'),
-  ('src\\Colony.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Colony.py', 'DATA'),
-  ('src\\__pycache__\\Player.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Player.cpython-311.pyc',
+  ('Utils\\War.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\War.py', 'DATA'),
+  ('Utils\\Colony.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Colony.py', 'DATA'),
+  ('Utils\\__pycache__\\Player.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Player.cpython-311.pyc',
    'DATA'),
-  ('models\\__pycache__\\Colony_Model.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\Colony_Model.cpython-311.pyc',
+  ('Models\\__pycache__\\Colony_Model.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\Colony_Model.cpython-311.pyc',
    'DATA'),
-  ('src\\Role.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Role.py', 'DATA'),
-  ('models\\__pycache__\\Player_Model.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\Player_Model.cpython-311.pyc',
+  ('Utils\\Role.py', 'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Role.py', 'DATA'),
+  ('Models\\__pycache__\\Player_Model.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\Player_Model.cpython-311.pyc',
    'DATA'),
-  ('src\\__pycache__\\Historic.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Historic.cpython-311.pyc',
+  ('Utils\\__pycache__\\Historic.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Historic.cpython-311.pyc',
    'DATA'),
-  ('models\\__pycache__\\War_Model.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\__pycache__\\War_Model.cpython-311.pyc',
+  ('Models\\__pycache__\\War_Model.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\__pycache__\\War_Model.cpython-311.pyc',
    'DATA'),
-  ('src\\__pycache__\\DataBase.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\DataBase.cpython-311.pyc',
+  ('Utils\\__pycache__\\DataBase.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\DataBase.cpython-311.pyc',
    'DATA'),
-  ('src\\Alliance.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\Alliance.py',
+  ('Utils\\Alliance.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\Alliance.py',
    'DATA'),
-  ('models\\Alliance_Model.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\Alliance_Model.py',
+  ('Models\\Alliance_Model.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\Alliance_Model.py',
    'DATA'),
-  ('src\\__pycache__\\Dashboard.cpython-311.pyc',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\src\\__pycache__\\Dashboard.cpython-311.pyc',
+  ('Utils\\__pycache__\\Dashboard.cpython-311.pyc',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Utils\\__pycache__\\Dashboard.cpython-311.pyc',
    'DATA'),
-  ('models\\Emoji.py',
-   'D:\\GitHub\\Bot-Galactic-Swamp\\models\\Emoji.py',
+  ('Models\\Emoji.py',
+   'D:\\GitHub\\Bot-Galactic-Swamp\\Models\\Emoji.py',
    'DATA')],
  [],
  False,

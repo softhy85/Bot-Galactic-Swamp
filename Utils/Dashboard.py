@@ -2,15 +2,15 @@ import discord
 from discord.ext import commands
 import datetime
 import time
-from src.Dropdown import DropView
-from models.War_Model import War_Model
-from models.Alliance_Model import Alliance_Model
-from models.Player_Model import Player_Model
-from models.Colony_Model import Colony_Model
-from models.InfoMessage_Model import InfoMessage_Model
+from Utils.Dropdown import DropView
+from Models.War_Model import War_Model
+from Models.Alliance_Model import Alliance_Model
+from Models.Player_Model import Player_Model
+from Models.Colony_Model import Colony_Model
+from Models.InfoMessage_Model import InfoMessage_Model
 from pymongo.cursor import Cursor
 from typing import List
-from models.Colors import Colors
+from Models.Colors import Colors
 import math
 
 class Dashboard:
@@ -20,7 +20,6 @@ class Dashboard:
         self.bot = bot
         self.guild = guild
 
-    @staticmethod
     def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model]) -> discord.Embed:
         embed: discord.Embed
         title = self.centered_title(war)
@@ -34,7 +33,8 @@ class Dashboard:
         embed.set_thumbnail(url=alliance["emblem_url"])
         return embed
 
-    def centered_title(self, war):
+    @staticmethod
+    def centered_title(war):
         title = war['alliance_name'].upper()
         title_space =  len(str(title))
         it: int = 0
@@ -85,7 +85,7 @@ class Dashboard:
         dropView: List[discord.ui.View] = []
         if war_alliance is None:
             return -1
-        alliance_info = self.bot.galaxylifeapi.get_alliance(war_alliance["name"])
+        alliance_info = self.bot.galaxyLifeAPI.get_alliance(war_alliance["name"])
         if alliance_info != None:
             war_alliance["alliance_lvl"] = alliance_info["alliance_lvl"]
             war_alliance["alliance_winrate"] = alliance_info["alliance_winrate"]
@@ -97,12 +97,12 @@ class Dashboard:
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
         for it in range(0, len(players)):
-            player_temp: dict = self.bot.galaxylifeapi.get_player_infos(players[it]["id_gl"])
+            player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(players[it]["id_gl"])
             players[it]["player_lvl"] = player_temp["player_lvl"]
         players.sort(key=lambda item: item.get("player_lvl"), reverse = True)
         for it in range(0, len(players)):
             if "id_gl" in players[it]:
-                players[it]["player_online"] = self.bot.galaxylifeapi.get_player_status(players[it]['id_gl'])
+                players[it]["player_online"] = self.bot.galaxyLifeAPI.get_player_status(players[it]['id_gl'])
             else:
                 players[it]["player_online"] = 0
         nb_message: int = len(players) // 5
@@ -133,7 +133,7 @@ class Dashboard:
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
         if war_alliance is None:
             return -1
-        alliance_info = self.bot.galaxylifeapi.get_alliance(war_alliance["name"])
+        alliance_info = self.bot.galaxyLifeAPI.get_alliance(war_alliance["name"])
         if alliance_info != None:
             war_alliance["alliance_lvl"] = alliance_info["alliance_lvl"]
             war_alliance["alliance_winrate"] = alliance_info["alliance_winrate"]
@@ -145,12 +145,12 @@ class Dashboard:
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
         for it in range(0, len(players)):
-            player_temp: dict = self.bot.galaxylifeapi.get_player_infos(players[it]["id_gl"])
+            player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(players[it]["id_gl"])
             players[it]["player_lvl"] = player_temp["player_lvl"]
         players.sort(key=lambda item: item.get("player_lvl"), reverse = True)
         for it in range(0, len(players)):
             if "id_gl" in players[it]:
-                players[it]["player_online"] = self.bot.galaxylifeapi.get_player_status(players[it]['id_gl'])
+                players[it]["player_online"] = self.bot.galaxyLifeAPI.get_player_status(players[it]['id_gl'])
             else:
                 players[it]["player_online"] = 0
         nb_message: int = len(players) // 5
@@ -208,8 +208,8 @@ class Dashboard:
         
         war_infos: War_Model = self.bot.db.get_one_war("status", "InProgress")
         ally_alliance_name: str = "GALACTIC SWAMP"
-        ennemy_alliance: dict = self.bot.galaxylifeapi.get_alliance(alliance)
-        ally_alliance: dict = self.bot.galaxylifeapi.get_alliance(ally_alliance_name)
+        ennemy_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)
+        ally_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(ally_alliance_name)
         if 'ally_initial_score' in war_infos:
             return_value["ally_alliance_score"] = ally_alliance['alliance_score'] - war_infos['ally_initial_score']
             return_value["ennemy_alliance_score"] = ennemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
