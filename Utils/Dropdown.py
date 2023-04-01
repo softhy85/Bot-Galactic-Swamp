@@ -84,7 +84,7 @@ class Select(discord.ui.Select):
         for colony in colonies:
             if colony["number"] >= 10:
                 break
-            if colony["updated"] == True:
+            if colony["updated"]:
                 if colony["colo_status"] == "Down" :
                     colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
                     if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
@@ -138,8 +138,8 @@ class Select(discord.ui.Select):
             menu_emoji = Emoji.SB.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
-        for colony in colonies: 
-            if colony["updated"] == True:
+        for colony in colonies:
+            if colony["updated"]:
                 if colony["colo_status"] == "Down" :
                     colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
                     if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
@@ -238,8 +238,7 @@ class Select(discord.ui.Select):
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
                 await self.bot.dashboard.update_Dashboard()
                 return
-            # pas d'attaque si la colo n'est pas updated
-            if colony["updated"] == True:
+            if colony["updated"]:
                 if "gift_state" in colony:
                     if colony['gift_state'] == "Free Once":
                         colony['gift_state'] = "Not Free"
@@ -251,7 +250,7 @@ class Select(discord.ui.Select):
                 player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
                 player_lvl: str = player_temp["player_lvl"]
                 await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
-            else: 
+            else:
                 return
         #await interaction.response.defer(ephemeral=True)
         # await self.bot.dashboard.update_Dashboard()
@@ -263,6 +262,6 @@ class DropView(discord.ui.View):
     def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], timeout: int = 180) -> None:
         super().__init__(timeout=timeout)
         for player in players:
-            obj: dict = {"_player_id": player["_id"]}
+            obj: dict = {"_player_id": ObjectId(player["_id"])}
             colonies: List[Colony_Model] = list(bot.db.get_colonies(obj))
             self.add_item(Select(bot, player, colonies))

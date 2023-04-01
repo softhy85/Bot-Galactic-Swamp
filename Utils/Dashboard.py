@@ -1,3 +1,5 @@
+import os
+
 import discord
 from discord.ext import commands
 import datetime
@@ -14,11 +16,12 @@ from Models.Colors import Colors
 import math
 
 class Dashboard:
-    bot: commands.Bot
-    guild: discord.Guild
-    def __init__(self, bot: commands.Bot, guild: discord.Guild):
+    bot: commands.Bot = None
+    guild: discord.Guild = None
+
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.guild = guild
+        self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
 
     def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model]) -> discord.Embed:
         embed: discord.Embed
@@ -48,7 +51,7 @@ class Dashboard:
         centered_title = f"{filler}⚔️  {title}  ⚔️"
         
         return centered_title 
-        
+
     def score_bar(self, alliance: Alliance_Model, players: List[Player_Model]):
         it: int = 1
         return_value: dict = {}
@@ -71,7 +74,7 @@ class Dashboard:
             slider = slider + "<:progressbar:1088095117841281115>"
             it += 1
         slider = slider + "<:slider:1088096728697278484>"
-        it = 1  
+        it = 1
         while slider_score + it <= slider_length - 1:
             slider = slider + "<:progressbar2:1088096726184886292>"
             it += 1
@@ -156,15 +159,13 @@ class Dashboard:
         nb_message: int = len(players) // 5
         if len(players) % 5 > 0:
             nb_message += 1
-        embed = self.create_embed_alliance(self, actual_war, war_alliance, players)
+        embed = self.create_embed_alliance(actual_war, war_alliance, players)
         obj: dict = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard"}
         infoMessages: List[InfoMessage_Model] = list(self.bot.db.get_info_messages(obj))
         if len(infoMessages) == 0:
             return -1
         message = await thread.fetch_message(int(infoMessages[0]["id_message"]))
         await message.edit(embed=embed)
-
-
         for it in range(0, nb_message):
             time.sleep(1.)
             message: discord.abc.Message
@@ -178,6 +179,7 @@ class Dashboard:
                 message = await thread.send(content="­", embed=None, view=dropView[it])
                 infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
                 self.bot.db.push_new_info_message(infoMessage)
+        print("Infos: Dashboard updated")
         return 0
     
 
@@ -217,4 +219,3 @@ class Dashboard:
             return_value["ally_alliance_score"] = "x"
             return_value["ennemy_alliance_score"] = "x"
         return return_value
-    

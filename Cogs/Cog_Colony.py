@@ -1,7 +1,7 @@
 import datetime
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from Models.War_Model import War_Model
 from Models.Player_Model import Player_Model
 from Models.Colony_Model import Colony_Model
@@ -12,37 +12,38 @@ from typing import List
 import os
 import re
 
-
 class Cog_Colony(commands.Cog):
-    bot: commands.Bot = None
-    war_channel_id: int = None
+    guild: discord.Guild = None
+    bot: commands.bot = None
+    experiment_channel_id: int = 0
+    experiment_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
+    war_channel_id: int = 0
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
+    general_channel_id: int = 0
+    general_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
-        self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
+        self.experiment_channel_id = int(os.getenv("EXPERIMENT_CHANNEL"))
+        self.experiment_channel = self.bot.get_channel(self.experiment_channel_id)
+        self.war_channel_id  = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
+        self.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
+        self.general_channel = self.bot.get_channel(self.war_channel_id)
+        self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
+        self.task_update_colonies.start()
 
     #<editor-fold desc="listener">
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Cog Loaded: Cog_Player")
+        print("Cog Loaded: Cog_Colony")
+
 
     #</editor-fold>
 
     #<editor-fold desc="autocomplete">
-    async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        obj: dict = {}
-        if current != "":
-            obj: dict = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
-        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
-        alliances = alliances[0:25]
-        return [
-            app_commands.Choice(name=alliance["name"], value=alliance["name"])
-            for alliance in alliances
-        ]
 
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
@@ -82,7 +83,7 @@ class Cog_Colony(commands.Cog):
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
                 for player in players
             ]
-            
+
     async def gift_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
         data = []
         for choice in ["Always Free","Free Once", "Not Free"]:
@@ -191,6 +192,38 @@ class Cog_Colony(commands.Cog):
 
     #</editor-fold>
 
+    #<editor-fold desc="task">
+
+    @tasks.loop(minutes=5)
+    async def task_update_colonies(self):
+        print("Infos: task_update_colonies started")
+        now: datetime.datetime = datetime.datetime.now()
+        date_time_str: str = now.strftime("%H:%M:%S")
+        obj: dict = {"MB_status": "Down"}
+        players: List[Player_Model] = list(self.bot.db.get_players(obj))
+        for player in players:
+            date_next: datetime.datetime = player["MB_refresh_time"]
+            if now > date_next:
+                player["MB_status"] = "Up"
+                self.bot.db.update_player(player)
+        obj = {"colo_status": "Down"}
+        colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+        for colony in colonies:
+            date_next: datetime.datetime = colony["colo_refresh_time"]
+            if now > date_next:
+                colony["colo_status"] = "Up"
+                self.bot.db.update_colony(colony)
+        actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+        if actual_war is not None:
+            print(f"Info: Update at {date_time_str}")
+            await self.bot.dashboard.update_Dashboard()
+        print("Infos: task_update_colonies ended")
+
+    @task_update_colonies.before_loop
+    async def before_task_update_colonies(self):
+        await self.bot.wait_until_ready()
+
+    #</editor-fold>
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Cog_Colony(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

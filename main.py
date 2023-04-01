@@ -1,5 +1,8 @@
 # This example requires the 'message_content' intent.
+import asyncio
 import os
+from typing import List
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -11,7 +14,6 @@ from Cogs.Cog_Alliance import Cog_Alliance
 from Cogs.Cog_Player import Cog_Player
 from Cogs.Cog_Colony import Cog_Colony
 from Utils.Alliance import Alliance
-from Utils.RefreshInfos import RefreshInfos
 from Utils.Role import Role
 from Utils.DataBase import DataBase
 from Utils.Dashboard import Dashboard
@@ -27,16 +29,18 @@ bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, applicatio
 
 @bot.event
 async def on_ready():
-    bot.alliance = Alliance(bot)
-    bot.refreshInfos = RefreshInfos(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
-    bot.dashboard = Dashboard(bot, bot.get_guild(int(os.getenv("SERVER_ID"))))
-    bot.galaxyLifeAPI = GalaxyLifeAPI()
+    print("The bot is online")
     bot.db = db
+    bot.galaxyLifeAPI = GalaxyLifeAPI()
+    bot.alliance = Alliance(bot)
     bot.spec_role = Role()
+    bot.dashboard = Dashboard(bot)
     bot.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel = bot.get_channel(bot.command_channel_id)
     await bot.command_channel.send("@personne - Le bot est connecté. <:O_:1043627742723317770>")
-    print("The bot is online")
+    cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony"])
+    for cog in cogs:
+        await bot.load_extension(cog)
 
 
 @bot.command()
@@ -71,10 +75,15 @@ async def disconnect(ctx: Context):
         await bot.close()
         exit(0)
 
+# async def load_extensions(bot):
+    # for filename in os.listdir('./Cogs'):
+    #     if filename.endswith('.py'):
+    #         bot.load_extension(f'Cogs.{filename[:-3]}')
 
-await bot.load_extension("Utils.Cog_Historic")
-await bot.load_extension("Utils.Cog_War")
-await bot.load_extension("Utils.Cog_Alliance")
-await bot.load_extension("Utils.Cog_Player")
-await bot.load_extension("Utils.Cog_Colony")
-bot.run(token)
+async def main():
+    async with bot:
+        # await load_extensions(bot)
+        await bot.start(token)
+
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -3,6 +3,7 @@ import datetime
 from typing import List
 
 import discord
+from bson import ObjectId
 from discord.ext import commands
 from Models.Alliance_Model import Alliance_Model
 from Models.Colony_Model import Colony_Model
@@ -18,7 +19,6 @@ class Alliance:
         self.bot = bot
         self.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
         self.command_channel = self.bot.get_channel(self.command_channel_id)
-        return
 
     async def add_alliance(self, alliance: str):
         if self.bot.galaxyLifeAPI.get_alliance(alliance) is None:
@@ -32,17 +32,20 @@ class Alliance:
                 return None
             return new_alliance
 
-    async def update_colony_from_api(self, colo_nb, colo_level, alliance_id: int, db_player: Player_Model):
+    async def update_colony_from_api(self, colo_nb: int, colo_level: int, alliance_id: int, db_player: Player_Model):
         date: datetime.datetime = datetime.datetime.now()
-        updated_colony: Colony_Model = {"_alliance_id": alliance_id, '_player_id': db_player["_id"], 'number': colo_nb, 'colo_sys_name': "-1", 'colo_lvl': colo_level, 'colo_coord': {"x": '-1', "y": '-1'}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date, 'updated': False, 'gift_state': "Not Free"}
-        db_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": db_player["_id"], "number": colo_nb}))
+        updated_colony: Colony_Model = {"_alliance_id": alliance_id, '_player_id': db_player["_id"], 'number': colo_nb, 'colo_sys_name': "?", 'colo_lvl': colo_level, 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date, 'updated': False, 'gift_state': "Not Free"}
+        db_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": ObjectId(db_player["_id"]), "number": colo_nb}))
         if len(db_colony) == 1:
             updated_colony["_id"] = db_colony[0]["_id"]
             updated_colony["colo_sys_name"] = db_colony[0]["colo_sys_name"]
-            updated_colony["colo_coord"] = db_colony[0]["colo_coord"]
-            if "updated" in db_colony:
-                updated_colony["updated"] = db_colony[0]["updated"]
+            updated_colony["colo_coord"]["x"] = int(db_colony[0]["colo_coord"]["x"])
+            updated_colony["colo_coord"]["y"] = int(db_colony[0]["colo_coord"]["y"])
+            if updated_colony["colo_coord"]["x"] != -1 and updated_colony["colo_coord"]["y"] != -1:
+                updated_colony["updated"] = True
             else:
+                updated_colony["colo_coord"]["x"] = -1
+                updated_colony["colo_coord"]["y"] = -1
                 updated_colony["updated"] = False
             self.bot.db.update_colony(updated_colony)
         elif len(db_colony) == 0:

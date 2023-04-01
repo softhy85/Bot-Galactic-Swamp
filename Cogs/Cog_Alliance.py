@@ -64,7 +64,7 @@ class Cog_Alliance(commands.Cog):
         act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
         if act_alliance is None:
             interaction.response.send_message("Loading the new alliance.")
-        self.bot.alliance.update_alliance(alliance)
+        await self.bot.alliance.update_alliance(alliance)
 
     @app_commands.command(name="alliance_update", description="Update an existent Cog_Alliance")
     @app_commands.describe(alliance="Alliance's name")
