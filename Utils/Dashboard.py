@@ -125,6 +125,7 @@ class Dashboard:
         return 0
 
     async def update_Dashboard(self) -> int:
+        date_start: datetime.datetime = datetime.datetime.now()
         embed: discord.Embed
         message: discord.Message
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
@@ -179,9 +180,9 @@ class Dashboard:
                 message = await thread.send(content="­", embed=None, view=dropView[it])
                 infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
                 self.bot.db.push_new_info_message(infoMessage)
-        print("Infos: Dashboard updated")
+        date_end: datetime.datetime = datetime.datetime.now()
+        print("Infos: Dashboard updated", "time :", date_end - date_start)
         return 0
-    
 
     def war_progress(self, alliance, players):
         return_value: dict = {}
