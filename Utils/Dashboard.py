@@ -197,7 +197,7 @@ class Dashboard:
             if player["MB_status"] == "Up":
                 planets_up += 1
             for colo in colonies:
-                if colo['colo_coord']['x'] != "-1":
+                if colo['colo_coord']['x'] != -1:
                     known_colonies += 1
                     if colo["colo_status"] == "Up":
                         planets_up = planets_up + 1
