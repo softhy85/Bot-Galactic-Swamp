@@ -3,7 +3,8 @@
 /Discord-Bot/
 /.idea/
 /build/
+/data/
 *.pyc
 *.spec
 .env
-/data/
+
