@@ -74,8 +74,8 @@ class GalaxyLifeAPI:
         return_value: dict = {}
         url: str = self.url_gl + f"/Users/get?id={player_id}"
         player_infos = self.get_request(url)
-        return_value["mb_lvl"] = player_infos['Planets'][0]['HQLevel']
-        return_value["player_lvl"] = player_infos['Level']
+        return_value["MB_lvl"] = player_infos['Planets'][0]['HQLevel']
+        return_value["lvl"] = player_infos['Level']
         return_value["colo_list"] = []
         player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
         it: int = 0
@@ -84,8 +84,7 @@ class GalaxyLifeAPI:
             if it == len(player_infos['Planets']):
                 break
             it = it + 1
-
-        return return_value    
+        return return_value
         
     def get_player_steam_ID(self, player_id_gl):
         url: str = self.url_gl + f"/Users/platformId?userId={player_id_gl}"

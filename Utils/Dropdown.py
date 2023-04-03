@@ -29,7 +29,7 @@ class Select(discord.ui.Select):
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
         status_emoji: str = Emoji.offline.value
-        if player["player_online"] == 1:
+        if player["online"] == 1:
             status_emoji = Emoji.online.value 
             player["MB_refresh_time"] = self.date
             player["MB_last_attack_time"] = self.date
@@ -43,7 +43,7 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
         else:
-            if player["player_online"] == 2:
+            if player["online"] == 2:
                 status_emoji = Emoji.maybe.value
             else:
                 if "state" in player:
@@ -57,9 +57,8 @@ class Select(discord.ui.Select):
                         status_emoji = Emoji.unknown.value
                     else:   
                         status_emoji = Emoji.offline.value
-        player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
-        player_lvl: str = player_temp["player_lvl"]
-        player_MB_lvl: str = player_temp["mb_lvl"]
+        player_lvl: str = player["lvl"]
+        player_MB_lvl: str = player["MB_lvl"]
         menu_label: str = f"{player_lvl if player_lvl != -1 else 'Non connue'}: {player['pseudo']}"
         
         if player["MB_status"] == "Down":
@@ -188,8 +187,6 @@ class Select(discord.ui.Select):
             return
         refresh_duration: float = 6.0
         date_resfresh: datetime.datetime = date + datetime.timedelta(hours=refresh_duration)
-
-        
         values: List[str] = self.values[0].split(";")
         self.values[0] = ""
         if len(values) == 2 and values[0] == "Reset":
@@ -229,8 +226,7 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Down"
             self.bot.db.update_player(player)
-            player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
-            player_lvl: str = player_temp["player_lvl"]
+            player_lvl: str = player["lvl"]
             await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🌍 main base destroyed by {interaction.user.display_name}")
         elif values[1] == "colony":
             colony: Colony_Model = self.bot.db.get_one_colony("_id", ObjectId(values[2]))
@@ -247,8 +243,7 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Down"
                 self.bot.db.update_colony(colony)
                 player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
-                player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
-                player_lvl: str = player_temp["player_lvl"]
+                player_lvl: str = player["lvl"]
                 await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
             else:
                 return

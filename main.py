@@ -8,11 +8,6 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
-from Cogs.Cog_Historic import Cog_Historic
-from Cogs.Cog_War import Cog_War
-from Cogs.Cog_Alliance import Cog_Alliance
-from Cogs.Cog_Player import Cog_Player
-from Cogs.Cog_Colony import Cog_Colony
 from Utils.Alliance import Alliance
 from Utils.Role import Role
 from Utils.DataBase import DataBase
@@ -38,7 +33,7 @@ async def on_ready():
     bot.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel = bot.get_channel(bot.command_channel_id)
     await bot.command_channel.send("@personne - Le bot est connecté. <:O_:1043627742723317770>")
-    cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony"])
+    cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony"])
     for cog in cogs:
         await bot.load_extension(cog)
 
@@ -56,7 +51,10 @@ async def on_app_command_error(interaction: discord.Interaction, error: discord.
     if isinstance(error, app_commands.errors.CommandOnCooldown):
         await interaction.response.send_message(f'Command {interaction.command.name} is on cooldown, you can use it in {round(error.retry_after, 2)} seconds.', ephemeral=True)
     elif isinstance(error, app_commands.errors.CommandNotFound):
-        await interaction.response.send_message(f"There is no command named {interaction.command.name}.", ephemeral=True)
+        if interaction.command is not None:
+            await interaction.response.send_message(f"There is no command named {interaction.command.name}.", ephemeral=True)
+        else: 
+            await interaction.response.send_message(f"There is no command named {error.name}.", ephemeral=True)
     elif isinstance(error, app_commands.errors.MissingAnyRole):
         await interaction.response.send_message(f"You do not have the role tu use {interaction.command.name} command.", ephemeral=True)
     elif isinstance(error, app_commands.errors.MissingRole):

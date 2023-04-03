@@ -32,7 +32,6 @@ class Cog_Colony(commands.Cog):
         self.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
         self.general_channel = self.bot.get_channel(self.war_channel_id)
         self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
-        self.task_update_colonies.start()
 
     #<editor-fold desc="listener">
 
@@ -46,16 +45,15 @@ class Cog_Colony(commands.Cog):
     #<editor-fold desc="autocomplete">
 
     async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        if act_war is None:
-            return []
-        else:
-            obj: dict = {"_alliance_id": act_war["_alliance_id"]}
-            players: List[Player_Model] = self.bot.db.get_players(obj)
-            return [
-                app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
-                for player in players
-            ]
+        obj: dict = {}
+        if current != "":
+            obj = {"pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
+        players: List[Player_Model] = list(self.bot.db.get_players(obj))
+        players = players[0:25]
+        return [
+            app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
+            for player in players
+        ] 
             
     async def  colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         pseudo = interaction.namespace.pseudo
@@ -119,7 +117,7 @@ class Cog_Colony(commands.Cog):
                 await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="colo_update", description="Update an existent Cog_Colony")
-    @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
+    @app_commands.describe(pseudo="Player's pseudo", colo_number="if not found : ✅ run /player_infos and add its alliance ", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
     @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str = "", colo_coord_x: int = -1, colo_coord_y: int = -1):
@@ -192,38 +190,7 @@ class Cog_Colony(commands.Cog):
 
     #</editor-fold>
 
-    #<editor-fold desc="task">
 
-    @tasks.loop(minutes=5)
-    async def task_update_colonies(self):
-        print("Infos: task_update_colonies started")
-        now: datetime.datetime = datetime.datetime.now()
-        date_time_str: str = now.strftime("%H:%M:%S")
-        obj: dict = {"MB_status": "Down"}
-        players: List[Player_Model] = list(self.bot.db.get_players(obj))
-        for player in players:
-            date_next: datetime.datetime = player["MB_refresh_time"]
-            if now > date_next:
-                player["MB_status"] = "Up"
-                self.bot.db.update_player(player)
-        obj = {"colo_status": "Down"}
-        colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-        for colony in colonies:
-            date_next: datetime.datetime = colony["colo_refresh_time"]
-            if now > date_next:
-                colony["colo_status"] = "Up"
-                self.bot.db.update_colony(colony)
-        actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        if actual_war is not None:
-            print(f"Info: Update at {date_time_str}")
-            await self.bot.dashboard.update_Dashboard()
-        print("Infos: task_update_colonies ended")
-
-    @task_update_colonies.before_loop
-    async def before_task_update_colonies(self):
-        await self.bot.wait_until_ready()
-
-    #</editor-fold>
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Cog_Colony(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

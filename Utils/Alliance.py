@@ -41,6 +41,10 @@ class Alliance:
             updated_colony["colo_sys_name"] = db_colony[0]["colo_sys_name"]
             updated_colony["colo_coord"]["x"] = int(db_colony[0]["colo_coord"]["x"])
             updated_colony["colo_coord"]["y"] = int(db_colony[0]["colo_coord"]["y"])
+            if updated_colony["colo_coord"]["x"] == "-1" and updated_colony["colo_coord"]["y"] == "-1":
+                updated_colony["colo_coord"]["x"] == -1
+                updated_colony["colo_coord"]["y"] == -1
+                updated_colony["updated"] = False
             if updated_colony["colo_coord"]["x"] != -1 and updated_colony["colo_coord"]["y"] != -1:
                 updated_colony["updated"] = True
             else:
@@ -100,9 +104,10 @@ class Alliance:
                     act_player['id_gl'] = player['Id']
                     self.bot.db.update_player(act_player)
                     await self.update_colonies_from_api(act_alliance["_id"], act_player)
+        await self.command_channel.send(f"> Alliance added.")
 
     async def update_alliance(self, alliance: str):
-        act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+        act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
         if act_alliance is None:
             act_alliance = await self.add_alliance(alliance)
             if act_alliance is None:

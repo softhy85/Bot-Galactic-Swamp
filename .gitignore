@@ -6,3 +6,4 @@
 *.pyc
 *.spec
 .env
+/data/

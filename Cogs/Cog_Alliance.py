@@ -55,15 +55,18 @@ class Cog_Alliance(commands.Cog):
     @app_commands.checks.has_role('Admin')
     @app_commands.default_permissions()
     async def alliance_add(self, interaction: discord.Interaction, alliance: str):
+        await interaction.response.defer(ephemeral=True)
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
+            await interaction.followup.send("You don't have the permission to use this command.")
             return
         if alliance.strip() == "":
-            await interaction.response.send_message(f"Cannot create alliances with a name composed only of whitespace.")
+            await interaction.followup.send(f"Cannot create alliances with a name composed only of whitespace.")
             return
-        act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+        act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
         if act_alliance is None:
-            interaction.response.send_message("Loading the new alliance.")
+            await interaction.followup.send("> Loading the new alliance.")
+        else:
+            await interaction.followup.send("> Updating the alliance.")
         await self.bot.alliance.update_alliance(alliance)
 
     @app_commands.command(name="alliance_update", description="Update an existent Cog_Alliance")
@@ -122,7 +125,7 @@ class Cog_Alliance(commands.Cog):
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             for colo in colonies:
-                if colo['colo_coord']['x'] != "-1":
+                if colo['colo_coord']['x'] != -1:
                     value = value + f"\n🪐 **__(SB{colo['colo_lvl']}):__**\n/colo_update pseudo:{player['pseudo']} colo_number:{colo['number']} colo_sys_name:{colo['colo_sys_name']} colo_coord_x:{colo['colo_coord']['x']} colo_coord_y:{colo['colo_coord']['y']}\n"
             if value != "": 
                 embed.add_field(name=f"\n✅ {player['pseudo']}",value=value, inline=False)

@@ -7,3 +7,5 @@ class Alliance_Model(TypedDict):
     name: str
     alliance_lvl: int
     alliance_winrate: float
+    emblem_url: str
+    score: int

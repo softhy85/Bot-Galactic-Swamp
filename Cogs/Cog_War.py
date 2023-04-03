@@ -23,11 +23,13 @@ class Cog_War(commands.Cog):
     command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
     experiment_channel_id: int = None
     experiment_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
+    ally_alliance_name: str = None
 
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
         self.guild: discord.Guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
+        self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
         self.war_channel_id = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
         self.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
@@ -117,6 +119,8 @@ class Cog_War(commands.Cog):
             print(f"Info: War is over at {date_time_str}")
             self.task_war_over.stop()
             self.task_war_started.start()
+        else: 
+            await self.bot.dashboard.update_Dashboard()
         print("Infos: task_war_over ended")
 
     @task_war_over.before_loop
@@ -128,7 +132,7 @@ class Cog_War(commands.Cog):
         print("Infos: task_war_started started")
         now: datetime.datetime = datetime.datetime.now()
         date_time_str: str = now.strftime("%H:%M:%S")
-        alliance_infos = self.bot.galaxyLifeAPI.get_alliance("GALACTIC SWAMP")
+        alliance_infos = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         if alliance_infos['war_status']:
             await self.create_new_war(alliance_infos["enemy_name"].upper())
             print(f"Info: War started at {date_time_str}")
@@ -153,7 +157,7 @@ class Cog_War(commands.Cog):
         act_alliance: Alliance_Model = await self.bot.alliance.update_alliance(alliance)
         await self.command_channel.send("> New war started.")
         api_alliance_en = self.bot.galaxyLifeAPI.get_alliance(alliance)
-        api_alliance_gs = self.bot.galaxyLifeAPI.get_alliance("GALACTIC SWAMP")
+        api_alliance_gs = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         new_message: discord.Message = await (self.war_channel.send(f"<@&1043541214319874058> We are at war against **{act_alliance['name']}** !!"))
         new_thread: discord.Thread = await new_message.create_thread(name=act_alliance["name"])
         new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date}
@@ -167,7 +171,7 @@ class Cog_War(commands.Cog):
             await self.command_channel.send("No war actually in progress.")
             return Status.Ended
         else:
-            api_alliance_GS = self.bot.galaxyLifeAPI.get_alliance("GALACTIC SWAMP")
+            api_alliance_GS = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
             if not api_alliance_GS["war_status"]:
                 war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
                 obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
@@ -205,9 +209,10 @@ class Cog_War(commands.Cog):
                         await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
                         await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
                 else:
+                    actual_war["status"] = Status.Ended.name
                     await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
-                print(actual_war["status"])
-                # self.bot.db.update_war(actual_war)
+                print(f"Status : {actual_war['status']}")
+                self.bot.db.update_war(actual_war)
             return actual_war["status"]
 
     #</editor-fold>
