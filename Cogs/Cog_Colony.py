@@ -111,7 +111,7 @@ class Cog_Colony(commands.Cog):
                 embed = discord.Embed(title=f"Niv  : { player['pseudo'] }️", description="", color=Colors.gold, timestamp=datetime.datetime.now())
                 it: int = 1
                 for colony in colonies:
-                    if colony['colo_sys_name'] != "-1":
+                    if colony['colo_sys_name'] != "-1" and colony['colo_sys_name'] != -1:
                         embed.add_field(name=f"{ Emoji.colo.value if colony['colo_status'] == 'Up' else Emoji.down.value } Colonie {it} : {colony['colo_sys_name']}",value=f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})", inline=False)
                     it += 1
                 await interaction.response.send_message(embed=embed)
