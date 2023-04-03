@@ -95,8 +95,8 @@ class Dashboard:
         players.sort(key=lambda item: item.get("lvl"), reverse = True)
         nb_message: int = len(players) // 5
         if len(players) % 5 > 0:
-            nb_message += 1
-        embed: discord.Embed = self.create_embed_alliance(self, actual_war, war_alliance, players)
+            nb_message += 1   
+        embed: discord.Embed = self.create_embed_alliance(actual_war, war_alliance, players)
         message = await thread.send(embed=embed)
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)

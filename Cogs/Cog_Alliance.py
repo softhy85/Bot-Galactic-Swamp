@@ -105,7 +105,7 @@ class Cog_Alliance(commands.Cog):
         else:
             self.bot.db.remove_alliance(return_alliance)
             await interaction.response.send_message(f"Alliance named {alliance} as been removed.")
-
+       
     @app_commands.command(name="alliance_colonies", description="Get all colonies from an alliance")
     @app_commands.describe(alliance="Alliance's name")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
@@ -140,6 +140,21 @@ class Cog_Alliance(commands.Cog):
         if total_size != 0:
             await self.backup_channel.send(embed=embed)
 
+    # @app_commands.command(name="alliance_colonies", description="Get all colonies from an alliance")
+    # @app_commands.describe(alliance="Alliance's name")
+    # @app_commands.autocomplete(alliance=alliance_autocomplete)
+    # @app_commands.checks.has_any_role('Admin')
+    # async def alliance_infos(self, interaction: discord.Interaction,  alliance: str): 
+    #     alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+    #     alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(alliance_info["name"])
+    #     obj: dict = {"_alliance_id": alliance_info["_id"]}
+    #     players: List[Player_Model] = self.bot.db.get_players(obj)
+    #     print(alliance_api_info["alliance_score"])
+    #     await interaction.response.send_message(f"Here's the database for {alliance_api_info['alliance_score']}:")
+    #     embed: discord.Embed = discord.Embed(title=f"➖➖➖➖ {alliance_info['name']} ➖➖➖➖", description=f"Score: {alliance_api_info['alliance_score']} \nWinrate:{alliance_api_info['alliance_lvl']}\nLevel:{alliance_api_info['alliance_winrate']}", color=discord.Color.from_rgb(8, 1, 31))
+    #     embed.set_thumbnail(url=alliance_api_info["emblem_url"])
+
+        
     #</editor-fold>
 
 async def setup(bot: commands.Bot):
