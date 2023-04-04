@@ -140,20 +140,19 @@ class Cog_Alliance(commands.Cog):
         if total_size != 0:
             await self.backup_channel.send(embed=embed)
 
-    # @app_commands.command(name="alliance_colonies", description="Get all colonies from an alliance")
-    # @app_commands.describe(alliance="Alliance's name")
-    # @app_commands.autocomplete(alliance=alliance_autocomplete)
-    # @app_commands.checks.has_any_role('Admin')
-    # async def alliance_infos(self, interaction: discord.Interaction,  alliance: str): 
-    #     alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
-    #     alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(alliance_info["name"])
-    #     obj: dict = {"_alliance_id": alliance_info["_id"]}
-    #     players: List[Player_Model] = self.bot.db.get_players(obj)
-    #     print(alliance_api_info["alliance_score"])
-    #     await interaction.response.send_message(f"Here's the database for {alliance_api_info['alliance_score']}:")
-    #     embed: discord.Embed = discord.Embed(title=f"➖➖➖➖ {alliance_info['name']} ➖➖➖➖", description=f"Score: {alliance_api_info['alliance_score']} \nWinrate:{alliance_api_info['alliance_lvl']}\nLevel:{alliance_api_info['alliance_winrate']}", color=discord.Color.from_rgb(8, 1, 31))
-    #     embed.set_thumbnail(url=alliance_api_info["emblem_url"])
-
+    @app_commands.command(name="alliance_infos", description="Get all colonies from an alliance")
+    @app_commands.describe(alliance="Alliance's name")
+    @app_commands.autocomplete(alliance=alliance_autocomplete)
+    @app_commands.checks.has_any_role('Admin')
+    async def alliance_infos(self, interaction: discord.Interaction,  alliance: str): 
+        alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
+        alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(alliance_info["name"])
+        obj: dict = {"_alliance_id": alliance_info["_id"]}
+        players: List[Player_Model] = self.bot.db.get_players(obj)
+        # embed: discord.Embed = discord.Embed(title=f"{alliance_info['name']}", description=f"Score: {alliance_api_info['alliance_score']} \nWinrate:{alliance_api_info['alliance_winrate']}%\nLevel:{alliance_api_info['alliance_lvl']}", color=discord.Color.from_rgb(8, 1, 31))
+        embed: discord.Embed = discord.Embed(title=f"{alliance_info['name']}", description=f":dizzy: __Score:__ **{alliance_api_info['alliance_score']}**  \n:chart_with_upwards_trend: __Winrate:__ **{alliance_api_info['alliance_winrate']}%** \n<:star:1043627831973924944> __Level:__ **{alliance_api_info['alliance_lvl']}** ", color=discord.Color.from_rgb(130, 255, 128))
+        embed.set_thumbnail(url=alliance_api_info["emblem_url"])
+        await interaction.response.send_message(embed=embed)   
         
     #</editor-fold>
 
