@@ -73,9 +73,9 @@ class Alliance:
             for colo_level in api_colo_list:
                 await self.update_colony_from_api(it, colo_level, alliance_id, db_player)
                 it += 1
-            await self.command_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{db_player['pseudo']}**__.")
-        else:
-            await self.command_channel.send(f"> No colony was added to Player named __**{db_player['pseudo']}**__.")
+        #     await self.command_channel.send(f"> **{colo_number}** 🪐 colonies were added or updated for Player named __**{db_player['pseudo']}**__.")
+        # else:
+        #     await self.command_channel.send(f"> No colony was added to Player named __**{db_player['pseudo']}**__.")
 
     async def update_alliance_from_api(self, alliance: str, act_alliance: Alliance_Model):
         date: datetime.datetime = datetime.datetime.now()

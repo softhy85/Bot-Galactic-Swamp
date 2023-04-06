@@ -59,10 +59,10 @@ class Dashboard:
         return_value: dict = {}
         war_progress: dict = self.war_progress(alliance["name"], players)
         score_space =  (len(str(war_progress['ally_alliance_score'])) - 1 + len(str(war_progress['ennemy_alliance_score']))- 1)
-        filler = "  "
-        filler_number = 20 - score_space
+        filler = "<:empty:1088454928474841108>"
+        filler_number = 13 - score_space
         while it <= filler_number:
-            filler = filler + " "
+            filler = filler + "<:empty:1088454928474841108>"
             it += 1
         slider: str = ""
         slider_length = 15
@@ -73,12 +73,12 @@ class Dashboard:
             slider_score = 0.5 * slider_length + 1
         it = 0
         while it < slider_score:
-            slider = slider + "<:progressbar:1088095117841281115>"
+            slider = slider + "▰"
             it += 1
-        slider = slider + "<:slider:1088096728697278484>"
+        slider = slider + "▰"
         it = 1
         while slider_score + it <= slider_length - 1:
-            slider = slider + "<:progressbar2:1088096726184886292>"
+            slider = slider + "▱"
             it += 1
         return_value["title"] =  f"💫 {war_progress['ally_alliance_score']}{filler}{war_progress['ennemy_alliance_score']} 💫"
         return_value["description"] = f"{slider}"

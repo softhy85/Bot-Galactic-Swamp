@@ -30,11 +30,18 @@ class GalaxyLifeAPI:
         alliance_infos = self.get_request(url)
         if alliance_infos == None:
             return None
-        return_value["alliance_lvl"] = alliance_infos['AllianceLevel']
+        if alliance_infos['Description'] is not None:
+            return_value["alliance_description"] = alliance_infos['Description']
+        else:
+            return_value["alliance_description"] = "No description."
+        return_value["alliance_lvl"] = str(alliance_infos['AllianceLevel'])
         return_value["alliance_size"] =  len(alliance_infos['Members'])
         return_value["emblem_url"] = self.get_emblem(alliance_infos['Emblem']['Shape'], alliance_infos['Emblem']['Pattern'], alliance_infos['Emblem']['Icon'])   
         return_value["members_list"] = []
+        
         return_value["alliance_score"] = alliance_infos['WarPoints']
+        alliance_infos['WarPoints'] = '{:,}'.format(alliance_infos['WarPoints']).replace(',', ' ')
+        return_value["alliance_formatted_score"] = alliance_infos['WarPoints']
         return_value["war_status"] = alliance_infos["InWar"]
         return_value["enemy_name"] = alliance_infos["OpponentAllianceId"]
         for member in alliance_infos['Members']:
@@ -50,24 +57,27 @@ class GalaxyLifeAPI:
         return_value: dict = {}
         url: str = self.url_gl + f"/Users/name?name={player_name}"
         player_infos = self.get_request(url)
-        return_value["mb_lvl"] = player_infos['Planets'][0]['HQLevel']
-        return_value["player_lvl"] = player_infos['Level']
-        if player_infos['AllianceId'] != None:
-            return_value["alliance_name"] = player_infos['AllianceId'].upper()
-        else:
-            return_value["alliance_name"] = None
-        return_value["colo_list"] = []
-        return_value["player_id_gl"] = player_infos['Id']
-        return_value["avatar_url"] = player_infos['Avatar']
-        player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
-        it: int = 0
-        for colonies in player_infos['Planets']:
-            return_value["colo_list"].append(player_infos['Planets'][it]['HQLevel'])
-            if it == len(player_infos['Planets']):
-                break
-            it = it + 1
+        if player_infos is not None:
+            return_value["mb_lvl"] = player_infos['Planets'][0]['HQLevel']
+            return_value["player_lvl"] = player_infos['Level']
+            if player_infos['AllianceId'] != None:
+                return_value["alliance_name"] = player_infos['AllianceId'].upper()
+            else:
+                return_value["alliance_name"] = None
+            return_value["colo_list"] = []
+            return_value["player_id_gl"] = player_infos['Id']
+            return_value["avatar_url"] = player_infos['Avatar']
+            player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
+            it: int = 0
+            for colonies in player_infos['Planets']:
+                return_value["colo_list"].append(player_infos['Planets'][it]['HQLevel'])
+                if it == len(player_infos['Planets']):
+                    break
+                it = it + 1
 
-        return return_value    
+            return return_value    
+        else:
+            return None
         
     
     def get_player_infos(self, player_id):
@@ -84,6 +94,13 @@ class GalaxyLifeAPI:
             if it == len(player_infos['Planets']):
                 break
             it = it + 1
+        return return_value
+    
+    def get_player_stats(self, player_id):
+        return_value: dict = {}
+        url: str = self.url_gl + f"/Users/stats?id={player_id}"
+        player_infos = self.get_request(url)
+        return_value["colonies_moved"] = player_infos["ColoniesMoved"]
         return return_value
         
     def get_player_steam_ID(self, player_id_gl):
@@ -104,7 +121,6 @@ class GalaxyLifeAPI:
             response_info: str = requests.get(url) 
             if response_info.status_code != 204 and response_info.status_code != 500:   
                 response_parse: dict = json.loads(response_info.content)
-                #print(response_parse['response'])
                 if response_parse['response']['players'][0]:
                     if len(response_parse['response']['players'][0]) >= 1:
                         if response_parse['response']['players'][0]['personastate'] != 0:

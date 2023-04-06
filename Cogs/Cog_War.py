@@ -10,7 +10,7 @@ from typing import List
 import os
 import datetime
 import re
-
+import time
 
 class Cog_War(commands.Cog):
     bot: commands.Bot = None
@@ -172,6 +172,8 @@ class Cog_War(commands.Cog):
             return Status.Ended
         else:
             api_alliance_GS = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
+            # print('stop')
+            # time.Sleep(10)
             if not api_alliance_GS["war_status"]:
                 war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
                 obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
