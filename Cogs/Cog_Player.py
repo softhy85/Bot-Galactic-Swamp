@@ -90,20 +90,27 @@ class Cog_Player(commands.Cog):
         return return_value
     
     #cog boutons?
-    def button_details(self, display, field: list):
+    def button_details(self, display, field: list, no_alliance):
         button_details = Button(label = f"+", style=discord.ButtonStyle.blurple)      
         async def button_callback_more(interaction):
             button_details_2 = Button(label = f"-", style=discord.ButtonStyle.gray,  custom_id= "less")
-            display[1].remove_item(display[1].children[2])
+            if no_alliance == True:
+                display[1].remove_item(display[1].children[1])
+            else:
+                display[1].remove_item(display[1].children[2])
             display[1].add_item(button_details_2)
             display[0].add_field(name=field[1],value=field[2], inline=False)
-            display[0].add_field(name=field[3], value=field[4], inline=False)
+            if no_alliance == False:
+                display[0].add_field(name=field[3], value=field[4], inline=False)
             button_details_2.callback = button_callback_less
             await interaction.response.edit_message(embed=display[0], view=display[1])
         
         async def button_callback_less(interaction):
             button_details = Button(label = f"+", style=discord.ButtonStyle.blurple,  custom_id= "less")
-            display[1].remove_item(display[1].children[2])
+            if no_alliance == True:
+                display[1].remove_item(display[1].children[1])
+            else:
+                display[1].remove_item(display[1].children[2])
             display[1].add_item(button_details)
             display[0].clear_fields()
             button_details.callback = button_callback_more
@@ -135,35 +142,14 @@ class Cog_Player(commands.Cog):
         return display
 
     # optimisable?
-    def empty_space(self, player: dict, player_stats: dict,  alliance_api_info: dict):
+    def empty_space(self, left_word, right_word, width):
         it = 0
-        return_value: list = []
-        empty_space_length = 11        
-        empty_space_colos = ""
-        empty_space_colos_moved = ""
-        empty_space_score = ""
-        empty_space_lvl = ""
-        empty_space_length_colos = empty_space_length - len(str(len(player['colo_list'])))
-        empty_space__length_colos_moved = empty_space_length - len(str(player_stats['colonies_moved']))        
-        empty_space_length_lvl = empty_space_length - len(alliance_api_info['alliance_lvl'])
-        empty_space_length_score = empty_space_length - len(alliance_api_info['alliance_formatted_score'])
-        while it < empty_space_length_colos:
-            empty_space_colos = empty_space_colos + " "
+        empty_space = ""
+        empty_space_length = width - len(right_word) - len(left_word)
+        while it < empty_space_length:
+            empty_space = empty_space + " "
             it += 1
-        it = 0
-        while it < empty_space__length_colos_moved:
-            empty_space_colos_moved = empty_space_colos_moved + " "
-            it += 1
-        it = 0
-        while it < empty_space_length_score:
-            empty_space_score = empty_space_score + " "
-            it += 1
-        it = 0
-        while it < empty_space_length_lvl:
-            empty_space_lvl = empty_space_lvl + " "
-            it += 1
-        return_value = [empty_space_colos, empty_space_colos_moved, empty_space_score, empty_space_lvl]
-        return return_value
+        return empty_space
        
     #</editor-fold>
 
@@ -173,6 +159,7 @@ class Cog_Player(commands.Cog):
     @app_commands.describe(pseudo="Player's pseudo")
     @app_commands.checks.has_any_role('Admin','Assistant')
     async def player_add(self, interaction: discord.Interaction, pseudo: str):
+        no_alliance = True
         player: Player_Model = self.bot.galaxyLifeAPI.get_player_infos_from_name(pseudo)
         if player is None:
             await interaction.response.send_message(f"**{pseudo}** doesn't exist as a player.")
@@ -184,23 +171,29 @@ class Cog_Player(commands.Cog):
         if player['alliance_name'] != None and player['alliance_name'] != "":
             description: str = f"lvl **{player['player_lvl']}**\nAlliance: **{player['alliance_name']}**" 
         else:
-            description: str = f"lvl **{player['player_lvl']}**\nNo alliance - "
-        alliance_check = self.has_alliance(player['alliance_name'])
-        alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(player['alliance_name'])
-        empty_space = self.empty_space(player, player_stats, alliance_api_info)
+            description: str = f"lvl **{player['player_lvl']}**\n**No alliance**"
+        empty_space_colos = self.empty_space("Colos:", str(len(player['colo_list'])), 17)
+        empty_space_moved = self.empty_space("Moved:", str(player_stats['colonies_moved']), 17)
         field: list = [f"Steam account:",
                        f"Planets:",
-                       f"```🌍 Base:       lvl {player['mb_lvl']}\n🪐 Colos:{empty_space[0]}{len(player['colo_list'])}\n🔎 Moved:{empty_space[1]}{player_stats['colonies_moved']}```",
-                       "Alliance:",
-                       f"```💫 Score:{empty_space[2]}{alliance_api_info['alliance_formatted_score']}\n📈 WR:        {alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'x'}% \n⭐ Level:{empty_space[3]}{alliance_api_info['alliance_lvl']}\n👤 Members:       {len(alliance_api_info['members_list'])}```"]
+                       f"```🌍 Base:       lvl {player['mb_lvl']}\n🪐 Colos:{empty_space_colos}{len(player['colo_list'])}\n🔎 Moved:{empty_space_moved}{player_stats['colonies_moved']}```"]
+        if player['alliance_name'] != "" and player['alliance_name'] != None:
+            no_alliance = False
+            alliance_check = self.has_alliance(player['alliance_name'])
+            alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(player['alliance_name'])
+            empty_space_score = self.empty_space("Score:", str(alliance_api_info['alliance_formatted_score']), 17)
+            empty_space_level = self.empty_space("Level:", str(alliance_api_info['alliance_lvl']), 17)
+            field.append("Alliance:")
+            field.append(f"```💫 Score:{empty_space_score}{alliance_api_info['alliance_formatted_score']}\n📈 WR:        {alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space_level}{alliance_api_info['alliance_lvl']}\n👤 Members:       {len(alliance_api_info['members_list'])}```")
         embed: discord.Embed = discord.Embed(title=title, description=description, color=discord.Color.from_rgb(130, 255, 128))
         embed.set_thumbnail(url=avatar_url)
         view = View()
         display: list = [embed, view]
         button_steam = Button(label = f"Steam", style=discord.ButtonStyle.blurple, emoji="🔗", url=f"{steam_url}")
-        self.button_alliance(player['alliance_name'], alliance_check, display)
+        if player['alliance_name'] != "" and player['alliance_name'] != None:
+            self.button_alliance(player['alliance_name'], alliance_check, display)
         display[1].add_item(button_steam)
-        display = self.button_details(display, field)
+        display = self.button_details(display, field, no_alliance)
         await interaction.response.send_message(embed=display[0], view=display[1])     
 
     @app_commands.command(name="player_remove", description="Remove an existent Cog_Player")

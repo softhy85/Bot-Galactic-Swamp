@@ -48,7 +48,7 @@ class Dashboard:
         filler_number_char = (25 - title_space)/2
         filler_number_emojis =  round(filler_number_char * 15 / 25) - 2
         while it <= filler_number_emojis:
-            filler = filler + "<:empty:1088454928474841108>"
+            filler = filler + "" #"<:empty:1088454928474841108>"
             it += 1
         centered_title = f"{filler}⚔️  {title}  ⚔️"
         
@@ -60,9 +60,11 @@ class Dashboard:
         war_progress: dict = self.war_progress(alliance["name"], players)
         score_space =  (len(str(war_progress['ally_alliance_score'])) - 1 + len(str(war_progress['ennemy_alliance_score']))- 1)
         filler = "<:empty:1088454928474841108>"
-        filler_number = 13 - score_space
+        filler_number = 15 - score_space
         while it <= filler_number:
-            filler = filler + "<:empty:1088454928474841108>"
+            if len(filler) << 225:
+                print(len(filler))
+                filler = filler + "<:empty:1088454928474841108>"
             it += 1
         slider: str = ""
         slider_length = 15
@@ -85,6 +87,7 @@ class Dashboard:
         return return_value
         
     async def create_Dashboard(self, actual_war: War_Model) -> int:
+        print('create_dashboard')
         thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
         dropView: List[discord.ui.View] = []
@@ -110,6 +113,7 @@ class Dashboard:
         return 0
 
     async def update_Dashboard(self) -> int:
+        print('update_dashboard')
         date_start: datetime.datetime = datetime.datetime.now()
         embed: discord.Embed
         message: discord.Message

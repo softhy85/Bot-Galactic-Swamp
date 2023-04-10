@@ -102,6 +102,62 @@ class Cog_War(commands.Cog):
             await self.update_actual_war()
         print("Infos: command war_update ended")
 
+
+    @app_commands.command(name="war_stop", description="stop war")
+    @app_commands.describe()
+    @app_commands.checks.has_role('Admin')
+    async def war_stop(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+        date: datetime.datetime = datetime.datetime.now()
+        war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
+        obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
+        players: List[Player_Model] = list(self.bot.db.get_players(obj))
+        print('1')
+        war_progress = self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
+        converted_start_time = datetime.datetime.strftime(actual_war["start_time"],  "%Y/%m/%d %H:%M:%S.%f")
+        strp_converted_start_time = datetime.datetime.strptime(converted_start_time, "%Y/%m/%d %H:%M:%S.%f")
+        converted_actual_date = datetime.datetime.strftime(date,  "%Y/%m/%d %H:%M:%S.%f")
+        strp_converted_actual_date = datetime.datetime.strptime(converted_actual_date, "%Y/%m/%d %H:%M:%S.%f")
+        print('2')
+        delta = strp_converted_actual_date - strp_converted_start_time
+        days, seconds = delta.days, delta.seconds
+        hours = days * 24 + seconds // 3600
+        minutes = (seconds % 3600) // 60
+        seconds = seconds % 60
+        time = hours + minutes / 60 + seconds / 3600
+        print('3')
+        print(int(war_progress['ally_alliance_score']))
+        print(int(war_progress['ennemy_alliance_score']))
+        await interaction.followup.send(f"War has ended")
+                                                # after a duration of {hours} hours, {minutes} minutes and {seconds} seconds.\nScore: {war_progress['ally_alliance_score']} VS {war_progress['ennemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
+        print('4')
+        if int(war_progress['ally_alliance_score']) and int(war_progress['ennemy_alliance_score']) != 0:
+            if int(war_progress['ally_alliance_score']) > int(war_progress['ennemy_alliance_score']):
+                print('a')
+                await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
+                actual_war["status"] = Status.Win.name
+                await self.general_channel.send(f"War against {actual_war['alliance_name']} has been won.")
+            elif int(war_progress['ally_alliance_score']) < int(war_progress['ennemy_alliance_score']):
+                print('b')
+                actual_war["status"] = Status.Lost.name
+                await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
+                await self.general_channel.send(f"War against {actual_war['alliance_name']} has been lost.")
+            else:
+                print('c')
+                actual_war["status"] = Status.Ended.name
+                await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
+                await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
+        else:
+            print('d')
+            actual_war["status"] = Status.Ended.name
+            await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
+        print(f"Status : {actual_war['status']}")
+        self.bot.db.update_war(actual_war)
+        
+   
+
+
     #</editor-fold>
 
     #<editor-fold desc="task">
@@ -189,7 +245,8 @@ class Cog_War(commands.Cog):
                     hours = days * 24 + seconds // 3600
                     minutes = (seconds % 3600) // 60
                     seconds = seconds % 60
-                    await self.experiment_channel.send(f"War has ended after a duration of {hours} hours, {minutes} minutes and {seconds} seconds. Score: {war_progress['ally_alliance_score']} VS {war_progress['ennemy_alliance_score']} - Team members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
+                    time = hours + minutes / 60 + seconds / 3600
+                    await self.experiment_channel.send(f"War has ended after a duration of {hours} hours, {minutes} minutes and {seconds} seconds. ({time} h)\nScore: {war_progress['ally_alliance_score']} VS {war_progress['ennemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
                 else:
                     hours = "x"
                     minutes = "x"

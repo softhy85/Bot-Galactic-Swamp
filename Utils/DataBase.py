@@ -19,7 +19,7 @@ class DataBase:
 
     def __init__(self) -> None:
         self.mongo_client = MongoClient(os.getenv("MONGO_CO"))
-        self.db_name = "Galactic-Swamp"
+        self.db_name = os.getenv("MONGO_DB_NAME")
         self.db = self.mongo_client[self.db_name]
 
     def push_new_info_message(self, info_message: InfoMessage_Model) -> ObjectId | None:
@@ -111,6 +111,11 @@ class DataBase:
     def get_colonies(self, obj: dict) -> Cursor[Colony_Model]:
         return self.db.colonies.find(obj)
 
+    def get_all_colonies(self) -> Cursor[Colony_Model]:
+        return self.db.colonies.find()
+    
+    def get_all_updated_colonies(self) -> Cursor[Colony_Model]:
+        return self.db.colonies.find({"updated": True})
     # def get_scouted_colonies(self, obj: dict) -> Cursor[Colony_Model]:
     #     return self.db.colonies.find(obj)
         

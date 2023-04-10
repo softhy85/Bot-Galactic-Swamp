@@ -155,6 +155,8 @@ class Select(discord.ui.Select):
                     else:
                         menu_emoji = Emoji.down.value
                     menu_label = f"{colony['colo_sys_name']}"
+                    if colony['colo_sys_name'] == "?":
+                        menu_label = "Unknown System"
                     date_refresh: datetime.datetime = colony['colo_refresh_time']
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) - (Retour à {date_refresh.strftime('%H:%M:%S')})"
                 else :
@@ -185,7 +187,7 @@ class Select(discord.ui.Select):
         await interaction.response.defer(ephemeral=True)
         if self.values[0] == "":
             return
-        refresh_duration: float = 6.0
+        refresh_duration: float = 4.0
         date_resfresh: datetime.datetime = date + datetime.timedelta(hours=refresh_duration)
         values: List[str] = self.values[0].split(";")
         self.values[0] = ""

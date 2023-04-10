@@ -62,7 +62,7 @@ class Cog_Colony(commands.Cog):
         colos: List[Colony_Model] = self.bot.db.get_colonies(obj)     
         colos = colos[0:25]
         return [
-            app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]})', value=colo["number"])
+            app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]}) {colo["colo_sys_name"] if colo["updated"] else ""} {colo["colo_coord"]["x"] if colo["updated"] else ""} {colo["colo_coord"]["y"] if colo["updated"] else ""}', value=colo["number"])
             for colo in colos
         ]
             
@@ -188,6 +188,13 @@ class Cog_Colony(commands.Cog):
             await self.bot.dashboard.update_Dashboard()
             await interaction.response.send_message(f"The free state of colony n°{act_colony['number']} of {pseudo} has been updated.")
 
+
+    @app_commands.command(name="colos_scouted", description="How many colonies have been scouted yet")
+    async def colos_scouted(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        colo_number: List[Colony_Model] = list(self.bot.db.get_all_updated_colonies())
+        await interaction.followup.send(f" **{len(colo_number)}** colonies from ennemy alliances have been updated yet.")
+    
     #</editor-fold>
 
 

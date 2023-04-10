@@ -81,7 +81,7 @@ class Cog_Alliance(commands.Cog):
         return_value['button_style'] = button_style
         return return_value
 
-    # optimisable?
+    # optimisable? mettre dans dashboard
     def empty_space(self, alliance_api_info: dict):
         it = 0
         return_value: list = []
