@@ -4,6 +4,7 @@ import datetime
 import time
 from Models.Player_Model import Player_Model
 from Models.Colony_Model import Colony_Model
+from Models.War_Model import War_Model
 from typing import List
 from pymongo.cursor import Cursor
 from bson.objectid import ObjectId
@@ -17,8 +18,9 @@ class Select(discord.ui.Select):
     log_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
     date: datetime.datetime = datetime.datetime.now()
     
-    def __init__(self, bot: commands.Bot, player: Player_Model, colonies: List[Colony_Model]) -> None:
+    def __init__(self, bot: commands.Bot, player: Player_Model, colonies: List[Colony_Model], actual_war: Player_Model) -> None:
         self.bot = bot
+        self.actual_war = actual_war
         it: int = 1
         self.log_channel_id: int = int(os.getenv("LOG_CHANNEL"))
         self.log_channel = self.bot.get_channel(self.log_channel_id)
@@ -35,7 +37,8 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Up"
             self.bot.db.update_player(player)
-            obj: dict = {"_player_id": player["_id"]}
+            # obj: dict = {"_player_id": player["_id"]}
+            obj: dict = {"id_gl": player["id_gl"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             for colony in colonies:
                 colony["colo_refresh_time"] = self.date
@@ -161,6 +164,8 @@ class Select(discord.ui.Select):
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) - (Retour à {date_refresh.strftime('%H:%M:%S')})"
                 else :
                     menu_label = f"{colony['colo_sys_name']}"
+                    if colony['colo_sys_name'] == "?":
+                        menu_label = "Unknown System"
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
                     if "gift_state" in colony:
                         if colony["gift_state"] != "Not Free":  
@@ -187,8 +192,7 @@ class Select(discord.ui.Select):
         await interaction.response.defer(ephemeral=True)
         if self.values[0] == "":
             return
-        refresh_duration: float = 4.0
-        date_resfresh: datetime.datetime = date + datetime.timedelta(hours=refresh_duration)
+        date_resfresh: datetime.datetime = date + datetime.timedelta(hours=self.actual_war["refresh_duration"])
         values: List[str] = self.values[0].split(";")
         self.values[0] = ""
         if len(values) == 2 and values[0] == "Reset":
@@ -201,7 +205,8 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Up"
             self.bot.db.update_player(player)
-            obj: dict = {"_player_id": player["_id"]}
+            # obj: dict = {"_player_id": player["_id"]}
+            obj: dict = {"id_gl": player["id_gl"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             for colony in colonies:
                 colony["colo_refresh_time"] = self.date
@@ -256,9 +261,10 @@ class Select(discord.ui.Select):
 class DropView(discord.ui.View):
     error: bool = False
 
-    def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], timeout: int = 180) -> None:
+    def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], actual_war: War_Model,  timeout: int = 180) -> None:
         super().__init__(timeout=timeout)
         for player in players:
-            obj: dict = {"_player_id": ObjectId(player["_id"])}
+            # obj: dict = {"_player_id": ObjectId(player["_id"])}
+            obj: dict = {"id_gl": player["id_gl"]}
             colonies: List[Colony_Model] = list(bot.db.get_colonies(obj))
-            self.add_item(Select(bot, player, colonies))
+            self.add_item(Select(bot, player, colonies, actual_war))

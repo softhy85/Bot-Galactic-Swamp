@@ -34,7 +34,7 @@ class Alliance:
 
     async def update_colony_from_api(self, colo_nb: int, colo_level: int, alliance_id: int, db_player: Player_Model):
         date: datetime.datetime = datetime.datetime.now()
-        updated_colony: Colony_Model = {"_alliance_id": alliance_id, '_player_id': db_player["_id"], 'number': colo_nb, 'colo_sys_name': "?", 'colo_lvl': colo_level, 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date, 'updated': False, 'gift_state': "Not Free"}
+        updated_colony: Colony_Model = {"_alliance_id": alliance_id, 'id_gl': db_player["id_gl"], '_player_id': db_player["_id"], 'number': colo_nb, 'colo_sys_name': "?", 'colo_lvl': colo_level, 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date, 'updated': False, 'gift_state': "Not Free"}
         db_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": ObjectId(db_player["_id"]), "number": colo_nb}))
         if len(db_colony) == 1:
             updated_colony["_id"] = db_colony[0]["_id"]

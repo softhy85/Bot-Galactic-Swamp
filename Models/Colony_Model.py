@@ -7,6 +7,7 @@ import datetime
 class Colony_Model(TypedDict):
     _id: ObjectId
     _player_id: ObjectId
+    id_gl: str
     _alliance_id: ObjectId
     number: int
     colo_sys_name: str

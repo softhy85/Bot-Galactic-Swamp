@@ -18,3 +18,4 @@ class War_Model(TypedDict):
     initial_enemy_score: int
     status: str
     start_time : datetime
+    refresh_duration: float

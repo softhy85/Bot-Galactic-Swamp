@@ -216,7 +216,16 @@ class Cog_War(commands.Cog):
         api_alliance_gs = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         new_message: discord.Message = await (self.war_channel.send(f"<@&1043541214319874058> We are at war against **{act_alliance['name']}** !!"))
         new_thread: discord.Thread = await new_message.create_thread(name=act_alliance["name"])
-        new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date}
+        ennemy_size: int =  api_alliance_en["alliance_size"]
+        ally_size: int =  api_alliance_gs["alliance_size"]
+        if ennemy_size >= ally_size + 5:
+            refresh_duration = 6
+        elif ennemy_size <= ally_size - 5:
+            refresh_duration = 4
+        else:
+            refresh_duration = 5
+        print(f'Chosen refresh duration: {refresh_duration} hours.')
+        new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date, "refresh_duration": refresh_duration}
         new_war["_id"] = self.bot.db.push_new_war(new_war)
         await self.bot.dashboard.create_Dashboard(new_war)
 

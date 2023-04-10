@@ -48,7 +48,7 @@ class Dashboard:
         filler_number_char = (25 - title_space)/2
         filler_number_emojis =  round(filler_number_char * 15 / 25) - 2
         while it <= filler_number_emojis:
-            filler = filler + "" #"<:empty:1088454928474841108>"
+            filler = filler + "<:empty:1088454928474841108>"
             it += 1
         centered_title = f"{filler}⚔️  {title}  ⚔️"
         
@@ -63,7 +63,6 @@ class Dashboard:
         filler_number = 15 - score_space
         while it <= filler_number:
             if len(filler) << 225:
-                print(len(filler))
                 filler = filler + "<:empty:1088454928474841108>"
             it += 1
         slider: str = ""
@@ -106,7 +105,7 @@ class Dashboard:
         for it in range(0, nb_message):
             time.sleep(1.)
             message: discord.abc.Message
-            dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
+            dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war))
             message = await thread.send(content=" ­", embed=None, view=dropView[it])
             infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
             self.bot.db.push_new_info_message(infoMessage)
@@ -142,7 +141,7 @@ class Dashboard:
         for it in range(0, nb_message):
             time.sleep(1.)
             message: discord.abc.Message
-            dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)]))
+            dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war))
             obj = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard;" + str(it)}
             infoMessages = list(self.bot.db.get_info_messages(obj))
             if len(infoMessages) == 1:
