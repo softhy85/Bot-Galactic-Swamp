@@ -111,7 +111,7 @@ class Cog_Colony(commands.Cog):
                 embed = discord.Embed(title=f"Niv  : { player['pseudo'] }️", description="", color=Colors.gold, timestamp=datetime.datetime.now())
                 it: int = 1
                 for colony in colonies:
-                    if colony['colo_sys_name'] != "-1" and colony['colo_sys_name'] != -1 and colony['colo_sys_name'] != "?":
+                    if colony['colo_sys_name'] != "-1" and colony['colo_sys_name'] != -1 and colony['colo_sys_name'] != "?" and colony["updated"] != True:
                         embed.add_field(name=f"{ Emoji.colo.value if colony['colo_status'] == 'Up' else Emoji.down.value } Colonie {it} : {colony['colo_sys_name']}",value=f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})", inline=False)
                     it += 1
                 await interaction.response.send_message(embed=embed)
@@ -136,13 +136,13 @@ class Cog_Colony(commands.Cog):
                 await interaction.response.send_message(f"Colony not found.")
             else:
                 act_colony = act_colony[0]
-                if colo_sys_name != "":
-                    act_colony["colo_sys_name"] = colo_sys_name
-                if colo_coord_x != -1:
-                    act_colony["colo_coord"]["x"] = colo_coord_x
-                if colo_coord_y != -1:
-                    act_colony["colo_coord"]["y"] = colo_coord_y
-                act_colony["updated"] = True
+                act_colony["colo_sys_name"] = colo_sys_name
+                act_colony["colo_coord"]["x"] = colo_coord_x
+                act_colony["colo_coord"]["y"] = colo_coord_y
+                if colo_coord_y != -1 and colo_coord_x != -1 and act_colony["colo_sys_name"] != "-1": 
+                    act_colony["updated"] = True
+                else:
+                    act_colony["updated"] = False
                 self.bot.db.update_colony(act_colony)
                 await interaction.response.send_message(f"Colony n°{colo_number} of {pseudo} updated.")
                 # await self.bot.dashboard.update_Dashboard()
@@ -193,7 +193,7 @@ class Cog_Colony(commands.Cog):
     async def colos_scouted(self, interaction: discord.Interaction):
         await interaction.response.defer()
         colo_number: List[Colony_Model] = list(self.bot.db.get_all_updated_colonies())
-        await interaction.followup.send(f" **{len(colo_number)}** colonies from ennemy alliances have been updated yet.")
+        await interaction.followup.send(f" **{len(colo_number)}** colonies from enemy alliances have been updated yet.")
     
     #</editor-fold>
 

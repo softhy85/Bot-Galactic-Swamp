@@ -116,6 +116,10 @@ class Select(discord.ui.Select):
                 menu_label += Emoji.colo_empty.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = status_emoji ,description = "", value = "", default = True))
         it += 1
+        if "colonies_moved" in player:
+            colonies_moved: int = player["colonies_moved"]
+        else:
+            colonies_moved: int = 0
         if player["MB_status"] == "Down":
             MB_refresh_date: datetime.datetime = player['MB_refresh_time']
             if MB_refresh_date.date() == act_date.date() and MB_refresh_date.time() > act_date.time():
@@ -131,12 +135,12 @@ class Select(discord.ui.Select):
                     menu_emoji = Emoji.down.value
             else:
                 menu_emoji = Emoji.down.value
-            menu_label = "Base Principale "
+            menu_label = "Main Base"
             date_refresh: datetime.datetime = player['MB_refresh_time']
-            menu_description = f"SB ({player_MB_lvl}) - (Retour à {date_refresh.strftime('%H:%M:%S')})"
+            menu_description = f"SB ({player_MB_lvl}) - (Back at {date_refresh.strftime('%H:%M:%S')}) - 🪐 {colonies_moved} colonie(s) moved"
         else :
-            menu_label = "Base Principale"
-            menu_description = f"SB ({player_MB_lvl})"
+            menu_label = "Main Base"
+            menu_description = f"SB ({player_MB_lvl}) - 🪐 {colonies_moved} colonie(s) moved"
             menu_emoji = Emoji.SB.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
@@ -161,7 +165,7 @@ class Select(discord.ui.Select):
                     if colony['colo_sys_name'] == "?":
                         menu_label = "Unknown System"
                     date_refresh: datetime.datetime = colony['colo_refresh_time']
-                    menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) - (Retour à {date_refresh.strftime('%H:%M:%S')})"
+                    menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) - (Back at {date_refresh.strftime('%H:%M:%S')})"
                 else :
                     menu_label = f"{colony['colo_sys_name']}"
                     if colony['colo_sys_name'] == "?":
@@ -188,8 +192,8 @@ class Select(discord.ui.Select):
         super().__init__(placeholder="Select an option", max_values=1, min_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        date = datetime.datetime.now()
         await interaction.response.defer(ephemeral=True)
+        date = datetime.datetime.now()
         if self.values[0] == "":
             return
         date_resfresh: datetime.datetime = date + datetime.timedelta(hours=self.actual_war["refresh_duration"])
@@ -199,7 +203,7 @@ class Select(discord.ui.Select):
             player: Player_Model = self.bot.db.get_one_player("_id", ObjectId(values[1]))
             if player is None:
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-                await self.bot.dashboard.update_Dashboard()
+                # await self.bot.dashboard.update_Dashboard()
                 return
             player["MB_refresh_time"] = self.date
             player["MB_last_attack_time"] = self.date
@@ -215,19 +219,18 @@ class Select(discord.ui.Select):
                 self.bot.db.update_colony(colony)
             await self.log_channel.send(f"Reset player : {player['pseudo']} by {interaction.user.display_name}")
             
-            await self.bot.dashboard.update_Dashboard()
+            # await self.bot.dashboard.update_Dashboard()
             return
         if len(values) != 3:
             await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-            #await interaction.response.defer(ephemeral=True)
-            await self.bot.dashboard.update_Dashboard()
+            # await self.bot.dashboard.update_Dashboard()
             return
         
         if values[1] == "player":
             player: Player_Model = self.bot.db.get_one_player("_id", ObjectId(values[2]))
             if player is None:
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-                await self.bot.dashboard.update_Dashboard()
+                # await self.bot.dashboard.update_Dashboard()
                 return
             player["MB_refresh_time"] = date_resfresh
             player["MB_last_attack_time"] = self.date
@@ -239,7 +242,7 @@ class Select(discord.ui.Select):
             colony: Colony_Model = self.bot.db.get_one_colony("_id", ObjectId(values[2]))
             if colony is None:
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-                await self.bot.dashboard.update_Dashboard()
+                # await self.bot.dashboard.update_Dashboard()
                 return
             if colony["updated"]:
                 if "gift_state" in colony:

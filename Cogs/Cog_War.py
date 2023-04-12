@@ -128,17 +128,17 @@ class Cog_War(commands.Cog):
         time = hours + minutes / 60 + seconds / 3600
         print('3')
         print(int(war_progress['ally_alliance_score']))
-        print(int(war_progress['ennemy_alliance_score']))
+        print(int(war_progress['enemy_alliance_score']))
         await interaction.followup.send(f"War has ended")
-                                                # after a duration of {hours} hours, {minutes} minutes and {seconds} seconds.\nScore: {war_progress['ally_alliance_score']} VS {war_progress['ennemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
+                                                # after a duration of {hours} hours, {minutes} minutes and {seconds} seconds.\nScore: {war_progress['ally_alliance_score']} VS {war_progress['enemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
         print('4')
-        if int(war_progress['ally_alliance_score']) and int(war_progress['ennemy_alliance_score']) != 0:
-            if int(war_progress['ally_alliance_score']) > int(war_progress['ennemy_alliance_score']):
+        if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
+            if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
                 print('a')
                 await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
                 actual_war["status"] = Status.Win.name
                 await self.general_channel.send(f"War against {actual_war['alliance_name']} has been won.")
-            elif int(war_progress['ally_alliance_score']) < int(war_progress['ennemy_alliance_score']):
+            elif int(war_progress['ally_alliance_score']) < int(war_progress['enemy_alliance_score']):
                 print('b')
                 actual_war["status"] = Status.Lost.name
                 await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
@@ -162,7 +162,7 @@ class Cog_War(commands.Cog):
 
     #<editor-fold desc="task">
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
     async def task_war_over(self):
         print("Infos: task_war_over started")
         status : Status = Status.Ended
@@ -183,7 +183,7 @@ class Cog_War(commands.Cog):
     async def before_task_war_over(self):
         await self.bot.wait_until_ready()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
     async def task_war_started(self):
         print("Infos: task_war_started started")
         now: datetime.datetime = datetime.datetime.now()
@@ -205,22 +205,24 @@ class Cog_War(commands.Cog):
     #<editor-fold desc="other">
 
     async def create_new_war(self, alliance: str):
+        print('War_Infos: new war')
         date: datetime.datetime = datetime.datetime.now()
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
             await self.command_channel.send(f"We are already at war with {actual_war['alliance_name']}.")
             return
+        print('War_Infos: Updating Alliance...')
         act_alliance: Alliance_Model = await self.bot.alliance.update_alliance(alliance)
         await self.command_channel.send("> New war started.")
         api_alliance_en = self.bot.galaxyLifeAPI.get_alliance(alliance)
         api_alliance_gs = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         new_message: discord.Message = await (self.war_channel.send(f"<@&1043541214319874058> We are at war against **{act_alliance['name']}** !!"))
         new_thread: discord.Thread = await new_message.create_thread(name=act_alliance["name"])
-        ennemy_size: int =  api_alliance_en["alliance_size"]
+        enemy_size: int =  api_alliance_en["alliance_size"]
         ally_size: int =  api_alliance_gs["alliance_size"]
-        if ennemy_size >= ally_size + 5:
+        if enemy_size >= ally_size + 5:
             refresh_duration = 6
-        elif ennemy_size <= ally_size - 5:
+        elif enemy_size <= ally_size - 5:
             refresh_duration = 4
         else:
             refresh_duration = 5
@@ -255,20 +257,20 @@ class Cog_War(commands.Cog):
                     minutes = (seconds % 3600) // 60
                     seconds = seconds % 60
                     time = hours + minutes / 60 + seconds / 3600
-                    await self.experiment_channel.send(f"War has ended after a duration of {hours} hours, {minutes} minutes and {seconds} seconds. ({time} h)\nScore: {war_progress['ally_alliance_score']} VS {war_progress['ennemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
+                    await self.experiment_channel.send(f"War has ended after a duration of {hours} hours, {minutes} minutes and {seconds} seconds. ({time} h)\nScore: {war_progress['ally_alliance_score']} VS {war_progress['enemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
                 else:
                     hours = "x"
                     minutes = "x"
                     seconds = "x"
-                    await self.experiment_channel.send(f"War has ended after a duration of {hours} hours, {minutes} minutes and {seconds} seconds. Score: {war_progress['ally_alliance_score']} VS {war_progress['ennemy_alliance_score']} - Team members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
+                    await self.experiment_channel.send(f"War has ended after a duration of {hours} hours, {minutes} minutes and {seconds} seconds. Score: {war_progress['ally_alliance_score']} VS {war_progress['enemy_alliance_score']} - Team members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
 
                 if war_thread is not None:
-                    if int(war_progress['ally_alliance_score']) and int(war_progress['ennemy_alliance_score']) != 0:
-                        if int(war_progress['ally_alliance_score']) > int(war_progress['ennemy_alliance_score']):
+                    if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
+                        if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
                             await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
                             actual_war["status"] = Status.Win.name
                             await self.general_channel.send(f"War against {actual_war['alliance_name']} has been won.")
-                        elif int(war_progress['ally_alliance_score']) < int(war_progress['ennemy_alliance_score']):
+                        elif int(war_progress['ally_alliance_score']) < int(war_progress['enemy_alliance_score']):
                             actual_war["status"] = Status.Lost.name
                             await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
                             await self.general_channel.send(f"War against {actual_war['alliance_name']} has been lost.")

@@ -23,5 +23,6 @@ class Player_Model(TypedDict):
     MB_status: str
     MB_last_attack_time: datetime
     MB_refresh_time: datetime
+    colonies_moved: int
     
     

@@ -14,6 +14,7 @@ from pymongo.cursor import Cursor
 from typing import List
 from Models.Colors import Colors
 import math
+import asyncio
 
 class Dashboard:
     bot: commands.Bot = None
@@ -32,6 +33,8 @@ class Dashboard:
         war_progress: dict = self.war_progress(alliance["name"], players)
         # # lvl: {alliance['alliance_lvl'] if alliance['alliance_lvl'] != -1 else 'Inconnu'}\n 
         description: str = score["description"]
+        if not 'alliance_winrate' in alliance:
+            alliance['alliance_winrate'] = 0
         winrate: str = f"Winrate: {alliance['alliance_winrate'] if alliance['alliance_winrate'] != -1 else '?'}%­ "
         embed = discord.Embed(title=title, description=description,timestamp=datetime.datetime.now())
         embed.add_field(name=f"{score['title']}",value=f"<:empty:1088454928474841108>\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}")
@@ -58,18 +61,18 @@ class Dashboard:
         it: int = 1
         return_value: dict = {}
         war_progress: dict = self.war_progress(alliance["name"], players)
-        score_space =  (len(str(war_progress['ally_alliance_score'])) - 1 + len(str(war_progress['ennemy_alliance_score']))- 1)
+        score_space =  (len(str(war_progress['ally_alliance_score'])) - 1 + len(str(war_progress['enemy_alliance_score']))- 1)
         filler = "<:empty:1088454928474841108>"
-        filler_number = 15 - score_space
+        filler_number = 14 - score_space
         while it <= filler_number:
-            if len(filler) << 225:
+            if len(filler) <= 200:
                 filler = filler + "<:empty:1088454928474841108>"
             it += 1
         slider: str = ""
         slider_length = 15
 
-        if (war_progress['ally_alliance_score'] + war_progress['ennemy_alliance_score']) != 0:
-            slider_score = int(war_progress['ally_alliance_score'] / (war_progress['ally_alliance_score']+ war_progress['ennemy_alliance_score']) * slider_length)
+        if (war_progress['ally_alliance_score'] + war_progress['enemy_alliance_score']) != 0:
+            slider_score = int(war_progress['ally_alliance_score'] / (war_progress['ally_alliance_score']+ war_progress['enemy_alliance_score']) * slider_length)
         else:
             slider_score = 0.5 * slider_length + 1
         it = 0
@@ -81,7 +84,7 @@ class Dashboard:
         while slider_score + it <= slider_length - 1:
             slider = slider + "▱"
             it += 1
-        return_value["title"] =  f"💫 {war_progress['ally_alliance_score']}{filler}{war_progress['ennemy_alliance_score']} 💫"
+        return_value["title"] =  f"💫 {war_progress['ally_alliance_score']}{filler}{war_progress['enemy_alliance_score']} 💫"
         return_value["description"] = f"{slider}"
         return return_value
         
@@ -94,6 +97,7 @@ class Dashboard:
             return -1
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
+        print(players)
         players.sort(key=lambda item: item.get("lvl"), reverse = True)
         nb_message: int = len(players) // 5
         if len(players) % 5 > 0:
@@ -103,7 +107,7 @@ class Dashboard:
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
         for it in range(0, nb_message):
-            time.sleep(1.)
+            await asyncio.sleep(.875)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war))
             message = await thread.send(content=" ­", embed=None, view=dropView[it])
@@ -139,7 +143,7 @@ class Dashboard:
         message = await thread.fetch_message(int(infoMessages[0]["id_message"]))
         await message.edit(embed=embed)
         for it in range(0, nb_message):
-            time.sleep(1.)
+            await asyncio.sleep(.875)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war))
             obj = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard;" + str(it)}
@@ -181,12 +185,12 @@ class Dashboard:
         return_value["main_planet"] = main_planet
         
         war_infos: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        ennemy_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)
+        enemy_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)
         ally_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         if 'ally_initial_score' in war_infos:
             return_value["ally_alliance_score"] = ally_alliance['alliance_score'] - war_infos['ally_initial_score']
-            return_value["ennemy_alliance_score"] = ennemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
+            return_value["enemy_alliance_score"] = enemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
         else: 
             return_value["ally_alliance_score"] = "x"
-            return_value["ennemy_alliance_score"] = "x"
+            return_value["enemy_alliance_score"] = "x"
         return return_value
