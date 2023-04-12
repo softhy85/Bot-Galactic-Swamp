@@ -58,8 +58,9 @@ class Cog_Colony(commands.Cog):
     async def  colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         pseudo = interaction.namespace.pseudo
         player_id: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})  
-        obj: dict = {"_player_id": player_id['_id']}
-        colos: List[Colony_Model] = self.bot.db.get_colonies(obj)     
+        obj: dict = {"_player_id": player_id['_id']} 
+        colos: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+        colos.sort(key=lambda item: item.get("number"))
         colos = colos[0:25]
         return [
             app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]}) {colo["colo_sys_name"] if colo["updated"] else ""} {colo["colo_coord"]["x"] if colo["updated"] else ""} {colo["colo_coord"]["y"] if colo["updated"] else ""}', value=colo["number"])

@@ -99,7 +99,7 @@ class Alliance:
                 print('not none')
                 act_player['colonies_moved'] = player_stats['colonies_moved']
                 act_player["_alliance_id"] = act_alliance["_id"]
-                act_player['id_gl'] = player['Id']
+                act_player['id_gl'] = int(player['Id'])
                 if not 'lvl' in act_player:
                     act_player['lvl'] = player_api["lvl"]
                 if not 'MB_status' in act_player:
@@ -113,7 +113,7 @@ class Alliance:
                 await self.update_colonies_from_api(act_alliance["_id"], act_player)
             else:
                 print('is none')
-                new_player: Player_Model = {'_alliance_id': act_alliance["_id"], 'pseudo': player["Name"], "lvl": player_api["lvl"],  'id_gl': player["Id"], 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'bunker_full': False, 'colonies_moved': player_stats['colonies_moved']}
+                new_player: Player_Model = {'_alliance_id': act_alliance["_id"], 'pseudo': player["Name"], "lvl": player_api["lvl"],  'id_gl': int(player["Id"]), 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'bunker_full': False, 'colonies_moved': player_stats['colonies_moved']}
                 act_player = self.bot.db.push_new_player(new_player)
                 if act_player is None:
                     await self.command_channel.send(f"> Something goes wrong while creating the player {player['Name']}.\nPlease report this bug to Softy.")

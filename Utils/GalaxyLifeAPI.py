@@ -65,7 +65,7 @@ class GalaxyLifeAPI:
             else:
                 return_value["alliance_name"] = None
             return_value["colo_list"] = []
-            return_value["player_id_gl"] = player_infos['Id']
+            return_value["player_id_gl"] = int(player_infos['Id'])
             return_value["avatar_url"] = player_infos['Avatar']
             player_infos['Planets'] = player_infos['Planets'][1:len(player_infos['Planets'])] 
             it: int = 0
