@@ -11,6 +11,7 @@ import os
 import datetime
 import re
 import time
+import asyncio
 
 class Cog_War(commands.Cog):
     bot: commands.Bot = None
@@ -113,50 +114,37 @@ class Cog_War(commands.Cog):
         war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
-        print('1')
         war_progress = self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
         converted_start_time = datetime.datetime.strftime(actual_war["start_time"],  "%Y/%m/%d %H:%M:%S.%f")
         strp_converted_start_time = datetime.datetime.strptime(converted_start_time, "%Y/%m/%d %H:%M:%S.%f")
         converted_actual_date = datetime.datetime.strftime(date,  "%Y/%m/%d %H:%M:%S.%f")
         strp_converted_actual_date = datetime.datetime.strptime(converted_actual_date, "%Y/%m/%d %H:%M:%S.%f")
-        print('2')
         delta = strp_converted_actual_date - strp_converted_start_time
         days, seconds = delta.days, delta.seconds
         hours = days * 24 + seconds // 3600
         minutes = (seconds % 3600) // 60
         seconds = seconds % 60
         time = hours + minutes / 60 + seconds / 3600
-        print('3')
-        print(int(war_progress['ally_alliance_score']))
-        print(int(war_progress['enemy_alliance_score']))
         await interaction.followup.send(f"War has ended")
                                                 # after a duration of {hours} hours, {minutes} minutes and {seconds} seconds.\nScore: {war_progress['ally_alliance_score']} VS {war_progress['enemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
-        print('4')
         if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
             if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
-                print('a')
                 await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
                 actual_war["status"] = Status.Win.name
                 await self.general_channel.send(f"War against {actual_war['alliance_name']} has been won.")
             elif int(war_progress['ally_alliance_score']) < int(war_progress['enemy_alliance_score']):
-                print('b')
                 actual_war["status"] = Status.Lost.name
                 await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
                 await self.general_channel.send(f"War against {actual_war['alliance_name']} has been lost.")
             else:
-                print('c')
                 actual_war["status"] = Status.Ended.name
                 await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
                 await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
         else:
-            print('d')
             actual_war["status"] = Status.Ended.name
             await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
         print(f"Status : {actual_war['status']}")
         self.bot.db.update_war(actual_war)
-        
-   
-
 
     #</editor-fold>
 
@@ -222,10 +210,10 @@ class Cog_War(commands.Cog):
         ally_size: int =  api_alliance_gs["alliance_size"]
         if enemy_size >= ally_size + 5:
             refresh_duration = 6
-        elif enemy_size <= ally_size - 5:
+        elif enemy_size <= ally_size :
             refresh_duration = 4
         else:
-            refresh_duration = 5
+            refresh_duration = 4
         print(f'Chosen refresh duration: {refresh_duration} hours.')
         new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date, "refresh_duration": refresh_duration}
         new_war["_id"] = self.bot.db.push_new_war(new_war)
@@ -239,8 +227,6 @@ class Cog_War(commands.Cog):
             return Status.Ended
         else:
             api_alliance_GS = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
-            # print('stop')
-            # time.Sleep(10)
             if not api_alliance_GS["war_status"]:
                 war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
                 obj: dict = {"_alliance_id": actual_war["_alliance_id"]}

@@ -11,6 +11,8 @@ from pymongo.cursor import Cursor
 from typing import List
 import os
 import re
+import time
+from bson import ObjectId
 
 
 class Cog_Player(commands.Cog):
@@ -57,6 +59,7 @@ class Cog_Player(commands.Cog):
 
     async def player_war_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+        return_player = self.bot.db.get_one_player("pseudo", "temp_player")
         if act_war is None:
             return []
         else:
@@ -70,7 +73,21 @@ class Cog_Player(commands.Cog):
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
                 for player in players
             ]
-
+            
+    async def player_api_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+        if len(current) >= 4:
+            players = self.bot.galaxyLifeAPI.search_for_player(current)
+            if players:
+                return [
+                    app_commands.Choice(name=players[it]["Name"], value=players[it]["Name"])
+                    for it in range(0, len(players))
+                ]
+            else:
+                return []
+        else: 
+            return []
+        
+        
     async def player_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
         data = []
         for choice in [f"🛡️ Bunker MB", "🛡️ All Bunkers", "♻️ Reset", "🕸️ AFK", "❓ Unknown" ]:
@@ -79,12 +96,12 @@ class Cog_Player(commands.Cog):
 
     def has_alliance(self, alliance: str):
         return_value: dict = {}
-        alliance_state: list = ["Add","Added"]
+        alliance_state: list = ["Add","Adding"]
         button_style = discord.ButtonStyle.green
         alliance_db: dict = self.bot.db.get_one_alliance("name", alliance.upper())
         if alliance_db is not None:
             button_style = discord.ButtonStyle.blurple
-            alliance_state: list = ["Update", "Updated"]
+            alliance_state: list = ["Update", "Updating"]
         return_value['alliance_state'] = alliance_state
         return_value['button_style'] = button_style
         return return_value
@@ -124,19 +141,17 @@ class Cog_Player(commands.Cog):
         if alliance != None and alliance != "":
             button = Button(label = f"{alliance_check['alliance_state'][0]} Alliance", style=alliance_check['button_style'], emoji="🔒")       
             async def button_callback_alliance(interaction):
-                button = Button(label = f"Alliance {alliance_check['alliance_state'][1]}", style=discord.ButtonStyle.gray)
+                button = Button(label = f"{alliance_check['alliance_state'][0]} Alliance ", style=discord.ButtonStyle.gray)
                 display[1].clear_items()
                 display[1].add_item(button)
                 await interaction.response.edit_message(embed=display[0], view=display[1])
-                if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+                if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
                     await interaction.followup.send("You don't have the permission to use this command.")
                     return
                 act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
-                if act_alliance is None:
-                    await interaction.followup.send("> Loading the new alliance.")
-                else:
-                    await interaction.followup.send("> Updating the alliance.")
-                await self.bot.alliance.update_alliance(alliance.upper())     
+                loading_message = await interaction.followup.send(f"> Loading the alliance... (started <t:{int(time.time())}:R>)")
+                await self.bot.alliance.update_alliance(alliance.upper())
+                await loading_message.edit(content="> Alliance Loaded ✅")
             button.callback = button_callback_alliance
             display[1].add_item(button)
         return display
@@ -157,10 +172,14 @@ class Cog_Player(commands.Cog):
 
     @app_commands.command(name="player_infos", description="Displays player's informations")
     @app_commands.describe(pseudo="Player's pseudo")
+    @app_commands.autocomplete(pseudo=player_api_autocomplete)
     @app_commands.checks.has_any_role('Admin','Assistant')
     async def player_add(self, interaction: discord.Interaction, pseudo: str):
         no_alliance = True
         player: Player_Model = self.bot.galaxyLifeAPI.get_player_infos_from_name(pseudo)
+        return_player = self.bot.db.get_one_player("pseudo", "temp_player")
+        return_player["temp_pseudo"] = pseudo
+        act_player = self.bot.db.update_player(return_player)
         if player is None:
             await interaction.response.send_message(f"**{pseudo}** doesn't exist as a player.")
             return 
@@ -235,7 +254,7 @@ class Cog_Player(commands.Cog):
             else:
                 return_player["state"] = False
             self.bot.db.update_player(return_player)
-            await interaction.response.send_message(f"Bunkers of {pseudo} have been updated.")
+            await interaction.response.send_message(f"Player {pseudo} has been updated.")
             await self.bot.dashboard.update_Dashboard()
 
     #</editor-fold>

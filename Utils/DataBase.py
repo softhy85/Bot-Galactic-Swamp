@@ -7,6 +7,7 @@ from Models.Player_Model import Player_Model
 from Models.Colony_Model import Colony_Model
 from Models.InfoMessage_Model import InfoMessage_Model
 from Models.War_Model import War_Model
+from Models.Colonies_List_Model import Colonies_List_Model
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
 
@@ -116,8 +117,9 @@ class DataBase:
     
     def get_all_updated_colonies(self) -> Cursor[Colony_Model]:
         return self.db.colonies.find({"updated": True})
-    # def get_scouted_colonies(self, obj: dict) -> Cursor[Colony_Model]:
-    #     return self.db.colonies.find(obj)
+    
+    def get_all_found_colonies(self) -> Cursor[Colony_Model]:
+        return self.db.foundcolonies.find()
         
     def push_new_war(self, war: War_Model) -> ObjectId | None:
         actual_war: War_Model = self.db.wars.find_one({"status": "InProgress"})
@@ -138,7 +140,39 @@ class DataBase:
 
     def get_wars(self, obj: dict) -> Cursor[War_Model]:
         return self.db.wars.find(obj)
+    
+    def push_colonies_list(self, list: Colonies_List_Model) -> ObjectId | None: 
+        actual_list =  self.db.galaxycanvas.find_one({'name':list['name']})
+        if actual_list is None:
+            return self.db.galaxycanvas.insert_one(list).inserted_id
+        else:
+            print('update')
+            self.update_colonies_list(list)
+        return None
 
+    def get_colonies_list(self, obj) -> Cursor[Colonies_List_Model]:
+        return self.db.galaxycanvas.find(obj)
+        
+    def update_colonies_list(self, list: Colonies_List_Model) -> None:
+        obj = None
+        return_list: Colonies_List_Model = self.get_colonies_list(obj)
+        if list["name"] == "x":
+            list["_id"] = return_list[0]["_id"]
+            if return_list is not None:
+                self.db.galaxycanvas.update_one({"_id": list["_id"]}, {'$set': list})
+        if list["name"] == "y":
+            list["_id"] = return_list[1]["_id"]
+            if return_list is not None:
+                self.db.galaxycanvas.update_one({"_id": list["_id"]}, {'$set': list})
+    
+    def update_war(self, war: War_Model) -> None:
+        return_war: War_Model = self.db.wars.find_one({"_id": war["_id"]})
+        if return_war is not None:
+            self.db.wars.update_one({"_id": war["_id"]}, {'$set': war})
+            
+            
+
+    
     def close(self) -> None:
         self.mongo_client.close()
 

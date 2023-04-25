@@ -26,18 +26,24 @@ class Dashboard:
         self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
         self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
 
-    def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model]) -> discord.Embed:
+    def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model], creating: int = 0) -> discord.Embed:
         embed: discord.Embed
         title = self.centered_title(war)
-        score = self.score_bar(alliance, players)
-        war_progress: dict = self.war_progress(alliance["name"], players)
+        if creating == 0:
+            score = self.score_bar(alliance, players)
+            description: str = score["description"]
+            war_progress: dict = self.war_progress(alliance["name"], players)
+        else:
+            score = "Loading scores..."
+            description = "Loading description..."
+            war_progress: dict = {"total_known_planets":"Loading...", "planets_up":"Loading...", "known_colonies":"Loading...", "total_colonies":"Loading...", "instant_score":"Loading...", "score_per_cycle":"Loading..."}
         # # lvl: {alliance['alliance_lvl'] if alliance['alliance_lvl'] != -1 else 'Inconnu'}\n 
-        description: str = score["description"]
+        
         if not 'alliance_winrate' in alliance:
             alliance['alliance_winrate'] = 0
         winrate: str = f"Winrate: {alliance['alliance_winrate'] if alliance['alliance_winrate'] != -1 else '?'}%­ "
         embed = discord.Embed(title=title, description=description,timestamp=datetime.datetime.now())
-        embed.add_field(name=f"{score['title']}",value=f"<:empty:1088454928474841108>\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}")
+        embed.add_field(name=f"{score['title']}",value=f"<:empty:1088454928474841108>\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}\n🎯 Theorical instant score: {war_progress['instant_score']}\n🔁 Max score per cycle: {war_progress['score_per_cycle']}")
         embed.set_thumbnail(url=alliance["emblem_url"])
         return embed
 
@@ -89,7 +95,7 @@ class Dashboard:
         return return_value
         
     async def create_Dashboard(self, actual_war: War_Model) -> int:
-        print('create_dashboard')
+        print('creating dashboard')
         thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
         dropView: List[discord.ui.View] = []
@@ -97,7 +103,6 @@ class Dashboard:
             return -1
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
-        print(players)
         players.sort(key=lambda item: item.get("lvl"), reverse = True)
         nb_message: int = len(players) // 5
         if len(players) % 5 > 0:
@@ -109,11 +114,13 @@ class Dashboard:
         for it in range(0, nb_message):
             await asyncio.sleep(.875)
             message: discord.abc.Message
-            dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war))
+            dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war, 1))
             message = await thread.send(content=" ­", embed=None, view=dropView[it])
             infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
             self.bot.db.push_new_info_message(infoMessage)
+        print('dashboard succesfully created')
         return 0
+        
 
     async def update_Dashboard(self) -> int:
         print('update_dashboard')
@@ -165,24 +172,37 @@ class Dashboard:
         known_colonies: int = 0
         hidden_colonies: int = 0
         main_planet: int = 0
+        instant_score: int = 0
+        dealt_score: int = 0
+        score_per_base: list = [100, 200, 300, 500, 600, 1000, 1500, 2000, 2500]
         for player in players:
             main_planet += 1 
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             if player["MB_status"] == "Up":
-                planets_up += 1
+                instant_score += score_per_base[player["MB_lvl"]-1]
+                planets_up += 1   
+            else:
+                dealt_score += score_per_base[player["MB_lvl"]-1] 
             for colo in colonies:
-                if colo['colo_coord']['x'] != -1:
-                    known_colonies += 1
+                if colo['colo_coord']['x'] > -1:
+                    known_colonies += 1 
                     if colo["colo_status"] == "Up":
-                        planets_up = planets_up + 1
+                        planets_up += 1
+                        instant_score += score_per_base[player["MB_lvl"]-1]    
+                    else:
+                        dealt_score += score_per_base[player["MB_lvl"]-1] 
                 else: 
+                    
                     hidden_colonies += 1
+        score_per_cycle = dealt_score + instant_score
         return_value["planets_up"] = planets_up
         return_value["known_colonies"] = known_colonies
         return_value["total_colonies"] = known_colonies + hidden_colonies
         return_value["total_known_planets"] = main_planet + known_colonies
         return_value["main_planet"] = main_planet
+        return_value["instant_score"] = instant_score
+        return_value["score_per_cycle"] = score_per_cycle
         
         war_infos: War_Model = self.bot.db.get_one_war("status", "InProgress")
         enemy_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)

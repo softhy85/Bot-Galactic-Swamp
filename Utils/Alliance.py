@@ -9,7 +9,6 @@ from Models.Alliance_Model import Alliance_Model
 from Models.Colony_Model import Colony_Model
 from Models.Player_Model import Player_Model
 
-
 class Alliance:
     bot: commands.Bot = None
     command_channel_id: int = None
@@ -21,20 +20,20 @@ class Alliance:
         self.command_channel = self.bot.get_channel(self.command_channel_id)
 
     async def add_alliance(self, alliance: str):
-        print('add alliance')
-        if self.bot.galaxyLifeAPI.get_alliance(alliance) is None:
+        api_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)
+        if api_alliance is None:
             await self.command_channel.send(f"> {alliance} doesn't seem to exist on the API")
             return None
         else:
-            new_alliance: Alliance_Model = {"name": alliance.upper()}
+            new_alliance: Alliance_Model = {"name": alliance.upper(), "emblem_url":api_alliance["emblem_url"]}
             new_alliance["_id"] = self.bot.db.push_new_alliance(new_alliance)
             if new_alliance["_id"] is None:
                 await self.command_channel.send(f"> Something goes wrong while creating the Alliance {alliance}.\nPlease report this bug to @Softy(léo).")
                 return None
             return new_alliance
 
+
     async def update_colony_from_api(self, colo_nb: int, colo_level: int, alliance_id: int, db_player: Player_Model):
-        print(f"update_colony_from_api : {db_player['pseudo']}")
         date: datetime.datetime = datetime.datetime.now()
         updated_colony: Colony_Model = {"_alliance_id": alliance_id, 'id_gl': db_player["id_gl"], '_player_id': db_player["_id"], 'number': colo_nb, 'colo_sys_name': "?", 'colo_lvl': colo_level, 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date, 'colo_refresh_time': date, 'updated': False, 'gift_state': "Not Free"}
         db_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": ObjectId(db_player["_id"]), "number": colo_nb}))
@@ -67,7 +66,6 @@ class Alliance:
                 self.bot.db.remove_colony(colony)
 
     async def update_colonies_from_api(self, alliance_id: int, db_player: Player_Model):
-        print('update_colonies_from_api')
         api_players: dict = self.bot.galaxyLifeAPI.get_player_infos(db_player['id_gl'])
         api_colo_list: List[int] = list(api_players["colo_list"])
         it: int = 1
@@ -81,14 +79,18 @@ class Alliance:
         #     await self.command_channel.send(f"> No colony was added to Player named __**{db_player['pseudo']}**__.")
 
     async def update_alliance_from_api(self, alliance: str, act_alliance: Alliance_Model):
-        print('update alliance')
         date: datetime.datetime = datetime.datetime.now()
         api_alliance_info: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)
+        act_alliance["emblem_url"] = api_alliance_info["emblem_url"]
+        self.bot.db.update_alliance(act_alliance)
         obj: dict = {"_alliance_id": act_alliance["_id"]}
         db_players: List[Player_Model] = self.bot.db.get_players(obj)
-        print(list(db_players))
         for db_player in db_players:
-            if not next((item for item in api_alliance_info["members_list"] if item["Name"] == db_player["pseudo"]), None)['Name']:
+            player_is_in_api: bool = False
+            for api_player in api_alliance_info["members_list"]:
+                if api_player['Name'] == db_player["pseudo"]:
+                    player_is_in_api = True
+            if player_is_in_api is not True:
                 db_player["_alliance_id"] = None
                 self.bot.db.update_player(db_player)
         for player in api_alliance_info["members_list"]:
@@ -96,10 +98,13 @@ class Alliance:
             player_api: dict = self.bot.galaxyLifeAPI.get_player_infos(player["Id"])
             act_player: Player_Model = self.bot.db.get_one_player("pseudo", player["Name"])
             if act_player is not None:
-                print('not none')
                 act_player['colonies_moved'] = player_stats['colonies_moved']
                 act_player["_alliance_id"] = act_alliance["_id"]
                 act_player['id_gl'] = int(player['Id'])
+                if not 'online' in act_player:
+                    act_player['online'] = 0
+                if not 'MB_lvl' in act_player:
+                    act_player['MB_lvl'] = player_api['MB_lvl']
                 if not 'lvl' in act_player:
                     act_player['lvl'] = player_api["lvl"]
                 if not 'MB_status' in act_player:
@@ -112,18 +117,17 @@ class Alliance:
                 self.bot.db.update_player(act_player)
                 await self.update_colonies_from_api(act_alliance["_id"], act_player)
             else:
-                print('is none')
-                new_player: Player_Model = {'_alliance_id': act_alliance["_id"], 'pseudo': player["Name"], "lvl": player_api["lvl"],  'id_gl': int(player["Id"]), 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'bunker_full': False, 'colonies_moved': player_stats['colonies_moved']}
+                new_player: Player_Model = {'_alliance_id': act_alliance["_id"], 'pseudo': player["Name"], "lvl": player_api["lvl"],  'id_gl': int(player["Id"]), 'MB_lvl':player_api['MB_lvl'], 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'bunker_full': False, 'colonies_moved': player_stats['colonies_moved'], 'online': 0}
                 act_player = self.bot.db.push_new_player(new_player)
                 if act_player is None:
                     await self.command_channel.send(f"> Something goes wrong while creating the player {player['Name']}.\nPlease report this bug to Softy.")
                 else:
                     act_player = self.bot.db.get_one_player("pseudo", player["Name"])
-                    act_player['id_gl'] = player['Id']
+                    act_player['id_gl'] = int(player['Id'])
                     self.bot.db.update_player(act_player)
                     await self.update_colonies_from_api(act_alliance["_id"], act_player)
-        await self.command_channel.send(f"> Alliance added.")
-
+        return act_alliance
+    
     async def update_alliance(self, alliance: str):
         act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
         if act_alliance is None:

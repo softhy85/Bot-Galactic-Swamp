@@ -6,10 +6,11 @@ from Models.Player_Model import Player_Model
 from Models.Colony_Model import Colony_Model
 from discord.ui import Button, View
 from Models.Colors import Colors
+from Models.Emoji import Emoji
 from typing import List
 import os
 import re
-
+import time
 
 class Cog_Alliance(commands.Cog):
     bot: commands.Bot = None
@@ -25,6 +26,7 @@ class Cog_Alliance(commands.Cog):
         self.backup_channel = self.bot.get_channel(self.backup_channel_id)
         self.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
         self.command_channel = self.bot.get_channel(self.command_channel_id)
+        self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
 
     #<editor-fold desc="listener">
 
@@ -51,7 +53,7 @@ class Cog_Alliance(commands.Cog):
         if alliance != None and alliance != "":
             button = Button(label = f"{alliance_check['alliance_state'][0]} Alliance", style=alliance_check['button_style'], emoji="🔒")       
             async def button_callback_alliance(interaction):
-                button = Button(label = f"Alliance {alliance_check['alliance_state'][1]}", style=discord.ButtonStyle.gray)
+                button = Button(label = f"{alliance_check['alliance_state'][0]} Alliance ", style=discord.ButtonStyle.gray)
                 display[1].clear_items()
                 display[1].add_item(button)
                 await interaction.response.edit_message(embed=display[0], view=display[1])
@@ -59,15 +61,12 @@ class Cog_Alliance(commands.Cog):
                     await interaction.followup.send("You don't have the permission to use this command.")
                     return
                 act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
-                if act_alliance is None:
-                    await interaction.followup.send("> Loading the new alliance.")
-                else:
-                    await interaction.followup.send("> Updating the alliance.")
-                await self.bot.alliance.update_alliance(alliance.upper())     
+                loading_message = await interaction.followup.send(f"> Loading the alliance... (started <t:{int(time.time())}:R>)")
+                await self.bot.alliance.update_alliance(alliance.upper())
+                await loading_message.edit(content="> Alliance Loaded ✅")
             button.callback = button_callback_alliance
             display[1].add_item(button)
-        return display
-    
+        return display    
     # en double: cog?
     def has_alliance(self, alliance: str):
         return_value: dict = {}
@@ -213,7 +212,41 @@ class Cog_Alliance(commands.Cog):
         display: list = [embed, view]
         self.button_alliance(alliance, alliance_check, display)
         await interaction.response.send_message(embed=display[0], view=display[1])
-         
+    
+    
+    @app_commands.command(name="alliance_team_mates", description="Spy your mates because they don't answer you")
+    @app_commands.checks.has_any_role('Admin')
+    async def alliance_team_mates(self, interaction: discord.Interaction): 
+        await interaction.response.defer(ephemeral=True)
+        embed: discord.Embed = discord.Embed(title=f"<:empty:1088454928474841108>Crew Overview", description="Use the bot or you will be \n*smashed* 🔨 by Diablo.", color=discord.Color.from_rgb(255, 100, 100))
+        obj: dict = {"name", "GALACTIC SWAMP"}
+        alliance: Alliance_Model = self.bot.db.get_one_alliance("name", "GALACTIC SWAMP")
+        obj: dict = {"_alliance_id": alliance['_id']}
+        alliance_players: List[Player_Model] = list(self.bot.db.get_players(obj))
+        value = ">>> "
+        alliance_players.sort(key=lambda item: item.get("lvl"), reverse=True)
+        it = 0
+        for player in alliance_players:
+            status = self.bot.galaxyLifeAPI.get_player_status(player["id_gl"])
+            if status == None:
+                status = 0
+            alliance_players[it]["status_steam"] = status
+            it += 1
+        alliance_players.sort(key=lambda item: item.get("status_steam"), reverse=True)
+        for player in alliance_players:    
+            if player["status_steam"] == 0:
+                emoji = Emoji.offline.value
+            elif player["status_steam"] == 1:
+                emoji = Emoji.maybe.value
+            else:
+                emoji = Emoji.online.value
+            value = value + emoji + " " + player["pseudo"] + "\n"
+        embed.add_field(name="Members:",value=value, inline=False)
+        # embed.set_thumbnail(url=alliance_api_info["emblem_url"])
+        view = View()
+        await interaction.followup.send(embed=embed, view=view)
+        
+        
     #</editor-fold>
 
 async def setup(bot: commands.Bot):

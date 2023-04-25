@@ -31,7 +31,7 @@ class Select(discord.ui.Select):
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
         status_emoji: str = Emoji.offline.value
-        if player["online"] == 1:
+        if player["online"] == 2:
             status_emoji = Emoji.online.value 
             player["MB_refresh_time"] = self.date
             player["MB_last_attack_time"] = self.date
@@ -40,13 +40,14 @@ class Select(discord.ui.Select):
             # obj: dict = {"_player_id": player["_id"]}
             obj: dict = {"id_gl": player["id_gl"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+            colonies.sort(key=lambda item: item.get("number"))
             for colony in colonies:
                 colony["colo_refresh_time"] = self.date
                 colony["colo_last_attack_time"] = self.date
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
         else:
-            if player["online"] == 2:
+            if player["online"] == 1:
                 status_emoji = Emoji.maybe.value
             else:
                 if "state" in player:
@@ -86,7 +87,7 @@ class Select(discord.ui.Select):
         for colony in colonies:
             if colony["number"] >= 10:
                 break
-            if colony["updated"]:
+            if colony["updated"] or colony["colo_coord"]["x"] > -1:
                 if colony["colo_status"] == "Down" :
                     colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
                     if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
@@ -145,7 +146,7 @@ class Select(discord.ui.Select):
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
         for colony in colonies:
-            if colony["updated"]:
+            if colony["updated"] or colony["colo_coord"]["x"] > -1:
                 if colony["colo_status"] == "Down" :
                     colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
                     if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
@@ -161,13 +162,13 @@ class Select(discord.ui.Select):
                             menu_emoji = Emoji.down.value
                     else:
                         menu_emoji = Emoji.down.value
-                    menu_label = f"{colony['colo_sys_name']}"
+                    menu_label = f"{colony['colo_sys_name'].upper()}"
                     if colony['colo_sys_name'] == "?":
                         menu_label = "Unknown System"
                     date_refresh: datetime.datetime = colony['colo_refresh_time']
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) - (Back at {date_refresh.strftime('%H:%M:%S')})"
                 else :
-                    menu_label = f"{colony['colo_sys_name']}"
+                    menu_label = f"{colony['colo_sys_name'].upper()}"
                     if colony['colo_sys_name'] == "?":
                         menu_label = "Unknown System"
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
@@ -217,7 +218,7 @@ class Select(discord.ui.Select):
                 colony["colo_last_attack_time"] = self.date
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
-            await self.log_channel.send(f"Reset player : {player['pseudo']} by {interaction.user.display_name}")
+            await interaction.response.send_message(f"Reset player : {player['pseudo']} by {interaction.user.display_name}")
             
             # await self.bot.dashboard.update_Dashboard()
             return
@@ -244,7 +245,7 @@ class Select(discord.ui.Select):
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
                 # await self.bot.dashboard.update_Dashboard()
                 return
-            if colony["updated"]:
+            if colony["updated"] or colony["colo_coord"]["x"] > -1:
                 if "gift_state" in colony:
                     if colony['gift_state'] == "Free Once":
                         colony['gift_state'] = "Not Free"
@@ -264,10 +265,11 @@ class Select(discord.ui.Select):
 class DropView(discord.ui.View):
     error: bool = False
 
-    def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], actual_war: War_Model,  timeout: int = 180) -> None:
+    def __init__(self, bot: commands.Bot, players: Cursor[Player_Model], actual_war: War_Model, timeout: int = 180) -> None:
         super().__init__(timeout=timeout)
         for player in players:
             # obj: dict = {"_player_id": ObjectId(player["_id"])}
             obj: dict = {"id_gl": player["id_gl"]}
             colonies: List[Colony_Model] = list(bot.db.get_colonies(obj))
+            colonies.sort(key=lambda item: item.get("number"))
             self.add_item(Select(bot, player, colonies, actual_war))

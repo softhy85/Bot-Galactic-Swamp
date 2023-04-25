@@ -13,7 +13,7 @@ from Utils.Role import Role
 from Utils.DataBase import DataBase
 from Utils.Dashboard import Dashboard
 from Utils.GalaxyLifeAPI import GalaxyLifeAPI
-
+from Utils.GalaxyCanvas import GalaxyCanvas
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
 intents = discord.Intents.default()
@@ -26,6 +26,7 @@ bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, applicatio
 async def on_ready():
     print("The bot is online")
     bot.db = db
+    bot.galaxyCanvas = GalaxyCanvas(bot)
     bot.galaxyLifeAPI = GalaxyLifeAPI()
     bot.alliance = Alliance(bot)
     bot.spec_role = Role()

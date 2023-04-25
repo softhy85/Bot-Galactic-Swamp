@@ -33,7 +33,7 @@ class Cog_Refresh(commands.Cog):
 
     #<editor-fold desc="thread">
     
-    def thread_update_players_online(self):
+    def thread_update_players(self):
         date_start: datetime.datetime = datetime.datetime.now()
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if act_war is not None:
@@ -49,7 +49,24 @@ class Cog_Refresh(commands.Cog):
                     self.bot.db.update_player(players[it])
         date_end: datetime.datetime = datetime.datetime.now()
         print("Infos: players_online updated", "time :", date_end - date_start)
-        print("Infos: task_update_players_online ended")        
+        print("Infos: task_update_players_online ended")
+        print("Infos: task_update_players_level started")        
+        if act_war is not None:
+            for it_player in range(0, len(players)):
+                player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(players[it_player]["id_gl"])
+                players[it_player]["lvl"] = player_temp["lvl"]
+                players[it_player]["MB_lvl"] = player_temp["MB_lvl"]
+                self.bot.db.update_player(players[it_player])
+                obj: dict = {"_player_id": players[it_player]["_id"]}
+                colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+                if len(colonies) != len(player_temp):
+                    continue
+                # colonies.sort(key=lambda item: item.get("number"), reverse = True)
+                for it_colo in range(0, len(player_temp["colo_list"])):
+                    colonies[it_colo]["colo_lvl"] = player_temp["colo_list"][it_colo]
+                    self.bot.db.update_colony(colonies[it_colo]) #ajouté récemment
+        print("Infos: task_update_players_level ended")    
+        
 
     def thread_task_update_war_infos(self):
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
@@ -69,30 +86,6 @@ class Cog_Refresh(commands.Cog):
                     war_alliance["score"] = 0
                 self.bot.db.update_alliance(war_alliance)
         print("Infos: task_update_war_infos ended") 
-    
-    def thread_task_update_players_level(self):
-        act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        if act_war is not None:
-            war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", act_war["_alliance_id"])
-            if war_alliance is not None:
-                obj: dict = {"_alliance_id": act_war["_alliance_id"]}
-                players: List[Player_Model] = list(self.bot.db.get_players(obj))
-                for it_player in range(0, len(players)):
-                    player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(players[it_player]["id_gl"])
-                    players[it_player]["lvl"] = player_temp["lvl"]
-                    players[it_player]["MB_lvl"] = player_temp["MB_lvl"]
-                    self.bot.db.update_player(players[it_player])
-                    obj: dict = {"_player_id": players[it_player]["_id"]}
-                    colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-                    if len(colonies) != len(player_temp):
-                        continue
-                    colonies.sort(key=lambda item: item.get("number"), reverse = True)
-                    for it_colo in range(0, len(player_temp["colo_list"])):
-                        colonies[it_colo]["colo_lvl"] = player_temp["colo_list"][it_colo]
-                        self.bot.db.update_colony(colonies[it_colo]) #ajouté récemment
-        print("Infos: task_update_players_level ended")    
-        
-    def thread_task_update_base_status(self):
         print("Infos: task_update_base_status started")
         now: datetime.datetime = datetime.datetime.now()
         date_time_str: str = now.strftime("%H:%M:%S")
@@ -100,91 +93,66 @@ class Cog_Refresh(commands.Cog):
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
         for player in players:
             date_next: datetime.datetime = player["MB_refresh_time"]
-            if now > date_next:
+            print(player['pseudo'])
+            if now >= date_next:
+                print("reset")
                 player["MB_status"] = "Up"
                 self.bot.db.update_player(player)
         obj = {"colo_status": "Down"}
         colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
         for colony in colonies:
             date_next: datetime.datetime = colony["colo_refresh_time"]
-            if now > date_next:
+            if now >= date_next:
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if act_war is not None:
-            print(f"Info: Update at {date_time_str}")
+            print(f"Info: Update base status at {date_time_str}")
 
         print("Infos: task_update_base_status ended")
+
         
     #</editor-fold>
     
     #<editor-fold desc="task">
 
         
-    @tasks.loop(minutes=5) #TODO a threader
+    @tasks.loop(minutes=1) #TODO a threader
     async def task_update_war_infos(self):
         print("Infos: task_update_war_infos started")
         t: Thread = Thread(target=self.thread_task_update_war_infos)
         t.start()
 
-    @tasks.loop(minutes=5) #TODO a threader
-    async def task_update_players_level(self):
-        print("Infos: task_update_players_level started")
-        t: Thread = Thread(target=self.thread_task_update_players_level)
-        t.start()
-
-       
-
-    # @tasks.loop(minutes=5)
-    # async def task_update_players_online(self):
-    #  
-    #     date_start: datetime.datetime = datetime.datetime.now()
-    #     act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-    #     if act_war is not None:
-    #         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", act_war["_alliance_id"])
-    #         if war_alliance is not None:
-    #             obj: dict = {"_alliance_id": act_war["_alliance_id"]}
-    #             players: List[Player_Model] = list(self.bot.db.get_players(obj))
-    #             for it in range(0, len(players)):
-    #                 if "id_gl" in players[it]:
-    #                     players[it]["online"] = self.bot.galaxyLifeAPI.get_player_status(players[it]['id_gl'])
-    #                 else:
-    #                     players[it]["online"] = 0
-    #                 self.bot.db.update_player(players[it])
-    #     date_end: datetime.datetime = datetime.datetime.now()
-    #     print("Infos: Dashboard updated", "time :", date_end - date_start)
-    #     print("Infos: task_update_players_online ended")        
+    # @tasks.loop(minutes=1) #TODO a threader
+    # async def task_update_base_status(self):
+    #     print("Infos: task_update_base_status started")
+    #     t: Thread = Thread(target=self.thread_task_update_base_status)
+    #     t.start()
+        
+    # @tasks.loop(minutes=1) #TODO a threader
+    # async def task_update_players_level(self):
+        
+    #     t: Thread = Thread(target=self.thread_task_update_players_level)
+    #     t.start()
         
     @tasks.loop(minutes=5)
-    async def task_update_players_online(self):
+    async def task_update_players(self):
         print("Infos: task_update_players_online started")
-        t: Thread = Thread(target=self.thread_update_players_online)
-        t.start()
-                
-    @tasks.loop(minutes=5) #TODO a threader
-    async def task_update_base_status(self):
-        print("Infos: task_update_base_status started")
-        t: Thread = Thread(target=self.thread_task_update_base_status)
+        t: Thread = Thread(target=self.thread_update_players)
         t.start()
 
     @tasks.loop(minutes=1)
     async def task_check_war_status(self):
         print("Infos: task_check_war_status")     
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        print(act_war)
         if act_war is not None and self.war_status == Status.Ended:
             self.war_status = Status.InProgress
             self.task_update_war_infos.start()
-            self.task_update_players_level.start()
-            self.task_update_players_online.start()
-            self.task_update_base_status.start() 
+            self.task_update_players.start()
         elif self.war_status == Status.InProgress:  
             self.war_status = Status.Ended
             self.task_update_war_infos.stop()
-            self.task_update_players_level.stop()
-            self.task_update_players_online.stop()
-            self.task_update_base_status.stop()
-
+            self.task_update_players.stop()
 
     #<editor-fold desc="task on ready">
 
@@ -192,17 +160,17 @@ class Cog_Refresh(commands.Cog):
     async def before_task_update_war_infos(self):
         await self.bot.wait_until_ready()
 
-    @task_update_players_level.before_loop
-    async def before_task_update_players_level(self):
-        await self.bot.wait_until_ready()
+    # @task_update_players_level.before_loop
+    # async def before_task_update_players_level(self):
+    #     await self.bot.wait_until_ready()
 
-    @task_update_players_online.before_loop
-    async def before_task_update_players_online(self):
+    @task_update_players.before_loop
+    async def before_task_update_players(self):
         await self.bot.wait_until_ready()        
         
-    @task_update_base_status.before_loop
-    async def before_task_update_base_status(self):
-        await self.bot.wait_until_ready()
+    # @task_update_base_status.before_loop
+    # async def before_task_update_base_status(self):
+    #     await self.bot.wait_until_ready()
         
     @task_check_war_status.before_loop
     async def before_task_check_war_status(self):

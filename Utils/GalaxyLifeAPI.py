@@ -96,6 +96,21 @@ class GalaxyLifeAPI:
             it = it + 1
         return return_value
     
+    def search_for_player(self, input):
+        url: str = self.url_gl + f"/Users/search?name={input}"
+        input = requests.get(url)
+        input_infos = json.loads(input.content)
+        if input_infos is not None:
+            players: list = []
+            it_list: int = 0
+            for player in range(0, len(input_infos)):
+                if input_infos[player]["Level"] > 50 and it_list < 10:
+                    it_list += 1
+                    players.append(input_infos[player])
+            return players  
+        else:
+            return None
+    
     def get_player_stats(self, player_id):
         return_value: dict = {}
         url: str = self.url_gl + f"/Users/stats?id={player_id}"
@@ -126,10 +141,10 @@ class GalaxyLifeAPI:
                         if response_parse['response']['players'][0]['personastate'] != 0:
                             if "gameextrainfo" in response_parse['response']['players'][0]:
                                 if response_parse['response']['players'][0]['gameextrainfo'] == "Galaxy Life":   
-                                    return 1
+                                    return 2
                             else: 
-                                return 2
+                                return 1
                 else:
-                    return 2
+                    return 1
         else:
             return 0
