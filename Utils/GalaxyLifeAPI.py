@@ -11,6 +11,7 @@ class GalaxyLifeAPI:
         self.url_gl = "https://api.galaxylifegame.net"
         self.steamToken = os.getenv("STEAM_TOKEN")
         self.url_steam = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2"
+        self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
     
     def get_emblem(self, shape: str, pattern: str, icon: str) -> str:
         return f"https://cdn.galaxylifegame.net/content/img/alliance_flag/AllianceLogos/flag_{shape}_{pattern}_{icon}.png"
@@ -19,7 +20,7 @@ class GalaxyLifeAPI:
         response: str = requests.get(url, timeout = 2.50)
         if response.status_code != 200:
             return None
-        if chr(response.content[0]) != "{" and chr(response.content[1]).isdigit() != True:  
+        if chr(response.content[0]) != "{" and chr(response.content[1]).isdigit() != True and chr(response.content[0]) != "[":  
             return None 
         else: 
             return json.loads(response.content)    
@@ -45,14 +46,34 @@ class GalaxyLifeAPI:
         return_value["war_status"] = alliance_infos["InWar"]
         return_value["enemy_name"] = alliance_infos["OpponentAllianceId"]
         for member in alliance_infos['Members']:
-            return_value["members_list"].append({"Name": member["Name"], "Id": member["Id"]})
+            return_value["members_list"].append({"Name": member["Name"], "Id": member["Id"], "WarPoints": member["TotalWarPoints"]})
             
         if alliance_infos['WarsWon'] != 0 and alliance_infos['WarsLost'] != 0:
             return_value["alliance_winrate"] = round(alliance_infos['WarsWon'] / (alliance_infos['WarsLost'] + alliance_infos['WarsWon']) * 100, 2)
+        elif alliance_infos['WarsWon'] != 0:
+            return_value["alliance_winrate"] = 100
+        elif alliance_infos['WarsWon'] != 0:
+            return_value["alliance_winrate"] = 0
         else:
             return_value["alliance_winrate"] = -1
         return return_value    
- 
+
+    def get_alliance_leaderboard(self):
+        return_value: dict = {}
+        url: str = self.url_gl + f"/Alliances/warpointLb"
+        leaderboard = self.get_request(url)
+        for alliance in range(0, len(leaderboard)):
+            if leaderboard[alliance]["Name"].upper() == self.ally_alliance_name:
+                it: int = -2
+                while it <= 2:
+                    while len(leaderboard[alliance+it]["Name"]) <= 17:
+                        leaderboard[alliance+it]["Name"] = leaderboard[alliance+it]["Name"] + " "
+                    return_value[f"{it}"] = leaderboard[alliance+it]
+                    it += 1
+                return_value[f"{it}"] = alliance + 1
+                break
+        return return_value
+    
     def get_player_infos_from_name(self, player_name):
         return_value: dict = {}
         url: str = self.url_gl + f"/Users/name?name={player_name}"
@@ -79,7 +100,6 @@ class GalaxyLifeAPI:
         else:
             return None
         
-    
     def get_player_infos(self, player_id):
         return_value: dict = {}
         url: str = self.url_gl + f"/Users/get?id={player_id}"

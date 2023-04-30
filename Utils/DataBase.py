@@ -8,6 +8,7 @@ from Models.Colony_Model import Colony_Model
 from Models.InfoMessage_Model import InfoMessage_Model
 from Models.War_Model import War_Model
 from Models.Colonies_List_Model import Colonies_List_Model
+from Models.Next_War_Model import Next_War_Model
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
 
@@ -170,12 +171,21 @@ class DataBase:
         if return_war is not None:
             self.db.wars.update_one({"_id": war["_id"]}, {'$set': war})
             
-            
+    def get_nextwar(self) -> Next_War_Model:
+        return self.db.nextwar.find_one({'name':'next_war'})        
 
-    
+    def push_nextwar(self, nextwar: dict) -> ObjectId | None:
+        nextwar_db = self.db.nextwar.find_one({'name':nextwar['name']})
+        if nextwar_db is None:
+            return self.db.nextwar.insert_one(nextwar).inserted_id
+
+    def update_nextwar(self, nextwar: dict) -> None:
+        nextwar_db = self.db.nextwar.find_one({'name':nextwar['name']})
+        if nextwar_db is not None:
+            return self.db.nextwar.update_one({"_id": nextwar_db["_id"]}, {'$set': nextwar})
+        
     def close(self) -> None:
         self.mongo_client.close()
-
 
 if __name__ == '__main__':
     load_dotenv()

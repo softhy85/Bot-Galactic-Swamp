@@ -25,14 +25,18 @@ class Dashboard:
         self.bot = bot
         self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
         self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
+        self.log_channel_id: int = int(os.getenv("LOG_CHANNEL"))
+        self.log_channel = self.bot.get_channel(self.log_channel_id)
+        self.log_regen_id: int = int(os.getenv("LOG_REGEN"))
+        self.log_regen = self.bot.get_channel(self.log_regen_id)
 
-    def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model], creating: int = 0) -> discord.Embed:
+    async def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model], creating: int = 0) -> discord.Embed:
         embed: discord.Embed
         title = self.centered_title(war)
         if creating == 0:
-            score = self.score_bar(alliance, players)
+            score = await self.score_bar(alliance, players)
             description: str = score["description"]
-            war_progress: dict = self.war_progress(alliance["name"], players)
+            war_progress: dict = await self.war_progress(alliance["name"], players)
         else:
             score = "Loading scores..."
             description = "Loading description..."
@@ -43,7 +47,7 @@ class Dashboard:
             alliance['alliance_winrate'] = 0
         winrate: str = f"Winrate: {alliance['alliance_winrate'] if alliance['alliance_winrate'] != -1 else '?'}%­ "
         embed = discord.Embed(title=title, description=description,timestamp=datetime.datetime.now())
-        embed.add_field(name=f"{score['title']}",value=f"<:empty:1088454928474841108>\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}\n🎯 Theorical instant score: {war_progress['instant_score']}\n🔁 Max score per cycle: {war_progress['score_per_cycle']}")
+        embed.add_field(name=f"{score['title']}",value=f"<:empty:1088454928474841108>\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}\n🎯 Target score: {war_progress['instant_score']}/{war_progress['score_per_cycle']}")
         embed.set_thumbnail(url=alliance["emblem_url"])
         return embed
 
@@ -63,10 +67,10 @@ class Dashboard:
         
         return centered_title 
 
-    def score_bar(self, alliance: Alliance_Model, players: List[Player_Model]):
+    async def score_bar(self, alliance: Alliance_Model, players: List[Player_Model]):
         it: int = 1
         return_value: dict = {}
-        war_progress: dict = self.war_progress(alliance["name"], players)
+        war_progress: dict = await self.war_progress(alliance["name"], players)
         score_space =  (len(str(war_progress['ally_alliance_score'])) - 1 + len(str(war_progress['enemy_alliance_score']))- 1)
         filler = "<:empty:1088454928474841108>"
         filler_number = 14 - score_space
@@ -107,7 +111,7 @@ class Dashboard:
         nb_message: int = len(players) // 5
         if len(players) % 5 > 0:
             nb_message += 1   
-        embed: discord.Embed = self.create_embed_alliance(actual_war, war_alliance, players)
+        embed: discord.Embed = await self.create_embed_alliance(actual_war, war_alliance, players)
         message = await thread.send(embed=embed)
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
@@ -116,6 +120,7 @@ class Dashboard:
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war, 1))
             message = await thread.send(content=" ­", embed=None, view=dropView[it])
+            await message.add_reaction("<:star:1043627831973924944>")
             infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
             self.bot.db.push_new_info_message(infoMessage)
         print('dashboard succesfully created')
@@ -142,7 +147,7 @@ class Dashboard:
         nb_message: int = len(players) // 5
         if len(players) % 5 > 0:
             nb_message += 1
-        embed = self.create_embed_alliance(actual_war, war_alliance, players)
+        embed = await self.create_embed_alliance(actual_war, war_alliance, players)
         obj: dict = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard"}
         infoMessages: List[InfoMessage_Model] = list(self.bot.db.get_info_messages(obj))
         if len(infoMessages) == 0:
@@ -166,7 +171,7 @@ class Dashboard:
         print("Infos: Dashboard updated", "time :", date_end - date_start)
         return 0
 
-    def war_progress(self, alliance, players):
+    async def war_progress(self, alliance, players):
         return_value: dict = {}
         planets_up: int = 0
         known_colonies: int = 0
@@ -179,6 +184,10 @@ class Dashboard:
             main_planet += 1 
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+            if player["MB_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
+                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: <@&1100856366802927687>")
+                player["MB_status"] = "Up"
+                self.bot.db.update_player(player)
             if player["MB_status"] == "Up":
                 instant_score += score_per_base[player["MB_lvl"]-1]
                 planets_up += 1   
@@ -187,6 +196,10 @@ class Dashboard:
             for colo in colonies:
                 if colo['colo_coord']['x'] > -1:
                     known_colonies += 1 
+                    if colo["colo_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
+                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']}** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['x']} )``")
+                        colo["colo_status"] = "Up"
+                        self.bot.db.update_colony(colo)
                     if colo["colo_status"] == "Up":
                         planets_up += 1
                         instant_score += score_per_base[player["MB_lvl"]-1]    

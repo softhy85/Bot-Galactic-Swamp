@@ -247,6 +247,20 @@ class Cog_Alliance(commands.Cog):
         await interaction.followup.send(embed=embed, view=view)
         
         
+    @app_commands.command(name="alliance_leaderboard", description="Leaderboard")
+    async def alliance_leaderboard(self, interaction: discord.Interaction): 
+        leaderboard: dict = self.bot.galaxyLifeAPI.get_alliance_leaderboard()
+        embed =discord.Embed(title=f"️Leaderboard", description="", color=Colors.dark_magenta)
+        name: str = f"📈 Current Rank: "
+        value: str = (f"```ansi\n\u001b[0;0m{leaderboard['3']-2}# ⏫ {leaderboard['-2']['Name']}:    +\u001b[0;31m{leaderboard['-2']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
+                      f"\n{leaderboard['3']-1}# 🔼 {leaderboard['-1']['Name']}:    +\u001b[0;31m{leaderboard['-1']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
+                      f"\n{leaderboard['3']}# ✅ {leaderboard['0']['Name']}:    {leaderboard['0']['Warpoints']}"+
+                      f"\n{leaderboard['3']+1}# 🔽 {leaderboard['1']['Name']}:    -\u001b[0;30m{abs(leaderboard['1']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m"+
+                      f"\n{leaderboard['3']+2}# ⏬ {leaderboard['2']['Name']}:    -\u001b[0;30m{abs(leaderboard['2']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m```")
+        embed.add_field(name=name, value=value, inline=False)
+        embed.set_thumbnail(url="https://cdn.discordapp.com/icons/943168885333581886/a_12f99da94b70ba0624195d65327f33ce.gif")
+        await interaction.response.send_message(embed=embed)
+        
     #</editor-fold>
 
 async def setup(bot: commands.Bot):

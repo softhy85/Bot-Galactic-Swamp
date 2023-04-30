@@ -14,6 +14,11 @@ from Utils.DataBase import DataBase
 from Utils.Dashboard import Dashboard
 from Utils.GalaxyLifeAPI import GalaxyLifeAPI
 from Utils.GalaxyCanvas import GalaxyCanvas
+from Models.Next_War_Model import Next_War_Model
+from discord import Guild
+from discord.utils import utcnow
+from datetime import timedelta
+
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
 intents = discord.Intents.default()
@@ -21,7 +26,7 @@ intents.message_content = True
 intents.members = True
 db = DataBase()
 bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
-
+client = discord.Client(intents=intents)
 @bot.event
 async def on_ready():
     print("The bot is online")
@@ -33,10 +38,21 @@ async def on_ready():
     bot.dashboard = Dashboard(bot)
     bot.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel = bot.get_channel(bot.command_channel_id)
+    bot.war_channel_id = int(os.getenv("WAR_CHANNEL"))
+    bot.war_channel = bot.get_channel(bot.war_channel_id)
+    bot.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
+    bot.general_channel = bot.get_channel(bot.general_channel_id)
     await bot.command_channel.send("@personne - Le bot est connecté. <:O_:1043627742723317770>")
     cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony"])
     for cog in cogs:
         await bot.load_extension(cog)
+    reaction, user = await client.wait_for('reaction_add')
+    reaction, user = await client.wait_for('reaction_remove')
+
+    
+    # print('doing')
+    # await discord.Guild.create_scheduled_event(name="test", start_time= utcnow() + timedelta(600), channel=bot.get_channel(1043524634060017717))
+    # print('done')
 
 
 @bot.command()
@@ -46,6 +62,42 @@ async def sync(ctx: Context) -> None:
         await ctx.send(f'Synced {len(fmt)} commands.')
     else:
         await ctx.send("You don't have the permission to use this command.")
+
+@bot.event
+async def on_raw_reaction_add(reaction):
+    update: bool = False
+    if reaction.channel_id == bot.war_channel_id:
+        next_war: Next_War_Model = bot.db.get_nextwar()
+        if reaction.emoji.name == "👍🏻":
+            await bot.general_channel.send(f"> 💥 **{reaction.member.nick}** wants to start a war. Come to https://discord.com/channels/1043524633602826294/1043548046602014831 to vote!")
+            next_war['positive_votes'] = next_war['positive_votes'] + 1
+            update = True
+        if reaction.emoji.name == "👎🏻":
+            next_war['negative_votes'] = next_war['negative_votes'] + 1
+            update = True
+        if update == True:
+            bot.db.update_nextwar(next_war) 
+            cog_war = bot.get_cog('Cog_War')
+            if cog_war is not None:
+                await cog_war.update_peace_embed()
+
+@bot.event
+async def on_raw_reaction_remove(reaction):
+    update: bool = False
+    if reaction.channel_id == bot.war_channel_id:
+        next_war: Next_War_Model = bot.db.get_nextwar()
+        if reaction.emoji.name == "👍🏻":
+            next_war['positive_votes'] = next_war['positive_votes'] - 1
+            update = True
+        if reaction.emoji.name == "👎🏻":
+            next_war['negative_votes'] = next_war['negative_votes'] - 1
+            update = True
+        if update == True:
+            bot.db.update_nextwar(next_war) 
+            cog_war = bot.get_cog('Cog_War')
+            if cog_war is not None:
+                await cog_war.update_peace_embed()
+
 
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError) -> None:

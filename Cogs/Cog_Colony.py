@@ -76,11 +76,11 @@ class Cog_Colony(commands.Cog):
     async def player_war_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         return_player = self.bot.db.get_one_player("pseudo", "temp_player")
+        temp_pseudo: list = [{"Name":"None"}]
+        temp_pseudo[0]["Name"] = return_player["temp_pseudo"]
         if act_war is None:
             if len(current) >= 4:
                 players = self.bot.galaxyLifeAPI.search_for_player(current)
-                temp_pseudo: list = [{"Name":"None"}]
-                temp_pseudo[0]["Name"] = return_player["temp_pseudo"]
                 if players:
                     players = players + temp_pseudo
                     return [
@@ -96,8 +96,11 @@ class Cog_Colony(commands.Cog):
                 obj: dict = {"_alliance_id": act_war["_alliance_id"]}
             else:
                 obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
-            players: List[Player_Model] = self.bot.db.get_players(obj)
+            players: List[Player_Model] = list(self.bot.db.get_players(obj))
             players = players[0:25]
+            temp_pseudo[0]["pseudo"] = return_player["temp_pseudo"]
+            print(list(players))
+            players = players + list(temp_pseudo)
             return [
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
                 for player in players
@@ -110,120 +113,24 @@ class Cog_Colony(commands.Cog):
         return data
 
     #</editor-fold>
-
-    #<editor-fold desc="command">
-
-    @app_commands.command(name="colo_infos", description="Display the infos of the Colonies of a Cog_Player")
-    @app_commands.describe(pseudo="Player's pseudo")
-    @app_commands.autocomplete(pseudo=player_autocomplete)
-    async def colo_infos(self, interaction: discord.Interaction, pseudo: str):
-        if pseudo.strip() == "":
-            await interaction.response.send_message(f"Cannot retreive infos of a Cog_Player with a pseudo composed only of whitespace.")
-            return
-        player: Player_Model = self.bot.galaxyLifeAPI.get_player_infos_from_name(pseudo)
-        if player is None:
-            await interaction.response.send_message(f"Player named {pseudo} not found.")
-        else:
-            colonies: List[Colony_Model] = list(self.bot.db.get_colonies({"id_gl": int(player['player_id_gl'])}))
-            if len(colonies) == 0:
-                await interaction.response.send_message(f"Colonies not found.")
-            else:
-                embed: discord.Embed
-                embed = discord.Embed(title=f"Niv  : { pseudo }️", description="", color=Colors.gold, timestamp=datetime.datetime.now())
-                it: int = 1
-                for colony in colonies:
-                    # colony['colo_sys_name'] != "-1" and colony['colo_sys_name'] != -1 and colony['colo_sys_name'] != "?" and 
-                    if colony["updated"] != False or colony["colo_coord"]["x"] > -1:
-                        embed.add_field(name=f"{ Emoji.colo.value if colony['colo_status'] == 'Up' else Emoji.down.value } Colonie {it} : {colony['colo_sys_name']}",value=f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})", inline=False)
-                    it += 1
-                await interaction.response.send_message(embed=embed)
-
-    @app_commands.command(name="colo_update", description="Update an existent Cog_Colony")
-    @app_commands.describe(pseudo="Player's pseudo", colo_number="if not found : ✅ run /player_infos and add its alliance ", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
-    @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete)
-    @app_commands.checks.has_any_role('Admin', 'Assistant')
-    async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str = "", colo_coord_x: int = -1, colo_coord_y: int = -1):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        if pseudo.strip() == "":
-            await interaction.response.send_message(f"Cannot remove a Cog_Colony from Players with a pseudo composed only of whitespace.")
-            return
-        act_player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})
-        if act_player is None:
-            await interaction.response.send_message(f"Player named {pseudo} not found.")
-        else:
-            act_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": act_player['_id'], "number": colo_number}))
-            if len(act_colony) == 0:
-                await interaction.response.send_message(f"Colony not found.")
-            else:
-                act_colony = act_colony[0]
-                act_colony["colo_sys_name"] = colo_sys_name.upper()
-                act_colony["colo_coord"]["x"] = colo_coord_x
-                act_colony["colo_coord"]["y"] = colo_coord_y
-                if colo_coord_y != -1 and colo_coord_x != -1 and act_colony["colo_sys_name"] != "-1": 
-                    act_colony["updated"] = True
-                else:
-                    act_colony["updated"] = False
-                self.bot.db.update_colony(act_colony)
-                await interaction.response.send_message(f"Colony n°{colo_number} of {pseudo} updated.")
-                # await self.bot.dashboard.update_Dashboard()
-
-    # @app_commands.command(name="colony_remove", description="Remove an existent Cog_Colony")
-    # @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony")
-    # @app_commands.autocomplete(pseudo=player_autocomplete)
-    # @app_commands.checks.has_any_role('Admin', 'Assistant')
-    # async def colony_remove(self, interaction: discord.Interaction, pseudo: str, colo_number: int,):
-    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
-    #         await interaction.response.send_message("You don't have the permission to use this command.")
-    #         return
-    #     if pseudo.strip() == "":
-    #         await interaction.response.send_message(f"Cannot remove a Cog_Colony from Players with a pseudo composed only of whitespace.")
-    #         return
-    #     act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
-    #     if act_player is None:
-    #         await interaction.response.send_message(f"Player named {pseudo} not found.")
-    #     else:
-    #         obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
-    #         act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-    #         if act_colony is None:
-    #             await interaction.response.send_message(f"Colony not found.")
-    #         else:
-    #             self.bot.db.remove_colony(act_colony[0])
-    #             await interaction.response.send_message(f"Player named {pseudo} as been removed.")
-    #             await self.bot.dashboard.update_Dashboard()
-
-    @app_commands.command(name="gift_colony", description="Gift colony to low level players / Or tell if a colony never has defenses")
-    @app_commands.describe(pseudo="Player's pseudo", colo_number="Wich colony", gift_state="x")
-    @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete,  gift_state=gift_state_autocomplete)
-    async def gift_colony(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
-        act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
-        obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
-        act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-        if act_player is None:
-            await interaction.response.send_message(f"Player named {pseudo} does not exist.")
-        else:
-            act_colony = act_colony[0]
-            act_colony["gift_state"]: str = gift_state
-            self.bot.db.update_colony(act_colony)
-            await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁") #j'ai juste changé l'ordre 
-            await interaction.response.send_message(f"The free state of colony n°{act_colony['number']} of {pseudo} has been updated.")
-
+    
+    #<editor-fold desc="functions">
+    
     def button_right(self, view, embed):
-        button_right = Button(label = f"⇨", style=discord.ButtonStyle.blurple)
-        view.add_item(button_right)
-        async def button_callback_right(interaction):
-            if self.new_pos_x + 0.5*int(1000/self.new_zoom) <= 1000 - 0.5*int(1000/self.new_zoom):
-                self.new_pos_x = self.new_pos_x + 0.5*int(1000/self.new_zoom)
-            else: 
-                self.new_pos_x = 1000 - 0.5*int(1000/self.new_zoom)
-            self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            button_right = Button(label = f"⇨", style=discord.ButtonStyle.blurple)
+            view.add_item(button_right)
+            async def button_callback_right(interaction):
+                if self.new_pos_x + 0.5*int(1000/self.new_zoom) <= 1000 - 0.5*int(1000/self.new_zoom):
+                    self.new_pos_x = self.new_pos_x + 0.5*int(1000/self.new_zoom)
+                else: 
+                    self.new_pos_x = 1000 - 0.5*int(1000/self.new_zoom)
+                self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+                new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+                button_right.callback = button_callback_right
+                embed.clear_fields()
+                embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value='')
+                await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
             button_right.callback = button_callback_right
-            embed.clear_fields()
-            embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value='')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
-        button_right.callback = button_callback_right
 
     def button_left(self, view, embed):
         button_left = Button(label = f"⇦", style=discord.ButtonStyle.blurple)
@@ -341,6 +248,122 @@ class Cog_Colony(commands.Cog):
                     await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file])
             await interaction.response.send_modal(my_modal())
         button_change_coords.callback = button_callback_change_coords  
+    
+    def button_refresh(self, view, embed):
+        button_refresh = Button(label = f"🔄️", style=discord.ButtonStyle.blurple)
+        view.add_item(button_refresh)
+        async def button_callback_refresh(interaction):
+            self.bot.galaxyCanvas.update_lists() 
+            self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            embed.clear_fields()
+            button_refresh.callback = button_callback_refresh
+            embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value='')
+            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+        button_refresh.callback = button_callback_refresh
+            
+    #</editor-fold>
+
+    #<editor-fold desc="command">
+
+    @app_commands.command(name="colo_infos", description="Display the infos of the Colonies of a Cog_Player")
+    @app_commands.describe(pseudo="Player's pseudo")
+    @app_commands.autocomplete(pseudo=player_autocomplete)
+    async def colo_infos(self, interaction: discord.Interaction, pseudo: str):
+        if pseudo.strip() == "":
+            await interaction.response.send_message(f"Cannot retreive infos of a Cog_Player with a pseudo composed only of whitespace.")
+            return
+        player: Player_Model = self.bot.galaxyLifeAPI.get_player_infos_from_name(pseudo)
+        if player is None:
+            await interaction.response.send_message(f"Player named {pseudo} not found.")
+        else:
+            colonies: List[Colony_Model] = list(self.bot.db.get_colonies({"id_gl": int(player['player_id_gl'])}))
+            if len(colonies) == 0:
+                await interaction.response.send_message(f"Colonies not found.")
+            else:
+                embed: discord.Embed
+                embed = discord.Embed(title=f"Niv  : { pseudo }️", description="", color=Colors.gold, timestamp=datetime.datetime.now())
+                it: int = 1
+                for colony in colonies:
+                    # colony['colo_sys_name'] != "-1" and colony['colo_sys_name'] != -1 and colony['colo_sys_name'] != "?" and 
+                    if colony["updated"] != False or colony["colo_coord"]["x"] > -1:
+                        embed.add_field(name=f"{ Emoji.colo.value if colony['colo_status'] == 'Up' else Emoji.down.value } Colonie {it} : {colony['colo_sys_name']}",value=f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})", inline=False)
+                    it += 1
+                await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="colo_update", description="Update an existent Cog_Colony")
+    @app_commands.describe(pseudo="Player's pseudo", colo_number="if not found : ✅ run /player_infos and add its alliance ", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
+    @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete)
+    @app_commands.checks.has_any_role('Admin', 'Assistant')
+    async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str = "", colo_coord_x: int = -1, colo_coord_y: int = -1):
+        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
+            await interaction.response.send_message("You don't have the permission to use this command.")
+            return
+        if pseudo.strip() == "":
+            await interaction.response.send_message(f"Cannot remove a Cog_Colony from Players with a pseudo composed only of whitespace.")
+            return
+        act_player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})
+        if act_player is None:
+            await interaction.response.send_message(f"Player named {pseudo} not found.")
+        else:
+            act_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": act_player['_id'], "number": colo_number}))
+            if len(act_colony) == 0:
+                await interaction.response.send_message(f"Colony not found.")
+            else:
+                act_colony = act_colony[0]
+                act_colony["colo_sys_name"] = colo_sys_name.upper()
+                act_colony["colo_coord"]["x"] = colo_coord_x
+                act_colony["colo_coord"]["y"] = colo_coord_y
+                if colo_coord_y != -1 and colo_coord_x != -1 and act_colony["colo_sys_name"] != "-1": 
+                    act_colony["updated"] = True
+                else:
+                    act_colony["updated"] = False
+                act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+                if act_war is not None:
+                    act_colony["scouted"] = True
+                self.bot.db.update_colony(act_colony)
+                await interaction.response.send_message(f"Colony n°{colo_number} of {pseudo} updated.")
+                # await self.bot.dashboard.update_Dashboard()
+
+    # @app_commands.command(name="colony_remove", description="Remove an existent Cog_Colony")
+    # @app_commands.describe(pseudo="Player's pseudo", colo_number="the number of the colony")
+    # @app_commands.autocomplete(pseudo=player_autocomplete)
+    # @app_commands.checks.has_any_role('Admin', 'Assistant')
+    # async def colony_remove(self, interaction: discord.Interaction, pseudo: str, colo_number: int,):
+    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
+    #         await interaction.response.send_message("You don't have the permission to use this command.")
+    #         return
+    #     if pseudo.strip() == "":
+    #         await interaction.response.send_message(f"Cannot remove a Cog_Colony from Players with a pseudo composed only of whitespace.")
+    #         return
+    #     act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+    #     if act_player is None:
+    #         await interaction.response.send_message(f"Player named {pseudo} not found.")
+    #     else:
+    #         obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
+    #         act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+    #         if act_colony is None:
+    #             await interaction.response.send_message(f"Colony not found.")
+    #         else:
+    #             self.bot.db.remove_colony(act_colony[0])
+    #             await interaction.response.send_message(f"Player named {pseudo} as been removed.")
+    #             await self.bot.dashboard.update_Dashboard()
+
+    @app_commands.command(name="gift_colony", description="Gift colony to low level players / Or tell if a colony never has defenses")
+    @app_commands.describe(pseudo="Player's pseudo", colo_number="Wich colony", gift_state="x")
+    @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete,  gift_state=gift_state_autocomplete)
+    async def gift_colony(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
+        act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+        obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
+        act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+        if act_player is None:
+            await interaction.response.send_message(f"Player named {pseudo} does not exist.")
+        else:
+            act_colony = act_colony[0]
+            act_colony["gift_state"]: str = gift_state
+            self.bot.db.update_colony(act_colony)
+            await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁") #j'ai juste changé l'ordre 
+            await interaction.response.send_message(f"The free state of colony n°{act_colony['number']} of {pseudo} has been updated.")
             
     @app_commands.command(name="colos_screened", description="How many colonies have been scouted yet")
     @app_commands.describe(zoom="zoom factor", pos_x="x position", pos_y="y position")
@@ -393,6 +416,7 @@ class Cog_Colony(commands.Cog):
         self.button_right(view, embed)
         self.button_zoom_out(view, embed)
         self.button_change_coords(view, embed)
+        self.button_refresh(view, embed)
         await interaction.followup.send(embed=embed, file=file, view=view)
     
     @app_commands.command(name="colo_founds_alliance", description="Find possible colonies in foundcolonies")

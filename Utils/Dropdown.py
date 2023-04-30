@@ -64,7 +64,6 @@ class Select(discord.ui.Select):
         player_lvl: str = player["lvl"]
         player_MB_lvl: str = player["MB_lvl"]
         menu_label: str = f"{player_lvl if player_lvl != -1 else 'Non connue'}: {player['pseudo']}"
-        
         if player["MB_status"] == "Down":
             MB_refresh_date: datetime.datetime = player['MB_refresh_time']
             if MB_refresh_date.date() == act_date.date() and MB_refresh_date.time() > act_date.time():
@@ -83,44 +82,55 @@ class Select(discord.ui.Select):
         menu_label += " " + menu_emoji if player["MB_status"] == "Down" else " " + Emoji.SB.value
         
         # modification pour mettre les colos non complétées
-        
+        scouted: bool = False
         for colony in colonies:
-            if colony["number"] >= 10:
+            # if colony["number"] >= 10:
+            length = len(menu_label) + (len(menu_label) - len(player["pseudo"] + " : "  + str(player["lvl"])))*2
+            if length >= 39:
+                menu_label += Emoji.more.value
                 break
-            if colony["updated"] or colony["colo_coord"]["x"] > -1:
-                if colony["colo_status"] == "Down" :
-                    colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
-                    if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
-                        if colo_refresh_date < act_five_date:
-                            menu_emoji = Emoji.five_min.value
-                        elif colo_refresh_date < act_fifteen_date:
-                            menu_emoji = Emoji.fifteen_min.value
-                        elif colo_refresh_date < act_thirty_date:
-                            menu_emoji = Emoji.thirty_min.value
-                        elif colo_refresh_date < act_forty_five_date:
-                            menu_emoji = Emoji.forty_five_min.value
+
+            else:
+                if colony["updated"] or colony["colo_coord"]["x"] > -1:
+                    if colony["colo_status"] == "Down" :
+                        colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
+                        if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
+                            if colo_refresh_date < act_five_date:
+                                menu_emoji = Emoji.five_min.value
+                            elif colo_refresh_date < act_fifteen_date:
+                                menu_emoji = Emoji.fifteen_min.value
+                            elif colo_refresh_date < act_thirty_date:
+                                menu_emoji = Emoji.thirty_min.value
+                            elif colo_refresh_date < act_forty_five_date:
+                                menu_emoji = Emoji.forty_five_min.value
+                            else:
+                                menu_emoji = Emoji.down.value
                         else:
                             menu_emoji = Emoji.down.value
+                        menu_label += menu_emoji 
                     else:
-                        menu_emoji = Emoji.down.value
-                    menu_label += menu_emoji 
-                else:
-                    if "gift_state" in colony:
-                        if colony["gift_state"] != "Not Free":  
-                            menu_emoji = Emoji.gift.value
+                        if "gift_state" in colony:
+                            if colony["gift_state"] != "Not Free":  
+                                menu_emoji = Emoji.gift.value
+                            else:
+                                menu_emoji = Emoji.colo.value 
                         else:
-                            menu_emoji = Emoji.colo.value 
-                    else:
-                        menu_emoji = Emoji.colo.value
-                    menu_label += menu_emoji 
-            else:
-                menu_label += Emoji.colo_empty.value
+                            menu_emoji = Emoji.colo.value
+                        menu_label += menu_emoji 
+                    if "scouted" in colony:
+                        scouted: bool = True
+                else:
+                    menu_label += Emoji.colo_empty.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = status_emoji ,description = "", value = "", default = True))
         it += 1
         if "colonies_moved" in player:
             colonies_moved: int = player["colonies_moved"]
         else:
             colonies_moved: int = 0
+        if scouted == True:
+            scout_state: str = "- Player scouted ✅"
+        else: 
+            scout_state = ""
         if player["MB_status"] == "Down":
             MB_refresh_date: datetime.datetime = player['MB_refresh_time']
             if MB_refresh_date.date() == act_date.date() and MB_refresh_date.time() > act_date.time():
@@ -136,11 +146,11 @@ class Select(discord.ui.Select):
                     menu_emoji = Emoji.down.value
             else:
                 menu_emoji = Emoji.down.value
-            menu_label = "Main Base"
+            menu_label = f"Main Base {scout_state}"
             date_refresh: datetime.datetime = player['MB_refresh_time']
             menu_description = f"SB ({player_MB_lvl}) - (Back at {date_refresh.strftime('%H:%M:%S')}) - 🪐 {colonies_moved} colonie(s) moved"
         else :
-            menu_label = "Main Base"
+            menu_label = f"Main Base {scout_state}"
             menu_description = f"SB ({player_MB_lvl}) - 🪐 {colonies_moved} colonie(s) moved"
             menu_emoji = Emoji.SB.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))

@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Emoji(Enum):
-    SB: str = "🌎"
+    SB: str = "🌎" 
     colo: str = "🪐"
     colo_empty: str = "❔"
     down: str = "💥"
@@ -17,10 +17,11 @@ class Emoji(Enum):
     updated : str = "✅"
     native : str = "🟨"
     bouclier_MB: str = "<:shield3:1087133582574768218>"
-    bouclier_tout: str = "<:shield2:1087132930381455513>"
+    bouclier_tout: str = "<:shield2:1087132930381455513>" "<:s:1087132930381455513>"
     afk: str = "🕸️"
     unknown: str = "❓"
     gift: str = "🎁"
+    more: str = "⏩"
     
     
    

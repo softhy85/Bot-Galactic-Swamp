@@ -5,10 +5,16 @@ from Models.Alliance_Model import Alliance_Model
 from Models.War_Model import War_Model, Status
 from Models.Player_Model import Player_Model
 from Models.Colony_Model import Colony_Model
+from Models.Next_War_Model import Next_War_Model
+from Models.Colors import Colors
 from discord.ext import tasks, commands
+from discord import Guild
+from threading import Thread
 from typing import List
 import os
 import datetime
+from discord.utils import utcnow
+from datetime import timedelta
 import re
 import time
 import asyncio
@@ -34,11 +40,15 @@ class Cog_War(commands.Cog):
         self.war_channel_id = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
         self.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
-        self.general_channel = self.bot.get_channel(self.war_channel_id)
+        self.general_channel = self.bot.get_channel(self.general_channel_id)
         self.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
         self.command_channel = self.bot.get_channel(self.command_channel_id)
         self.experiment_channel_id = int(os.getenv("EXPERIMENT_CHANNEL"))
         self.experiment_channel = self.bot.get_channel(self.experiment_channel_id)
+        self.log_regen_id: int = int(os.getenv("LOG_REGEN"))
+        self.log_regen = self.bot.get_channel(self.log_regen_id)
+        self.voice_channel_id: int = int(os.getenv("VOICE_CHANNEL"))
+        self.voice_channel = self.bot.get_channel(self.voice_channel_id)
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
             self.task_war_over.start()
@@ -159,6 +169,9 @@ class Cog_War(commands.Cog):
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
             status = await self.update_actual_war()
+            event: discord.ScheduledEvent = await self.guild.fetch_scheduled_events()
+            if event != []:
+                await event[0].start()
         if status != Status.InProgress.name:
             print(f"Info: War is over at {date_time_str}")
             self.task_war_over.stop()
@@ -178,10 +191,14 @@ class Cog_War(commands.Cog):
         date_time_str: str = now.strftime("%H:%M:%S")
         alliance_infos = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         if alliance_infos['war_status']:
+            await self.update_war_channel_name(True)
             await self.create_new_war(alliance_infos["enemy_name"].upper())
             print(f"Info: War started at {date_time_str}")
             self.task_war_started.stop()
             self.task_war_over.start()
+        else:
+            await self.update_war_channel_name()
+            await self.update_peace_embed()
         print("Infos: task_war_started ended")
 
     @task_war_started.before_loop
@@ -218,6 +235,7 @@ class Cog_War(commands.Cog):
         new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date, "refresh_duration": refresh_duration}
         new_war["_id"] = self.bot.db.push_new_war(new_war)
         await self.bot.dashboard.create_Dashboard(new_war)
+        
 
     async def update_actual_war(self):
         date: datetime.datetime = datetime.datetime.now()
@@ -231,7 +249,7 @@ class Cog_War(commands.Cog):
                 war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
                 obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
                 players: List[Player_Model] = list(self.bot.db.get_players(obj))
-                war_progress = self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
+                war_progress = await self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
                 if "start_time" in actual_war:
                     converted_start_time = datetime.datetime.strftime(actual_war["start_time"],  "%Y/%m/%d %H:%M:%S.%f")
                     strp_converted_start_time = datetime.datetime.strptime(converted_start_time, "%Y/%m/%d %H:%M:%S.%f")
@@ -249,7 +267,11 @@ class Cog_War(commands.Cog):
                     minutes = "x"
                     seconds = "x"
                     await self.experiment_channel.send(f"War has ended after a duration of {hours} hours, {minutes} minutes and {seconds} seconds. Score: {war_progress['ally_alliance_score']} VS {war_progress['enemy_alliance_score']} - Team members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
-
+                count: int = 0
+                async for message in self.log_regen.history(oldest_first=True):
+                    if count != 0:
+                        await message.delete()
+                    count += 1
                 if war_thread is not None:
                     if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
                         if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
@@ -269,10 +291,144 @@ class Cog_War(commands.Cog):
                     await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
                 print(f"Status : {actual_war['status']}")
                 self.bot.db.update_war(actual_war)
+                self.set_next_war(actual_war['status'])
             return actual_war["status"]
 
+    def empty_space(self, alliance_api_info: dict):
+        it = 0
+        return_value: list = []
+        empty_space_length = 28  
+        empty_space_score = ""
+        empty_space_lvl = ""
+        empty_space_length_lvl = empty_space_length - len(alliance_api_info['alliance_lvl'])
+        empty_space_length_score = empty_space_length - len(alliance_api_info['alliance_formatted_score'])
+        while it < empty_space_length_score:
+            empty_space_score = empty_space_score + " "
+            it += 1
+        it = 0
+        while it < empty_space_length_lvl:
+            empty_space_lvl = empty_space_lvl + " "
+            it += 1
+        return_value = [empty_space_score, empty_space_lvl]
+        return return_value
+    
+    async def update_war_channel_name(self, active_war: bool = False):
+        channel: discord.TextChannel = self.war_channel
+        if active_war == True:
+            if channel.name != "💥-current-war":
+                await channel.edit(name="💥-current-war")
+        else:
+            if channel.name != "🌌-overview":
+                await channel.edit(name="🌌-overview")
+                
+    async def set_next_war(self, status: str):
+        if status == "Win":
+            start_time = utcnow() + timedelta(hours=48)
+            await self.guild.create_scheduled_event(name='💥 New war', start_time=start_time, channel=self.voice_channel)
+        elif status == "Lost":
+            start_time = utcnow() + timedelta(hours=72)
+            await self.guild.create_scheduled_event(name='💥 New war', start_time=start_time, channel=self.voice_channel)
+        next_war: Next_War_Model = {"name": "next_war", "start_time": int(start_time.timestamp()), "negative_votes": 0, "positive_votes": 0, "vote_done": False}
+        next_war_db: Next_War_Model = self.bot.db.get_nextwar()
+        if next_war_db is None:
+            self.bot.db.push_nextwar(next_war)
+        else:
+            self.bot.db.update_nextwar(next_war)
+
+    def update_online_players(self):
+        alliance_api_info: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
+        next_war: Next_War_Model = self.bot.db.get_nextwar()
+        alliance_players: list = alliance_api_info["members_list"]
+        alliance_players.sort(key=lambda item: item.get("WarPoints"), reverse=True)
+        online_value: str =  ""
+        for player in alliance_players:
+            status = self.bot.galaxyLifeAPI.get_player_status(player["Id"])
+            if status == 2:
+                online_value += "`" + player['Name'] + "` "
+        if online_value == "":
+            online_value = "_No player is currently online._"
+        next_war['players_online_list'] = online_value
+        self.bot.db.update_nextwar(next_war)
+        
+    def create_leaderboard(self):
+        return_value = {}
+        leaderboard: dict = self.bot.galaxyLifeAPI.get_alliance_leaderboard()
+        leaderboard_name: str = f"📈 Current Rank: "
+        leaderboard_value: str = (f"```ansi\n\u001b[0;0m{leaderboard['3']-2}# ⏫ {leaderboard['-2']['Name']}:    +\u001b[0;31m{leaderboard['-2']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
+                      f"\n{leaderboard['3']-1}# 🔼 {leaderboard['-1']['Name']}:    +\u001b[0;31m{leaderboard['-1']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
+                      f"\n{leaderboard['3']}# ✅ {leaderboard['0']['Name']}:    -------"+
+                      f"\n{leaderboard['3']+1}# 🔽 {leaderboard['1']['Name']}:    -\u001b[0;30m{abs(leaderboard['1']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m"+
+                      f"\n{leaderboard['3']+2}# ⏬ {leaderboard['2']['Name']}:    -\u001b[0;30m{abs(leaderboard['2']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m```")
+        return_value["name"] = leaderboard_name
+        return_value["value"] = leaderboard_value
+        return return_value
+    
+    def vote_string(self, next_war):
+        vote_decay: int = next_war['positive_votes']-next_war['negative_votes']
+        if vote_decay <= 4:
+            ratio: float = vote_decay/4
+        else:
+            ratio = 1
+        length: int = 25
+        progress: int = int(ratio * length)
+        it: int = 0
+        vote_string: str = ""
+        while it <= progress:
+            vote_string += "▰"
+            it += 1
+        while it <= length:
+            vote_string += "▱"
+            it += 1
+        vote_string = "`" + vote_string + "`"
+        return vote_string
+    
+    async def update_peace_embed(self):
+        print('Infos: update_peace_embed started')
+        channel: discord.TextChannel = self.war_channel
+        alliance_api_info: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name) 
+        next_war: Next_War_Model = self.bot.db.get_nextwar()
+        leaderboard = self.create_leaderboard()
+        empty_space = self.empty_space(alliance_api_info)
+        embed_title: str = f"<:empty:1088454928474841108><:empty:1088454928474841108><:empty:1088454928474841108><:empty:1088454928474841108><:empty:1088454928474841108>⚔️  {self.ally_alliance_name}   ⚔️"
+        alliance_stats = f"```💫 Score:{empty_space[0]}{alliance_api_info['alliance_formatted_score']}\n📈 WR:                         {alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space[1]}{alliance_api_info['alliance_lvl']}\n👤 Members:                        {len(alliance_api_info['members_list'])}```"
+        war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R>"
+        if next_war['positive_votes'] > 0 and (next_war['positive_votes'] - next_war['negative_votes']) < 4:
+            war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R> (`{4-next_war['positive_votes']+next_war['negative_votes']} votes to start)`"
+            vote_string = self.vote_string(next_war)
+        elif next_war['positive_votes'] - next_war['negative_votes'] > 3 and next_war['vote_done'] == False:
+            war_start_string = "✅ The team has voted. A war will start soon."
+            vote_string = self.vote_string(next_war)
+            await self.general_channel.send('<@&1043539666479099974> **time to start a war !!!** (im testing the bot)')
+            next_war['vote_done'] = True
+            self.bot.db.update_nextwar(next_war)
+        elif next_war['positive_votes'] - next_war['negative_votes'] > 3 and next_war['vote_done'] == True:
+            war_start_string = "✅ The team has voted. A war will start soon."
+            vote_string = self.vote_string(next_war)
+        else:
+            vote_string = f"Vote to get the war faster (ceil: 4 votes)"
+        updated: bool = False
+        t: Thread = Thread(target=self.update_online_players)
+        t.start()
+        async for message in channel.history(oldest_first=True, limit=10):
+            if message.author.name == "Galactic-Swamp-app":
+                updated = True
+        embed = discord.Embed(title=embed_title, description="",timestamp=datetime.datetime.now())
+        embed.add_field(name=" ", value="Currently recovering from last war :zzz:", inline=False)
+        embed.add_field(name="⛔ Players online:", value=next_war['players_online_list'], inline=False)
+        embed.add_field(name="🎯 Alliance stats:", value=alliance_stats)
+        embed.add_field(name=leaderboard['name'], value=leaderboard['value'], inline=False)
+        embed.add_field(name=war_start_string, value=vote_string, inline=False)
+        embed.set_thumbnail(url=alliance_api_info["emblem_url"])
+        if updated == False:
+            message = await channel.send(embed=embed)
+            await message.add_reaction("👍🏻")
+            await message.add_reaction("👎🏻")
+        else:
+            await message.edit(embed=embed)  
+        date_end: datetime.datetime = datetime.datetime.now()
+        print('Infos: update_peace_embed ended')
     #</editor-fold>
 
-
+    
 async def setup(bot: commands.Bot):
     await bot.add_cog(Cog_War(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

@@ -93,17 +93,17 @@ class Cog_Refresh(commands.Cog):
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
         for player in players:
             date_next: datetime.datetime = player["MB_refresh_time"]
-            print(player['pseudo'])
             if now >= date_next:
-                print("reset")
-                player["MB_status"] = "Up"
-                self.bot.db.update_player(player)
+                if player["MB_status"] == "Down":
+                    print("reset")
+                    player["MB_status"] = "Back_Up"
+                    self.bot.db.update_player(player)
         obj = {"colo_status": "Down"}
         colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
         for colony in colonies:
             date_next: datetime.datetime = colony["colo_refresh_time"]
             if now >= date_next:
-                colony["colo_status"] = "Up"
+                colony["colo_status"] = "Back_Up"
                 self.bot.db.update_colony(colony)
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if act_war is not None:
