@@ -379,7 +379,7 @@ class Cog_Colony(commands.Cog):
         self.new_pos_y = pos_y
         embed = discord.Embed() #>>> **{len(colo_number)}** 🪐 colonies from enemy alliances have been updated yet.\n**{len(colo_found_number)}** 🪐 colonies found by screening \n**{len(colo_number)+len(colo_found_number)}** 🪐 colonies in total
         embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value='')
-        view = View() 
+        view = View(timeout=None) 
         file = discord.File("./Image/scout_map.png", filename="scout_map.png")
         # embed.set_image(url="https://i.imgur.com/M0IqkRT.jpg")
         options: List[discord.SelectOption] = [ 

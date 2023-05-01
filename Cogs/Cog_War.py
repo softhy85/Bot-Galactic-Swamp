@@ -35,7 +35,7 @@ class Cog_War(commands.Cog):
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
-        self.guild: discord.Guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
+        self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
         self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
         self.war_channel_id = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
@@ -49,6 +49,8 @@ class Cog_War(commands.Cog):
         self.log_regen = self.bot.get_channel(self.log_regen_id)
         self.voice_channel_id: int = int(os.getenv("VOICE_CHANNEL"))
         self.voice_channel = self.bot.get_channel(self.voice_channel_id)
+        self.war_history_id: int = int(os.getenv("WAR_HISTORY"))
+        self.war_history = self.guild.get_thread(self.war_history_id)
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
             self.task_war_over.start()
@@ -93,7 +95,7 @@ class Cog_War(commands.Cog):
         if alliance.strip() == "":
             await interaction.response.send_message(f"Cannot create alliances with a name composed only of whitespace.")
             return
-        interaction.response.send_message("Loading the new war.")
+        await   interaction.response.send_message("Loading the new war.")
         await self.create_new_war(alliance)
 
     @app_commands.command(name="war_update", description="Check and update the current war")
@@ -121,7 +123,7 @@ class Cog_War(commands.Cog):
         await interaction.response.defer()
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         date: datetime.datetime = datetime.datetime.now()
-        war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
+        # war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
         war_progress = self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
@@ -139,17 +141,17 @@ class Cog_War(commands.Cog):
                                                 # after a duration of {hours} hours, {minutes} minutes and {seconds} seconds.\nScore: {war_progress['ally_alliance_score']} VS {war_progress['enemy_alliance_score']}\nTeam members: {api_alliance_GS['alliance_size']} VS {war_progress['main_planet']}")
         if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
             if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
-                await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
+                # await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
                 actual_war["status"] = Status.Win.name
-                await self.general_channel.send(f"War against {actual_war['alliance_name']} has been won.")
+                await self.war_history.send(f"✅ War against {actual_war['alliance_name']} has been won. (**{war_progress['ally_alliance_score']}** vs **{war_progress['enemy_alliance_score']}**)")
             elif int(war_progress['ally_alliance_score']) < int(war_progress['enemy_alliance_score']):
                 actual_war["status"] = Status.Lost.name
-                await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
-                await self.general_channel.send(f"War against {actual_war['alliance_name']} has been lost.")
+                # await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
+                await self.war_history.send(f"💥 War against {actual_war['alliance_name']} has been lost. (**{war_progress['ally_alliance_score']}** vs **{war_progress['enemy_alliance_score']}**)")
             else:
                 actual_war["status"] = Status.Ended.name
-                await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
-                await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
+                # await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
+                await self.war_history.send(f"War against {actual_war['alliance_name']} is now over.")
         else:
             actual_war["status"] = Status.Ended.name
             await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
@@ -222,7 +224,7 @@ class Cog_War(commands.Cog):
         api_alliance_en = self.bot.galaxyLifeAPI.get_alliance(alliance)
         api_alliance_gs = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         new_message: discord.Message = await (self.war_channel.send(f"<@&1043541214319874058> We are at war against **{act_alliance['name']}** !!"))
-        new_thread: discord.Thread = await new_message.create_thread(name=act_alliance["name"])
+        # new_thread: discord.Thread = await new_message.create_thread(name=act_alliance["name"])
         enemy_size: int =  api_alliance_en["alliance_size"]
         ally_size: int =  api_alliance_gs["alliance_size"]
         if enemy_size >= ally_size + 5:
@@ -231,11 +233,34 @@ class Cog_War(commands.Cog):
             refresh_duration = 4
         else:
             refresh_duration = 4
+        async for message in self.war_channel.history(oldest_first=True):
+            await message.delete()
         print(f'Chosen refresh duration: {refresh_duration} hours.')
-        new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "id_thread": new_thread.id, "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date, "refresh_duration": refresh_duration}
+        new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date, "refresh_duration": refresh_duration}
         new_war["_id"] = self.bot.db.push_new_war(new_war)
         await self.bot.dashboard.create_Dashboard(new_war)
-        
+  
+    async def set_next_war(self, status: str):
+        print('entered set_next_war')
+        channel: discord.TextChannel = self.war_channel
+        if status == "Win":
+            start_time = utcnow() + timedelta(hours=48)
+            await self.guild.create_scheduled_event(name='💥 New war', start_time=start_time, channel=self.voice_channel)
+        elif status == "Lost":
+            start_time = utcnow() + timedelta(hours=72)
+            await self.guild.create_scheduled_event(name='💥 New war', start_time=start_time, channel=self.voice_channel)
+        next_war: Next_War_Model = {"name": "next_war", "start_time": int(start_time.timestamp()), "negative_votes": 0, "positive_votes": 0, "vote_done": False}
+        next_war_db: Next_War_Model = self.bot.db.get_nextwar()
+        async for message in channel.history(oldest_first=True, limit=10):
+            if message.author.name == "Galactic-Swamp-app":
+                await message.clear_reactions()
+                await message.add_reaction("👍🏻")
+                await message.add_reaction("👎🏻")
+                updated = True
+        if next_war_db is None:
+            self.bot.db.push_nextwar(next_war)
+        else:
+            self.bot.db.update_nextwar(next_war)      
 
     async def update_actual_war(self):
         date: datetime.datetime = datetime.datetime.now()
@@ -246,7 +271,7 @@ class Cog_War(commands.Cog):
         else:
             api_alliance_GS = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
             if not api_alliance_GS["war_status"]:
-                war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
+                # war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
                 obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
                 players: List[Player_Model] = list(self.bot.db.get_players(obj))
                 war_progress = await self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
@@ -272,26 +297,26 @@ class Cog_War(commands.Cog):
                     if count != 0:
                         await message.delete()
                     count += 1
-                if war_thread is not None:
-                    if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
-                        if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
-                            await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
-                            actual_war["status"] = Status.Win.name
-                            await self.general_channel.send(f"War against {actual_war['alliance_name']} has been won.")
-                        elif int(war_progress['ally_alliance_score']) < int(war_progress['enemy_alliance_score']):
-                            actual_war["status"] = Status.Lost.name
-                            await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
-                            await self.general_channel.send(f"War against {actual_war['alliance_name']} has been lost.")
-                    else:
-                        actual_war["status"] = Status.Ended.name
-                        await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
-                        await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
+                async for message in self.war_channel.history(oldest_first=True):
+                    await message.delete()
+                # if war_thread is not None:
+                if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
+                    if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
+                        # await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
+                        actual_war["status"] = Status.Win.name
+                        await self.war_history.send(f"✅ War against {actual_war['alliance_name']} has been won. (**{war_progress['ally_alliance_score']}** vs **{war_progress['enemy_alliance_score']}**)")
+                    elif int(war_progress['ally_alliance_score']) < int(war_progress['enemy_alliance_score']):
+                        actual_war["status"] = Status.Lost.name
+                        # await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
+                        await self.war_history.send(f"💥 War against {actual_war['alliance_name']} has been lost. (**{war_progress['ally_alliance_score']}** vs **{war_progress['enemy_alliance_score']}**)")
                 else:
                     actual_war["status"] = Status.Ended.name
+                    # await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
                     await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
                 print(f"Status : {actual_war['status']}")
                 self.bot.db.update_war(actual_war)
-                self.set_next_war(actual_war['status'])
+                print('setting next war')
+                await self.set_next_war(actual_war['status'])
             return actual_war["status"]
 
     def empty_space(self, alliance_api_info: dict):
@@ -320,20 +345,6 @@ class Cog_War(commands.Cog):
         else:
             if channel.name != "🌌-overview":
                 await channel.edit(name="🌌-overview")
-                
-    async def set_next_war(self, status: str):
-        if status == "Win":
-            start_time = utcnow() + timedelta(hours=48)
-            await self.guild.create_scheduled_event(name='💥 New war', start_time=start_time, channel=self.voice_channel)
-        elif status == "Lost":
-            start_time = utcnow() + timedelta(hours=72)
-            await self.guild.create_scheduled_event(name='💥 New war', start_time=start_time, channel=self.voice_channel)
-        next_war: Next_War_Model = {"name": "next_war", "start_time": int(start_time.timestamp()), "negative_votes": 0, "positive_votes": 0, "vote_done": False}
-        next_war_db: Next_War_Model = self.bot.db.get_nextwar()
-        if next_war_db is None:
-            self.bot.db.push_nextwar(next_war)
-        else:
-            self.bot.db.update_nextwar(next_war)
 
     def update_online_players(self):
         alliance_api_info: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)

@@ -29,6 +29,8 @@ class Dashboard:
         self.log_channel = self.bot.get_channel(self.log_channel_id)
         self.log_regen_id: int = int(os.getenv("LOG_REGEN"))
         self.log_regen = self.bot.get_channel(self.log_regen_id)
+        self.war_channel_id = int(os.getenv("WAR_CHANNEL"))
+        self.war_channel = self.bot.get_channel(self.war_channel_id)
 
     async def create_embed_alliance(self, war: War_Model, alliance: Alliance_Model, players: List[Player_Model], creating: int = 0) -> discord.Embed:
         embed: discord.Embed
@@ -100,7 +102,6 @@ class Dashboard:
         
     async def create_Dashboard(self, actual_war: War_Model) -> int:
         print('creating dashboard')
-        thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
         dropView: List[discord.ui.View] = []
         if war_alliance is None:
@@ -112,15 +113,15 @@ class Dashboard:
         if len(players) % 5 > 0:
             nb_message += 1   
         embed: discord.Embed = await self.create_embed_alliance(actual_war, war_alliance, players)
-        message = await thread.send(embed=embed)
+        message = await self.war_channel.send(embed=embed)
+        await message.add_reaction("<:star:1043627831973924944>")
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
         for it in range(0, nb_message):
             await asyncio.sleep(.875)
             message: discord.abc.Message
             dropView.append(DropView(self.bot, players[(it * 5):(it * 5 + 5)], actual_war, 1))
-            message = await thread.send(content=" ­", embed=None, view=dropView[it])
-            await message.add_reaction("<:star:1043627831973924944>")
+            message = await self.war_channel.send(content=" ­", embed=None, view=dropView[it])
             infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
             self.bot.db.push_new_info_message(infoMessage)
         print('dashboard succesfully created')
@@ -136,8 +137,6 @@ class Dashboard:
         dropView: List[discord.ui.View] = []
         if actual_war is None:
             return -1
-        id_thread = int(actual_war["id_thread"])
-        thread = self.guild.get_thread(id_thread)
         war_alliance: Alliance_Model = self.bot.db.get_one_alliance("_id", actual_war["_alliance_id"])
         if war_alliance is None:
             return -1  
@@ -152,7 +151,7 @@ class Dashboard:
         infoMessages: List[InfoMessage_Model] = list(self.bot.db.get_info_messages(obj))
         if len(infoMessages) == 0:
             return -1
-        message = await thread.fetch_message(int(infoMessages[0]["id_message"]))
+        message = await self.war_channel.fetch_message(int(infoMessages[0]["id_message"]))
         await message.edit(embed=embed)
         for it in range(0, nb_message):
             await asyncio.sleep(.875)
@@ -161,10 +160,10 @@ class Dashboard:
             obj = {'_id_linked': actual_war["_id"], "type_embed": "Dashboard;" + str(it)}
             infoMessages = list(self.bot.db.get_info_messages(obj))
             if len(infoMessages) == 1:
-                message = await thread.fetch_message(int(infoMessages[0]["id_message"]))
+                message = await self.war_channel.fetch_message(int(infoMessages[0]["id_message"]))
                 await message.edit(content="­", embed=None, view=dropView[it])
             else:
-                message = await thread.send(content="­", embed=None, view=dropView[it])
+                message = await self.war_channel.send(content="­", embed=None, view=dropView[it])
                 infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard;" + str(it)}
                 self.bot.db.push_new_info_message(infoMessage)
         date_end: datetime.datetime = datetime.datetime.now()
