@@ -118,41 +118,44 @@ class GalaxyCanvas:
     ax.locator_params(axis='y', nbins=5)
     cmap = ListedColormap(["#000000","#00163e","#012c79","#012c79", "#0140b0", "#0140b0", "#0244ba", "#0244ba", "#0244ba", "#0244ba"])
     cmap_black = ListedColormap(["#000000"])
-    if zoom >= 2:
-      myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap="inferno",  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
-      # Empty_zone_locator:
-      x: int = 0
-      y: int = 0
-      it: int = 0
-      for hist_column in myHist:
-        for hist_line in hist_column:
-          y = 0
-          while y <= 10: 
-            if hist_line == 0:
-              
-              it = 0
-              while it < 3:
-                if myHist[x][y] == 0:
-                  it += 1
-                  x += 1
-                else: 
-                  break
-            if it >= 3:
-              print(x*12 - (it+1)*12,y*6 - (it+1)*6)
-              ax.add_patch(Rectangle((x*12- (it+1)*12, y*6- (it+1)*6), (it+1)*12, 6, facecolor='none', edgecolor='white', linewidth=3))
-              break
-            
-            y += 1
-          if it >= 3:
-              break
-            
-        x += 1
-        
-        if it >= 3:
-          break
-    else:
-      myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap=cmap_black,  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+    
+    
 
+    myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap="inferno",  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+    # Empty_zone_locator:
+    x: int = 0
+    y: int = 0
+    it: int = 0
+    for hist_column in myHist:
+      for hist_line in hist_column:
+        y = 0
+        while y <= 10: 
+          if hist_line == 0:
+            
+            it = 0
+            while it < 3:
+              if myHist[x][y] == 0:
+                it += 1
+                x += 1
+              else: 
+                break
+          if it >= 3:
+            print(x*12 - (it+1)*12,y*6 - (it+1)*6)
+            ax.add_patch(Rectangle((x*12- (it+1)*12, y*6- (it+1)*6), (it+1)*12, 6, facecolor='none', edgecolor='white', linewidth=3))
+            break
+          
+          y += 1
+        if it >= 3:
+            break
+          
+      x += 1
+      
+      if it >= 3:
+        break
+    # else:
+    #   myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap=cmap_black,  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+
+    
     # previous blue: c2e4ff
     if players_list != None:
       total_list_x: list = []
@@ -167,13 +170,40 @@ class GalaxyCanvas:
       pos_y: int = int((max(total_list_y)+min(total_list_y))/2)
       # prendre le max de longueur relative a pos_x et pos_y: il faut refaire la liste
       for it in range(0, len(total_list_x)):
-        print('enters')
-        total_list_x[it] = int(total_list_x[it]) - pos_x
-        print('leaves')
+        total_list_x[it] = abs(int(total_list_x[it]) - pos_x)
       for it in range(0, len(total_list_y)):
-        total_list_y[it] = int(total_list_y[it]) - pos_y
-      size_x: int = max(total_list_y + total_list_x) #- int(min(total_list_x))
-      size_y: int = max(total_list_y + total_list_x) #- int(min(total_list_y))
+        total_list_y[it] = abs(int(total_list_y[it]) - pos_y)
+      temp_size_x: int = max(total_list_y + total_list_x) #- int(min(total_list_x))
+      temp_size_y: int = max(total_list_y + total_list_x) #- int(min(total_list_y))
+      print(f"pos_x: {pos_x} - temp_size_x :{temp_size_x} - total_list_x :{total_list_x}\npos y : {pos_y} - temp_size_y :{temp_size_y} - total_list_y :{total_list_y}")
+      ax.add_patch(Rectangle(((pos_x - temp_size_x - 40), (pos_y - temp_size_y - 40)), 2*temp_size_x + 80, 2*temp_size_y + 80, facecolor='none', edgecolor='white', linewidth=3))
+      or_x = pos_x - temp_size_x - 40
+      or_y = pos_y - temp_size_y - 40
+      max_x = pos_x + temp_size_x + 40
+      max_y = pos_y + temp_size_y + 40
+      win_size = 2*temp_size_x + 80
+      zoom = max(list[0]["list"] + list[1]["list"])/win_size
+      print(zoom)
+      if or_x < 0:
+        or_x = 0
+      if or_y < 0:
+        or_y = 0
+      if max_x > max(list[0]["list"]):
+        max_x = max(list[0]["list"])
+      if max_y > max(list[1]["list"]):
+        max_y = max(list[1]["list"])
+    
+      
+      print(f"window: ({pos_x - temp_size_x - 40};{pos_y - temp_size_y - 40} - ({pos_x + temp_size_x + 40};{pos_y + temp_size_y + 40}")
+    else:
+      or_x = pos_x - 0.5*size_x
+      or_y = pos_y - 0.5*size_y
+      max_x = pos_x + 0.5*size_x
+      max_y = pos_y + 0.5*size_y
+
+    
+       
+    plt.axis([or_x, max_x, max_y, or_y])
       # if int(pos_x) < 0.5*size_x :
       #     pos_x =  0.5*size_x
       # if int(pos_y) < 0.5*size_y :
@@ -184,7 +214,7 @@ class GalaxyCanvas:
       #   pos_y =  1002 - 0.5*size_y
     plt.scatter(list[0]["list"], list[1]["list"], color = '#c88944', alpha=1, s=1*zoom)
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
-    plt.axis([pos_x - 0.5*size_x,  pos_x + 0.5*size_x, pos_y + 0.5*size_y , pos_y - 0.5*size_y])
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
     plt.savefig('./Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
+    return int(zoom)

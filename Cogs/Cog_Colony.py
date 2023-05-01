@@ -387,15 +387,14 @@ class Cog_Colony(commands.Cog):
                 discord.SelectOption(label=alliance_dict[1]["pseudo"], emoji="💫"),
             ]
         for player in range(2,len(alliance_dict)):   
-            
-            options.append(discord.SelectOption(label=alliance_dict[player]["pseudo"], emoji="💫", default=False))
+            if player < 25:
+                options.append(discord.SelectOption(label=alliance_dict[player]["pseudo"], emoji="💫", default=False))
         async def my_callback(interaction):
             selected_players_list = []
             for player in range(0,len(alliance_dict)):  
                 if alliance_dict[player]["pseudo"] in select.values:
                     selected_players_list.append(alliance_dict[player])
-            self.new_zoom=2
-            self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, selected_players_list)
+            self.new_zoom = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, selected_players_list)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             str_names: str = ""
