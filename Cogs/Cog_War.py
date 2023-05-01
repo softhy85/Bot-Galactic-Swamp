@@ -249,6 +249,8 @@ class Cog_War(commands.Cog):
         elif status == "Lost":
             start_time = utcnow() + timedelta(hours=72)
             await self.guild.create_scheduled_event(name='💥 New war', start_time=start_time, channel=self.voice_channel)
+        else: 
+            start_time = utcnow() + timedelta(hours=72)
         next_war: Next_War_Model = {"name": "next_war", "start_time": int(start_time.timestamp()), "negative_votes": 0, "positive_votes": 0, "vote_done": False}
         next_war_db: Next_War_Model = self.bot.db.get_nextwar()
         async for message in channel.history(oldest_first=True, limit=10):
@@ -256,7 +258,6 @@ class Cog_War(commands.Cog):
                 await message.clear_reactions()
                 await message.add_reaction("👍🏻")
                 await message.add_reaction("👎🏻")
-                updated = True
         if next_war_db is None:
             self.bot.db.push_nextwar(next_war)
         else:
