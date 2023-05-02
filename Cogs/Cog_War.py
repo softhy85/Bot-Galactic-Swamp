@@ -171,9 +171,9 @@ class Cog_War(commands.Cog):
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
             status = await self.update_actual_war()
-            event: discord.ScheduledEvent = await self.guild.fetch_scheduled_events()
-            if event != []:
-                await event[0].start()
+            # event: discord.ScheduledEvent = await self.guild.fetch_scheduled_events()
+            # if event != []:
+            #     await event[0].start()
         if status != Status.InProgress.name:
             print(f"Info: War is over at {date_time_str}")
             self.task_war_over.stop()
