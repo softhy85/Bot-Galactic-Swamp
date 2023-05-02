@@ -169,23 +169,18 @@ class Cog_War(commands.Cog):
         now: datetime.datetime = datetime.datetime.now()
         date_time_str: str = now.strftime("%H:%M:%S")
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        print(actual_war)
-        print('before the dashboard shit')
         if actual_war is not None:
             status = await self.update_actual_war()
-            print('left the update')
-            # event: discord.ScheduledEvent = await self.guild.fetch_scheduled_events()
-            # if event != []:
-            #     await event[0].start()
-            print('enterd the is not None')
-            if status != Status.InProgress.name:
-                print(f"Info: War is over at {date_time_str}")
-                self.task_war_over.stop()
-                self.task_war_started.start()
-            else: 
-                print('just before the dashboard shit')
-                await self.bot.dashboard.update_Dashboard()
-            print("Infos: task_war_over ended")
+            event: discord.ScheduledEvent = await self.guild.fetch_scheduled_events()
+            if event != []:
+                await event[0].start()
+        if status != Status.InProgress.name:
+            print(f"Info: War is over at {date_time_str}")
+            self.task_war_over.stop()
+            self.task_war_started.start()
+        else: 
+            await self.bot.dashboard.update_Dashboard()
+        print("Infos: task_war_over ended")
 
     @task_war_over.before_loop
     async def before_task_war_over(self):
@@ -198,14 +193,11 @@ class Cog_War(commands.Cog):
         date_time_str: str = now.strftime("%H:%M:%S")
         alliance_infos = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         if alliance_infos['war_status']:
-            self.task_war_over.start()
-            self.task_war_started.stop()
             await self.update_war_channel_name(True)
             await self.create_new_war(alliance_infos["enemy_name"].upper())
             print(f"Info: War started at {date_time_str}")
-            
-            
-            
+            self.task_war_started.stop()
+            self.task_war_over.start()
         else:
             await self.update_war_channel_name()
             await self.update_peace_embed()
@@ -278,7 +270,6 @@ class Cog_War(commands.Cog):
             await self.command_channel.send("No war actually in progress.")
             return Status.Ended
         else:
-            print('enters else')
             api_alliance_GS = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
             if not api_alliance_GS["war_status"]:
                 # war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
