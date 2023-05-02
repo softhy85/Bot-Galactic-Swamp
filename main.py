@@ -42,7 +42,7 @@ async def on_ready():
     bot.war_channel = bot.get_channel(bot.war_channel_id)
     bot.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
     bot.general_channel = bot.get_channel(bot.general_channel_id)
-    await bot.command_channel.send("@personne - The bot is online. <:O_:1043627742723317770> - v.0.9")
+    await bot.command_channel.send("@personne - The bot is online. <:O_:1043627742723317770> - v.0.9.1")
     cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony"])
     for cog in cogs:
         await bot.load_extension(cog)
