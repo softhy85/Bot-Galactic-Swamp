@@ -184,7 +184,7 @@ class Dashboard:
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             if player["MB_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
-                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: <@&1100856366802927687>")
+                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: <@&1100856366802927687> `{score_per_base[player['MB_lvl']-1]} pts`")
                 player["MB_status"] = "Up"
                 self.bot.db.update_player(player)
             if player["MB_status"] == "Up":
@@ -196,14 +196,14 @@ class Dashboard:
                 if colo['colo_coord']['x'] > -1:
                     known_colonies += 1 
                     if colo["colo_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
-                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']}** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['x']} )``")
+                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']} (SB {colo['colo_lvl']})** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['y']} )`` `{score_per_base[player['colo_lvl']-1]} pts`")
                         colo["colo_status"] = "Up"
                         self.bot.db.update_colony(colo)
                     if colo["colo_status"] == "Up":
                         planets_up += 1
-                        instant_score += score_per_base[player["MB_lvl"]-1]    
+                        instant_score += score_per_base[player["colo_lvl"]-1]    
                     else:
-                        dealt_score += score_per_base[player["MB_lvl"]-1] 
+                        dealt_score += score_per_base[player["colo_lvl"]-1] 
                 else: 
                     
                     hidden_colonies += 1
