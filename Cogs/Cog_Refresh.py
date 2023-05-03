@@ -59,12 +59,24 @@ class Cog_Refresh(commands.Cog):
                 self.bot.db.update_player(players[it_player])
                 obj: dict = {"_player_id": players[it_player]["_id"]}
                 colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-                if len(colonies) != len(player_temp):
-                    continue
-                # colonies.sort(key=lambda item: item.get("number"), reverse = True)
+                # if len(colonies) != len(player_temp['colo_list']):
+                #     continue
+                colonies.sort(key=lambda item: item.get("number"), reverse = False)
+                # if players[it_player]["id_gl"] == 85029:
+                    # print(f"-----------> colonies:{colonies}\nplayer temp: {player_temp['colo_list']}")
+                # print('if gone')
                 for it_colo in range(0, len(player_temp["colo_list"])):
-                    colonies[it_colo]["colo_lvl"] = player_temp["colo_list"][it_colo]
-                    self.bot.db.update_colony(colonies[it_colo]) #ajouté récemment
+                    if it_colo < len(colonies):
+                        # print(len(colonies))
+                        # # print(colonies[it_colo], player_temp['colo_list'])
+                        # print(players[it_player]["id_gl"])
+                        colonies[it_colo]["colo_lvl"] = player_temp["colo_list"][it_colo]
+                        self.bot.db.update_colony(colonies[it_colo]) #ajouté récemment
+                    else:
+                        # print(colonies[it_colo-1])
+                        # print(player_temp["colo_list"][it_colo])
+                        new_colony: Colony_Model = {"_alliance_id": players[it_player]["_alliance_id"], 'id_gl': players[it_player]["id_gl"], '_player_id': players[it_player]['_id'], 'number': it_colo, 'colo_sys_name': "?", 'colo_lvl': player_temp["colo_list"][it_colo], 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date_start, 'colo_refresh_time': date_start, 'updated': False, 'gift_state': "Not Free"}
+                        self.bot.db.push_new_colony(new_colony)
         print("Infos: task_update_players_level ended")    
         
 

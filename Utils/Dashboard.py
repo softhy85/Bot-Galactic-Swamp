@@ -196,14 +196,15 @@ class Dashboard:
                 if colo['colo_coord']['x'] > -1:
                     known_colonies += 1 
                     if colo["colo_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
-                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']} (SB {colo['colo_lvl']})** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['y']} )`` `{score_per_base[player['colo_lvl']-1]} pts`")
+                        print(colo)
+                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']} (SB {colo['colo_lvl'] if 'colo_lvl' in colo else 'x'})** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['y']} )`` `{score_per_base[colo['colo_lvl']-1] if 'colo_lvl' in colo else 'x'} pts`")
                         colo["colo_status"] = "Up"
                         self.bot.db.update_colony(colo)
                     if colo["colo_status"] == "Up":
                         planets_up += 1
-                        instant_score += score_per_base[player["colo_lvl"]-1]    
+                        instant_score += score_per_base[colo["colo_lvl"]-1]    
                     else:
-                        dealt_score += score_per_base[player["colo_lvl"]-1] 
+                        dealt_score += score_per_base[colo["colo_lvl"]-1] 
                 else: 
                     
                     hidden_colonies += 1
