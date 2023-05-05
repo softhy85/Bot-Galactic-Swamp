@@ -9,6 +9,7 @@ from Models.InfoMessage_Model import InfoMessage_Model
 from Models.War_Model import War_Model
 from Models.Colonies_List_Model import Colonies_List_Model
 from Models.Next_War_Model import Next_War_Model
+from Models.War_Log_Model import War_Log_Model
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
 
@@ -147,7 +148,6 @@ class DataBase:
         if actual_list is None:
             return self.db.galaxycanvas.insert_one(list).inserted_id
         else:
-            print('update')
             self.update_colonies_list(list)
         return None
 
@@ -183,6 +183,19 @@ class DataBase:
         nextwar_db = self.db.nextwar.find_one({'name':nextwar['name']})
         if nextwar_db is not None:
             return self.db.nextwar.update_one({"_id": nextwar_db["_id"]}, {'$set': nextwar})
+    
+    def get_warlog(self) -> War_Log_Model:
+        return self.db.warlog.find_one({'name':'warlog'})        
+
+    def push_warlog(self, warlog: dict) -> ObjectId | None:
+        warlog_db = self.db.warlog.find_one({'name':warlog['name']})
+        if warlog_db is None:
+            return self.db.warlog.insert_one(warlog).inserted_id
+
+    def update_warlog(self, warlog: dict) -> None:
+        warlog_db = self.db.warlog.find_one({'name':warlog['name']})
+        if warlog_db is not None:
+            return self.db.warlog.update_one({"_id": warlog_db["_id"]}, {'$set': warlog})
         
     def close(self) -> None:
         self.mongo_client.close()

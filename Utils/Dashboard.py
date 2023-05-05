@@ -171,6 +171,7 @@ class Dashboard:
         return 0
 
     async def war_progress(self, alliance, players):
+        time = datetime.datetime()
         return_value: dict = {}
         planets_up: int = 0
         known_colonies: int = 0
@@ -223,6 +224,18 @@ class Dashboard:
         if 'ally_initial_score' in war_infos:
             return_value["ally_alliance_score"] = ally_alliance['alliance_score'] - war_infos['ally_initial_score']
             return_value["enemy_alliance_score"] = enemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
+            #
+            print('warlog test')
+            war_log: dict = self.bot.db.warlog.get_warlog()
+            if war_log:
+                war_log['enemy_score'].append(return_value["enemy_alliance_score"])
+                war_log['ally_score'].append(return_value["ally_alliance_score"])
+                self.bot.db.warlog.update_warlog()
+            else:
+                war_log: dict = {'name': 'warlog', 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": time}
+                self.bot.db.warlog.push_warlog(war_log)
+            print('warlog test done')
+            #
         else: 
             return_value["ally_alliance_score"] = "x"
             return_value["enemy_alliance_score"] = "x"

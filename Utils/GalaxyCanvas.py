@@ -40,7 +40,8 @@ class GalaxyCanvas:
     self.list_x = list()
     self.list_y = list()
     self.list_x_player = list()
-    self.list_y_player = list()   
+    self.list_y_player = list()
+    self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")   
 
   def plot_scouted_colonies(self, size_x, size_y):  
       for it in range(0, len(self.all_colonies)):
@@ -72,25 +73,62 @@ class GalaxyCanvas:
 
             
   def alliance_colonies(self): 
-    alliance = 'JE SUIS TON FILS'
-    alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
-    obj: dict = {"_alliance_id": alliance_info["_id"]}
-    players: List[Player_Model] = self.bot.db.get_players(obj)
-    alliance_dict: list = []
-    for player in players:
-      list_x= list()
-      list_y= list()
-      obj: dict = {"_player_id": player["_id"]}
-      colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-      for colo in colonies:
-          if colo['colo_coord']['x'] != -1:
-            list_x.append(colo['colo_coord']['x'])
-            list_y.append(colo['colo_coord']['y'])
-      if list_x != []:
-        dict_player = {"pseudo":player["pseudo"], "x":list_x, "y":list_y}
-        alliance_dict.append(dict_player)
-    return alliance_dict
-    
+    api_info = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
+    if api_info['war_status'] != False:
+      alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", api_info["enemy_name"])
+      obj: dict = {"_alliance_id": alliance_info["_id"]}
+      players: List[Player_Model] = self.bot.db.get_players(obj)
+      alliance_dict: list = []
+      for player in players:
+        list_x= list()
+        list_y= list()
+        obj: dict = {"_player_id": player["_id"]}
+        colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+        for colo in colonies:
+            if colo['colo_coord']['x'] != -1:
+              list_x.append(colo['colo_coord']['x'])
+              list_y.append(colo['colo_coord']['y'])
+        if list_x != []:
+          dict_player = {"pseudo":player["pseudo"], "x":list_x, "y":list_y}
+          alliance_dict.append(dict_player)
+      return alliance_dict
+    else:
+      return None
+  
+  def locate_area(self, ax, myHist):
+    x: int = 0
+    y: int = 0
+    x_found: int = 0
+    y_found: int = 0
+    limit_x: int = 6
+    limit_y: int = 12
+    scout_size: int = 1
+    found = False
+    if limit_x > len(myHist) - 1 or limit_y > len(myHist[0]) - 1:
+      return
+    for x in range(0, limit_x):
+        for y in range(0,  limit_y):
+            for size in range(0, scout_size):
+                if len(myHist) - 1 > x + size:
+                    if myHist[x + size][y] != 0.:
+                        break
+                else:
+                    break
+                if size == scout_size - 1:
+                    found = True
+                    x_found = x
+                    y_found = y
+            if found:
+                break
+        if found:
+            break
+    if found:
+        print("(", x_found, " ,", y_found, ")", sep="")
+        ax.add_patch(Rectangle((x_found*12, y_found*6), scout_size*12, 6, facecolor='none', edgecolor='white', linewidth=3))
+    if scout_size < 3:
+      scout_size = 3
+    return (x_found*12, y_found*6, scout_size, x_found*12 + 6, y_found*6 + 3)
+
   def update_lists(self):
     self.all_colonies = list(self.bot.db.get_all_updated_colonies())
     self.colo_db: List = list(self.bot.db.get_all_found_colonies())
@@ -105,7 +143,7 @@ class GalaxyCanvas:
     self.bot.db.push_colonies_list(list_x_store)
     self.bot.db.push_colonies_list(list_y_store)
     
-  def draw_map(self, zoom, pos_x, pos_y, players_list=None):
+  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False):
     obj = None
     list = self.bot.db.get_colonies_list(obj)
     size_x: int = max(list[0]["list"]) / zoom
@@ -118,45 +156,12 @@ class GalaxyCanvas:
     ax.locator_params(axis='y', nbins=5)
     cmap = ListedColormap(["#000000","#00163e","#012c79","#012c79", "#0140b0", "#0140b0", "#0244ba", "#0244ba", "#0244ba", "#0244ba"])
     cmap_black = ListedColormap(["#000000"])
-    
-    
-
     myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap="inferno",  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
-    # Empty_zone_locator:
-    x: int = 0
-    y: int = 0
-    it: int = 0
-    for hist_column in myHist:
-      for hist_line in hist_column:
-        y = 0
-        while y <= 10: 
-          if hist_line == 0:
-            
-            it = 0
-            while it < 3:
-              if myHist[x][y] == 0:
-                it += 1
-                x += 1
-              else: 
-                break
-          if it >= 3:
-            print(x*12 - (it+1)*12,y*6 - (it+1)*6)
-            ax.add_patch(Rectangle((x*12- (it+1)*12, y*6- (it+1)*6), (it+1)*12, 6, facecolor='none', edgecolor='white', linewidth=3))
-            break
-          
-          y += 1
-        if it >= 3:
-            break
-          
-      x += 1
-      
-      if it >= 3:
-        break
-    # else:
-    #   myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap=cmap_black,  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
-
-    
-    # previous blue: c2e4ff
+    if scout == True:
+      pos_x, pos_y, scout_size, scout_x, scout_y = self.locate_area(ax, myHist)
+    else:
+      scout_x = 0
+      scout_y = 0
     if players_list != None:
       total_list_x: list = []
       total_list_y: list = []
@@ -164,18 +169,16 @@ class GalaxyCanvas:
       for player in range(0, len(players_list)):
         list_players: list = self.my_colonies(zoom, color[player%5], players_list[player])
         total_list_x +=  list_players['x']
-        total_list_y +=  list_players['y']
-      
+        total_list_y +=  list_players['y'] 
       pos_x: int = int((max(total_list_x)+min(total_list_x))/2)
       pos_y: int = int((max(total_list_y)+min(total_list_y))/2)
-      # prendre le max de longueur relative a pos_x et pos_y: il faut refaire la liste
       for it in range(0, len(total_list_x)):
         total_list_x[it] = abs(int(total_list_x[it]) - pos_x)
       for it in range(0, len(total_list_y)):
         total_list_y[it] = abs(int(total_list_y[it]) - pos_y)
-      temp_size_x: int = max(total_list_y + total_list_x) #- int(min(total_list_x))
-      temp_size_y: int = max(total_list_y + total_list_x) #- int(min(total_list_y))
-      print(f"pos_x: {pos_x} - temp_size_x :{temp_size_x} - total_list_x :{total_list_x}\npos y : {pos_y} - temp_size_y :{temp_size_y} - total_list_y :{total_list_y}")
+      temp_size_x: int = max(total_list_y + total_list_x) 
+      temp_size_y: int = max(total_list_y + total_list_x) 
+      # print(f"pos_x: {pos_x} - temp_size_x :{temp_size_x} - total_list_x :{total_list_x}\npos y : {pos_y} - temp_size_y :{temp_size_y} - total_list_y :{total_list_y}")
       ax.add_patch(Rectangle(((pos_x - temp_size_x - 40), (pos_y - temp_size_y - 40)), 2*temp_size_x + 80, 2*temp_size_y + 80, facecolor='none', edgecolor='white', linewidth=3))
       or_x = pos_x - temp_size_x - 40
       or_y = pos_y - temp_size_y - 40
@@ -183,7 +186,6 @@ class GalaxyCanvas:
       max_y = pos_y + temp_size_y + 40
       win_size = 2*temp_size_x + 80
       zoom = max(list[0]["list"] + list[1]["list"])/win_size
-      print(zoom)
       if or_x < 0:
         or_x = 0
       if or_y < 0:
@@ -192,17 +194,41 @@ class GalaxyCanvas:
         max_x = max(list[0]["list"])
       if max_y > max(list[1]["list"]):
         max_y = max(list[1]["list"])
-    
-      
-      print(f"window: ({pos_x - temp_size_x - 40};{pos_y - temp_size_y - 40} - ({pos_x + temp_size_x + 40};{pos_y + temp_size_y + 40}")
+      # print(f"window: ({pos_x - temp_size_x - 40};{pos_y - temp_size_y - 40} - ({pos_x + temp_size_x + 40};{pos_y + temp_size_y + 40}")
+    elif scout == True:
+      or_x = pos_x - scout_size*12
+      max_x = pos_x + scout_size*12
+      if or_x < 0:
+        or_x = 0
+      if max_x > max(list[0]["list"]):
+        max_x = max(list[0]["list"])
+      win_size = max_x - or_x 
+      or_y = pos_y - int(win_size/2)
+      max_y = pos_y + int(win_size/2)
+      if or_y < 0:
+        or_y = 0
+        max_y = win_size
+      if max_y > max(list[1]["list"]):
+        or_y = max(list[1]["list"]) - win_size
+        max_y = max(list[1]["list"])
+      pos_x = (or_x + max_x)/2
+      pos_y = (or_y + max_y)/2
+      zoom = max(list[0]["list"] + list[1]["list"])/(win_size)  
     else:
-      or_x = pos_x - 0.5*size_x
-      or_y = pos_y - 0.5*size_y
-      max_x = pos_x + 0.5*size_x
-      max_y = pos_y + 0.5*size_y
-
-    
-       
+      or_x = pos_x - 0.5*max(list[0]["list"] + list[1]["list"])/zoom
+      or_y = pos_y - 0.5*max(list[1]["list"] + list[1]["list"])/zoom
+      max_x = pos_x + 0.5*max(list[0]["list"] + list[1]["list"])/zoom
+      max_y = pos_y + 0.5*max(list[1]["list"] + list[1]["list"])/zoom
+      if or_x < 0:
+        or_x = 0
+      if or_y < 0:
+        or_y = 0
+      if max_x > max(list[0]["list"]):
+        max_x = max(list[0]["list"])
+      if max_y > max(list[1]["list"]):
+        max_y = max(list[1]["list"])
+      pos_x = (or_x + max_x)/2
+      pos_y = (or_y + max_y)/2
     plt.axis([or_x, max_x, max_y, or_y])
       # if int(pos_x) < 0.5*size_x :
       #     pos_x =  0.5*size_x
@@ -217,4 +243,4 @@ class GalaxyCanvas:
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
     plt.savefig('./Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
-    return int(zoom)
+    return (int(zoom), pos_x, pos_y, scout_x, scout_y)

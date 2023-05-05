@@ -65,7 +65,7 @@ class Cog_Refresh(commands.Cog):
                 # if players[it_player]["id_gl"] == 85029:
                     # print(f"-----------> colonies:{colonies}\nplayer temp: {player_temp['colo_list']}")
                 # print('if gone')
-                for it_colo in range(0, len(player_temp["colo_list"])):
+                for it_colo in range(0, len(player_temp["colo_list"])): 
                     if it_colo < len(colonies):
                         # print(len(colonies))
                         # # print(colonies[it_colo], player_temp['colo_list'])
