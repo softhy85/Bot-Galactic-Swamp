@@ -224,18 +224,23 @@ class Dashboard:
         if 'ally_initial_score' in war_infos:
             return_value["ally_alliance_score"] = ally_alliance['alliance_score'] - war_infos['ally_initial_score']
             return_value["enemy_alliance_score"] = enemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
-            # #
-            # print('warlog test')
-            # war_log: dict = self.bot.db.taget_warlog()
-            # if war_log:
-            #     war_log['enemy_score'].append(return_value["enemy_alliance_score"])
-            #     war_log['ally_score'].append(return_value["ally_alliance_score"])
-            #     self.bot.db.update_warlog()
-            # else:
-            #     war_log: dict = {'name': 'warlog', 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": time}
-            #     self.bot.db.push_warlog(war_log)
-            # print('warlog test done')
-            # #
+            #
+            print('warlog test')
+            war_log: dict = self.bot.db.get_warlog()
+            if war_log:
+                if war_log['enemy_score'][len(war_log['enemy_score'])-1] != return_value['enemy_alliance_score'] or war_log['ally_score'][len(war_log['ally_score'])-1] != return_value['ally_alliance_score']:  
+                    print('appending enemy score')
+                    war_log['enemy_score'].append(return_value["enemy_alliance_score"])
+                    war_log['ally_score'].append(return_value["ally_alliance_score"])
+                    war_log['timestamp'].append(time)
+                    self.bot.db.update_warlog(war_log)
+                else:
+                    print('score didnt evolve')
+            else:
+                war_log: dict = {'name': 'warlog', 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": [time]}
+                self.bot.db.push_warlog(war_log)
+            print('warlog test done')
+            #
         else: 
             return_value["ally_alliance_score"] = "x"
             return_value["enemy_alliance_score"] = "x"
