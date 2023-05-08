@@ -28,6 +28,7 @@ from Models.InfoMessage_Model import InfoMessage_Model
 from pymongo.cursor import Cursor
 from typing import List
 from Models.Colors import Colors
+from datetime import datetime
 import math
 import asyncio
 import random as random
@@ -142,7 +143,38 @@ class GalaxyCanvas:
     list_y_store: Colonies_List_Model = {"name": "y", "list": self.list_y}
     self.bot.db.push_colonies_list(list_x_store)
     self.bot.db.push_colonies_list(list_y_store)
+  
+  def draw_recap(self):
+    fig,ax = plt.subplots(1)
+    ax.tick_params(axis='x', colors='white')
+    ax.tick_params(axis='y', colors='white')
+    plt.yticks(fontsize=5)
+    plt.xticks(fontsize=5, )
+    list = self.bot.db.get_warlog()  
     
+    def number_formatter(data_value, indx):
+      if data_value >= 1_000:
+        formatter = '{:1.0f}K'.format(data_value/1000)
+      else:
+        formatter = '{:1.0f}'.format(data_value)
+      return formatter
+        
+    it: int = 0
+    for it in range (0, len(list['timestamp'])):
+      list['timestamp'][it] = datetime.strftime(list['timestamp'][it],  "%m/%d-%H:%M")
+    fig.set_figwidth(4)
+    fig.set_figheight(1)
+    plt.plot(list['timestamp'], list['ally_score'], color='#5eff79', label='ally')
+    plt.plot(list['timestamp'], list['enemy_score'], color='#d348fa', label='enemy')
+    plt.legend(fontsize="5")
+    ax.set_facecolor("#2b2e31")
+    ax.yaxis.set_major_formatter(number_formatter)
+    ax.xaxis.set_major_locator(plt.MaxNLocator(3))
+    ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+    # plt.draw()
+    plt.savefig('./Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#424549", edgecolor="black")
+    # plt.show()
+  
   def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False):
     obj = None
     list = self.bot.db.get_colonies_list(obj)

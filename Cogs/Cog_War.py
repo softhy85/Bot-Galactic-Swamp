@@ -115,6 +115,13 @@ class Cog_War(commands.Cog):
             await self.update_actual_war()
         print("Infos: command war_update ended")
 
+    @app_commands.command(name="war_recap", description="recap of the war")
+    async def war_recap(self, interaction: discord.Interaction):
+        content =  'Here is the recap of the war, man 👌🏻: **[WIP]**'
+        self.bot.galaxyCanvas.draw_recap() 
+        file = discord.File("./Image/war_recap.png", filename="scout_map.png")
+        await interaction.response.send_message(content=content, file=file)
+        
 
     @app_commands.command(name="war_stop", description="stop war")
     @app_commands.describe()
@@ -213,6 +220,8 @@ class Cog_War(commands.Cog):
 
     async def create_new_war(self, alliance: str):
         print('War_Infos: new war')
+        self.bot.db.remove_warlog()
+        print('War_Infos: Warlog has been reset')
         date: datetime.datetime = datetime.datetime.now()
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:

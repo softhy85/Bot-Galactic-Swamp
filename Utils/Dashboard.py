@@ -234,6 +234,9 @@ class Dashboard:
                     war_log['ally_score'].append(return_value["ally_alliance_score"])
                     war_log['timestamp'].append(time)
                     self.bot.db.update_warlog(war_log)
+                    if war_log['enemy_score'][len(war_log['enemy_score'])-2] < war_log['ally_score'][len(war_log['ally_score'])-2] and war_log['enemy_score'][len(war_log['enemy_score'])-1] > war_log['ally_score'][len(war_log['ally_score'])-1]:
+                        print('Alert. Beating Us')
+                        await self.war_channel.send(f"> ⚠️ Alert : The enemy is beating us !! ⚠️")
                 else:
                     print('score didnt evolve')
             else:

@@ -69,13 +69,14 @@ async def on_raw_reaction_add(reaction):
     if reaction.channel_id == bot.war_channel_id:
         next_war: Next_War_Model = bot.db.get_nextwar()
         if reaction.emoji.name == "👍🏻":
-            if reaction.member.nick == None:
-                name = reaction.member.name
-            else:
-                name = reaction.member.nick
-            await bot.general_channel.send(f"> **{name}** has voted to start a war. Come to https://discord.com/channels/1043524633602826294/1043548046602014831 to vote too!")
-            next_war['positive_votes'] = next_war['positive_votes'] + 1
-            update = True
+            if reaction.member.name != "Galactic-Swamp-app":
+                if reaction.member.nick == None:
+                    name = reaction.member.name
+                else:
+                    name = reaction.member.nick
+                await bot.general_channel.send(f"> **{name}** has voted to start a war. Come to https://discord.com/channels/1043524633602826294/1043548046602014831 to vote too!")
+                next_war['positive_votes'] = next_war['positive_votes'] + 1
+                update = True
         if reaction.emoji.name == "👎🏻":
             next_war['negative_votes'] = next_war['negative_votes'] + 1
             update = True

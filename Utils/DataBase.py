@@ -196,7 +196,10 @@ class DataBase:
         warlog_db = self.db.warlog.find_one({'name':warlog['name']})
         if warlog_db is not None:
             return self.db.warlog.update_one({"_id": warlog_db["_id"]}, {'$set': warlog})
-        
+    
+    def remove_warlog(self) -> None:
+        self.db.warlog.delete_one({'name':'warlog'})
+
     def close(self) -> None:
         self.mongo_client.close()
 
