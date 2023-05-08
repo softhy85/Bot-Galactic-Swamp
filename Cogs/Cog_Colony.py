@@ -61,10 +61,10 @@ class Cog_Colony(commands.Cog):
             for player in players
         ] 
             
-    async def  colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+    async def colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         pseudo = interaction.namespace.pseudo
-        player_id: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})  
-        obj: dict = {"_player_id": player_id['_id']} 
+        player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)}) 
+        obj: dict = {"id_gl": int(player['id_gl'])} 
         colos: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
         colos.sort(key=lambda item: item.get("number"))
         colos = colos[0:25]
@@ -99,7 +99,6 @@ class Cog_Colony(commands.Cog):
             players: List[Player_Model] = list(self.bot.db.get_players(obj))
             players = players[0:25]
             temp_pseudo[0]["pseudo"] = return_player["temp_pseudo"]
-            print(list(players))
             players = players + list(temp_pseudo)
             return [
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
@@ -271,10 +270,25 @@ class Cog_Colony(commands.Cog):
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_scout.callback = button_callback_scout
-            embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value=f'Coords to enter: `{scout_x} : {scout_y}`')
+            embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value=f'Coords to enter: `{scout_x}` : `{scout_y}`')
             await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
         button_scout.callback = button_callback_scout
-            
+
+    def button_complete(self, view, embed):
+        button_complete = Button(label = f"✅", style=discord.ButtonStyle.grey)
+        view.add_item(button_complete)
+        async def button_callback_complete(interaction):
+            value_str = str(embed.fields[0].value)
+            splitted_value = value_str.split('`')   
+            self.bot.galaxyCanvas.mark_area_complete((int(splitted_value[1])-6)/12, (int(splitted_value[3])-3)/6) 
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
+            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            embed.clear_fields()
+            button_complete.callback = button_callback_complete
+            embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value=f'Coords to enter: `{scout_x}` : `{scout_y}`')
+            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+        button_complete.callback = button_callback_complete
+                    
     #</editor-fold>
 
     #<editor-fold desc="command">
@@ -319,7 +333,7 @@ class Cog_Colony(commands.Cog):
         if act_player is None:
             await interaction.response.send_message(f"Player named {pseudo} not found.")
         else:
-            act_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"_player_id": act_player['_id'], "number": colo_number}))
+            act_colony: List[Colony_Model] = list(self.bot.db.get_colonies({"id_gl": int(act_player['id_gl']), "number": colo_number}))
             if len(act_colony) == 0:
                 await interaction.response.send_message(f"Colony not found.")
             else:
@@ -433,6 +447,7 @@ class Cog_Colony(commands.Cog):
         self.button_zoom_out(view, embed)
         self.button_refresh(view, embed)
         self.button_scout(view, embed)
+        self.button_complete(view, embed)
         await interaction.followup.send(embed=embed, file=file, view=view)
     
     @app_commands.command(name="colo_founds_alliance", description="Find possible colonies in foundcolonies")

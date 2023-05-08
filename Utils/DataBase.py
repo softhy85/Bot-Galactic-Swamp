@@ -8,6 +8,7 @@ from Models.Colony_Model import Colony_Model
 from Models.InfoMessage_Model import InfoMessage_Model
 from Models.War_Model import War_Model
 from Models.Colonies_List_Model import Colonies_List_Model
+from Models.Completed_List_Model import Completed_List_Model
 from Models.Next_War_Model import Next_War_Model
 from Models.War_Log_Model import War_Log_Model
 from bson.objectid import ObjectId
@@ -165,6 +166,25 @@ class DataBase:
             list["_id"] = return_list[1]["_id"]
             if return_list is not None:
                 self.db.galaxycanvas.update_one({"_id": list["_id"]}, {'$set': list})
+                
+    def get_completed_list(self, obj) -> Cursor[Completed_List_Model]:
+        result = self.db.galaxycanvas.find_one(obj)
+        if result :
+            return result
+        else:
+            return None
+    
+    def update_completed_list(self, completed_list: Completed_List_Model) -> None:
+        obj = {'name': completed_list['name']}
+        result = self.get_completed_list(obj)
+        if result is not None:
+            self.db.galaxycanvas.update_one({"_id": result["_id"]}, {'$set': completed_list})
+
+    
+    def push_completed_list(self, list: Completed_List_Model) -> ObjectId | None: 
+        actual_list =  self.db.galaxycanvas.find_one({'name':list['name']})
+        if actual_list is None:
+            return self.db.galaxycanvas.insert_one(list).inserted_id
     
     def update_war(self, war: War_Model) -> None:
         return_war: War_Model = self.db.wars.find_one({"_id": war["_id"]})

@@ -12,6 +12,7 @@ from Models.Alliance_Model import Alliance_Model
 from Models.Colony_Model import Colony_Model
 from Models.Player_Model import Player_Model
 from Models.Colonies_List_Model import Colonies_List_Model
+from Models.Completed_List_Model import Completed_List_Model
 import os
 from matplotlib.patches import Rectangle
 
@@ -101,17 +102,33 @@ class GalaxyCanvas:
     y: int = 0
     x_found: int = 0
     y_found: int = 0
-    limit_x: int = 6
+    limit_x: int = 7
     limit_y: int = 12
     scout_size: int = 1
+    colo_number_threshold = 1.
     found = False
+    obj = {"name":"completed_list"}
+    completed_list: dict = self.bot.db.get_completed_list(obj)
     if limit_x > len(myHist) - 1 or limit_y > len(myHist[0]) - 1:
       return
     for x in range(0, limit_x):
         for y in range(0,  limit_y):
             for size in range(0, scout_size):
                 if len(myHist) - 1 > x + size:
-                    if myHist[x + size][y] != 0.:
+                    if myHist[x + size][y] > colo_number_threshold:
+                        break
+                    else:
+                      completed = False
+                      if completed_list:
+                        for x_check in completed_list['list_x']:
+                          if x == x_check:
+                            for y_check in completed_list['list_y']:
+                              if y == y_check:
+                                completed = True
+                                break
+                          if completed:
+                            break
+                      if completed: 
                         break
                 else:
                     break
@@ -143,6 +160,17 @@ class GalaxyCanvas:
     list_y_store: Colonies_List_Model = {"name": "y", "list": self.list_y}
     self.bot.db.push_colonies_list(list_x_store)
     self.bot.db.push_colonies_list(list_y_store)
+    
+  def mark_area_complete(self, screen_x, screen_y):
+    obj = {"name":"completed_list"}
+    completed_list: dict = self.bot.db.get_completed_list(obj)
+    if completed_list:
+      completed_list['list_x'].append(screen_x)
+      completed_list['list_y'].append(screen_y)
+      self.bot.db.update_completed_list(completed_list)
+    else:
+      completed_list: Completed_List_Model = {'name':'completed_list', 'list_x': [screen_x], 'list_y':[screen_y]}
+      self.bot.db.push_completed_list(completed_list)
   
   def draw_recap(self):
     fig,ax = plt.subplots(1)
