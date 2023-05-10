@@ -77,7 +77,7 @@ class GalaxyCanvas:
   def alliance_colonies(self): 
     api_info = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
     if api_info['war_status'] != False:
-      alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", api_info["enemy_name"])
+      alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", api_info["enemy_name"].upper())
       obj: dict = {"_alliance_id": alliance_info["_id"]}
       players: List[Player_Model] = self.bot.db.get_players(obj)
       alliance_dict: list = []
