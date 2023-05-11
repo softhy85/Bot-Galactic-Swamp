@@ -18,6 +18,8 @@ from Models.Next_War_Model import Next_War_Model
 from discord import Guild
 from discord.utils import utcnow
 from datetime import timedelta
+from discord.ext import tasks
+import sys
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
@@ -36,6 +38,7 @@ async def on_ready():
     bot.alliance = Alliance(bot)
     bot.spec_role = Role()
     bot.dashboard = Dashboard(bot)
+    flush_logs_out.start()
     bot.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel = bot.get_channel(bot.command_channel_id)
     bot.war_channel_id = int(os.getenv("WAR_CHANNEL"))
@@ -53,7 +56,14 @@ async def on_ready():
     # print('doing')
     # await discord.Guild.create_scheduled_event(name="test", start_time= utcnow() + timedelta(600), channel=bot.get_channel(1043524634060017717))
     # print('done')
+    
+@tasks.loop(seconds=1)
+async def flush_logs_out():
+    sys.stdout.flush()
 
+@flush_logs_out.before_loop
+async def before_flush_logs_out():
+    await bot.wait_until_ready()
 
 @bot.command()
 async def sync(ctx: Context) -> None:
