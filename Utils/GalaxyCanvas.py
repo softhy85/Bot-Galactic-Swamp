@@ -102,8 +102,8 @@ class GalaxyCanvas:
     y: int = 0
     x_found: int = 0
     y_found: int = 0
-    limit_x: int = 7
-    limit_y: int = 12
+    limit_x: int = 10
+    limit_y: int = 15
     scout_size: int = 1
     colo_number_threshold = 1.
     found = False
