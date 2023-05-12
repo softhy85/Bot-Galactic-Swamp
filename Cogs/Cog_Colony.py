@@ -63,7 +63,7 @@ class Cog_Colony(commands.Cog):
             
     async def colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         pseudo = interaction.namespace.pseudo
-        player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)}) 
+        player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile("^" + pseudo + "$", re.IGNORECASE)}) 
         obj: dict = {"id_gl": int(player['id_gl'])} 
         colos: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
         colos.sort(key=lambda item: item.get("number"))
@@ -329,7 +329,7 @@ class Cog_Colony(commands.Cog):
         if pseudo.strip() == "":
             await interaction.response.send_message(f"Cannot remove a Cog_Colony from Players with a pseudo composed only of whitespace.")
             return
-        act_player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile(pseudo, re.IGNORECASE)})
+        act_player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile("^" + pseudo + "$", re.IGNORECASE)})
         if act_player is None:
             await interaction.response.send_message(f"Player named {pseudo} not found.")
         else:
