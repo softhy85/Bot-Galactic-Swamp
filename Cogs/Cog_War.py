@@ -82,45 +82,41 @@ class Cog_War(commands.Cog):
 
     #<editor-fold desc="command">
 
-    @app_commands.command(name="war_new", description="Start a new war")
-    @app_commands.describe(alliance="The name of the alliance against which you are at war")
-    @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.checks.has_role('Admin')
-    @app_commands.default_permissions()
-    async def war_new(self, interaction: discord.Interaction, alliance: str):
-        date: datetime.datetime = datetime.datetime.now()
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        if alliance.strip() == "":
-            await interaction.response.send_message(f"Cannot create alliances with a name composed only of whitespace.")
-            return
-        await   interaction.response.send_message("Loading the new war.")
-        await self.create_new_war(alliance)
+    # @app_commands.command(name="war_new", description="Start a new war")
+    # @app_commands.describe(alliance="The name of the alliance against which you are at war")
+    # @app_commands.autocomplete(alliance=alliance_autocomplete)
+    # @app_commands.checks.has_role('Admin')
+    # @app_commands.default_permissions()
+    # async def war_new(self, interaction: discord.Interaction, alliance: str):
+    #     date: datetime.datetime = datetime.datetime.now()
+    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+    #         await interaction.response.send_message("You don't have the permission to use this command.")
+    #         return
+    #     if alliance.strip() == "":
+    #         await interaction.response.send_message(f"Cannot create alliances with a name composed only of whitespace.")
+    #         return
+    #     await   interaction.response.send_message("Loading the new war.")
+    #     await self.create_new_war(alliance)
 
-    @app_commands.command(name="war_update", description="Check and update the current war")
-    @app_commands.describe()
-    @app_commands.checks.has_role('Admin')
-    async def war_update(self, interaction: discord.Interaction):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        print("Infos: command war_update started")
-        if actual_war is None:
-            await interaction.response.send_message("No war actually in progress.")
-        else:
-            await interaction.response.send_message("Updating the current war")
-            await self.bot.alliance.update_alliance(actual_war["alliance_name"])
-            await self.update_actual_war()
-        print("Infos: command war_update ended")
+    # @app_commands.command(name="war_update", description="Check and update the current war")
+    # @app_commands.describe()
+    # @app_commands.checks.has_role('Admin')
+    # async def war_update(self, interaction: discord.Interaction):
+    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+    #         await interaction.response.send_message("You don't have the permission to use this command.")
+    #         return
+    #     actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
+    #     print("Infos: command war_update started")
+    #     if actual_war is None:
+    #         await interaction.response.send_message("No war actually in progress.")
+    #     else:
+    #         await interaction.response.send_message("Updating the current war")
+    #         await self.bot.alliance.update_alliance(actual_war["alliance_name"])
+    #         await self.update_actual_war()
+    #     print("Infos: command war_update ended")
 
-    @app_commands.command(name="war_recap", description="recap of the war")
-    async def war_recap(self, interaction: discord.Interaction):
-        content =  'Here is the recap of the war, man 👌🏻: **[WIP]**'
-        self.bot.galaxyCanvas.draw_recap() 
-        file = discord.File("./Image/war_recap.png", filename="scout_map.png")
-        await interaction.response.send_message(content=content, file=file)
+
+    
         
 
     @app_commands.command(name="war_stop", description="stop war")
@@ -408,18 +404,20 @@ class Cog_War(commands.Cog):
         channel: discord.TextChannel = self.war_channel
         alliance_api_info: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name) 
         next_war: Next_War_Model = self.bot.db.get_nextwar()
+        war_log = self.bot.db.get_warlog()  
         leaderboard = self.create_leaderboard()
         empty_space = self.empty_space(alliance_api_info)
-        embed_title: str = f"<:empty:1088454928474841108><:empty:1088454928474841108><:empty:1088454928474841108><:empty:1088454928474841108><:empty:1088454928474841108>⚔️  {self.ally_alliance_name}   ⚔️"
+        embed_title: str = ""
         alliance_stats = f"```💫 Score:{empty_space[0]}{alliance_api_info['alliance_formatted_score']}\n📈 WR:                         {alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space[1]}{alliance_api_info['alliance_lvl']}\n👤 Members:                        {len(alliance_api_info['members_list'])}```"
         war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R>"
+        war_recap = discord.File("./Image/war_recap.png", filename="war_recap.png")
         if next_war['positive_votes'] > 0 and (next_war['positive_votes'] - next_war['negative_votes']) < 4:
-            war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R> (`{4-next_war['positive_votes']+next_war['negative_votes']} votes to start)`"
+            war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R> `({4-next_war['positive_votes']+next_war['negative_votes']} votes to start)`"
             vote_string = self.vote_string(next_war)
         elif next_war['positive_votes'] - next_war['negative_votes'] > 3 and next_war['vote_done'] == False:
             war_start_string = "✅ The team has voted. A war will start soon."
             vote_string = self.vote_string(next_war)
-            await self.general_channel.send('<@&1043539666479099974> **time to start a war !!!** (im testing the bot)')
+            await self.general_channel.send('<@&1043539666479099974> **time to start a war !!!**')
             next_war['vote_done'] = True
             self.bot.db.update_nextwar(next_war)
         elif next_war['positive_votes'] - next_war['negative_votes'] > 3 and next_war['vote_done'] == True:
@@ -434,22 +432,24 @@ class Cog_War(commands.Cog):
             if message.author.name == "Galactic-Swamp-app":
                 updated = True
         embed = discord.Embed(title=embed_title, description="",timestamp=datetime.datetime.now())
-        embed.add_field(name=" ", value="Currently recovering from last war :zzz:", inline=False)
-        embed.add_field(name="⛔ Players online:", value=next_war['players_online_list'], inline=False)
         embed.add_field(name="🎯 Alliance stats:", value=alliance_stats)
         embed.add_field(name=leaderboard['name'], value=leaderboard['value'], inline=False)
+        embed.add_field(name="⛔ Players online:", value=next_war['players_online_list'], inline=False)
         embed.add_field(name=war_start_string, value=vote_string, inline=False)
-        embed.set_thumbnail(url=alliance_api_info["emblem_url"])
+        embed.add_field(name="💥 Last war recap:", value=f"``{war_log['ally_score'][-1]}`` vs ``{war_log['enemy_score'][-1]}`` - ``{len(war_log['ally_score'])} attacks`` - ``{'Win' if war_log['ally_score'][-1] >war_log['enemy_score'][-1] else 'Lost'}``", inline=False)
+        banner = discord.File("./Image/banner.png", filename="banner.png")
+        embed.set_image(url="attachment://war_recap.png")
         if updated == False:
-            message = await channel.send(embed=embed)
+            self.bot.galaxyCanvas.draw_recap()
+            message = await channel.send(embed=embed, attachments=[banner], file=war_recap)
             await message.add_reaction("👍🏻")
             await message.add_reaction("👎🏻")
         else:
-            await message.edit(embed=embed)  
+            self.bot.galaxyCanvas.draw_recap()
+            await message.edit(embed=embed, attachments=[banner, war_recap])  
         date_end: datetime.datetime = datetime.datetime.now()
         print('Infos: update_peace_embed ended')
     #</editor-fold>
-
     
 async def setup(bot: commands.Bot):
     await bot.add_cog(Cog_War(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])

@@ -293,10 +293,10 @@ class Cog_Colony(commands.Cog):
 
     #<editor-fold desc="command">
 
-    @app_commands.command(name="colo_infos", description="Display the infos of the Colonies of a Cog_Player")
+    @app_commands.command(name="player_colonies", description="Display the infos of the Colonies of a Cog_Player")
     @app_commands.describe(pseudo="Player's pseudo")
     @app_commands.autocomplete(pseudo=player_autocomplete)
-    async def colo_infos(self, interaction: discord.Interaction, pseudo: str):
+    async def player_colonies(self, interaction: discord.Interaction, pseudo: str):
         if pseudo.strip() == "":
             await interaction.response.send_message(f"Cannot retreive infos of a Cog_Player with a pseudo composed only of whitespace.")
             return
@@ -376,10 +376,10 @@ class Cog_Colony(commands.Cog):
     #             await interaction.response.send_message(f"Player named {pseudo} as been removed.")
     #             await self.bot.dashboard.update_Dashboard()
 
-    @app_commands.command(name="gift_colony", description="Gift colony to low level players / Or tell if a colony never has defenses")
+    @app_commands.command(name="colo_gift", description="Gift colony to low level players / Or tell if a colony never has defenses")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="Wich colony", gift_state="x")
     @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete,  gift_state=gift_state_autocomplete)
-    async def gift_colony(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
+    async def colo_gift(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
         obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
         act_colony: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
@@ -392,16 +392,16 @@ class Cog_Colony(commands.Cog):
             await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁") #j'ai juste changé l'ordre 
             await interaction.response.send_message(f"The free state of colony n°{act_colony['number']} of {pseudo} has been updated.")
     
-    @app_commands.command(name="colo_db", description="How many colonies have been scouted yet")
-    async def colo_db(self, interaction: discord.Interaction):
+    @app_commands.command(name="db", description="How many colonies have been scouted yet")
+    async def db(self, interaction: discord.Interaction):
         colo_number: List[Colony_Model] = list(self.bot.db.get_all_updated_colonies())
         colo_found_number: List[Colony_Model] = list(self.bot.db.get_all_found_colonies())
         embed = discord.Embed(title=f">>> **{len(colo_number)}** 🪐 colonies from enemy alliances have been updated yet.\n**{len(colo_found_number)}** 🪐 colonies found by screening \n**{len(colo_number)+len(colo_found_number)}** 🪐 colonies in total")
         await interaction.response.send_message(embed=embed)
             
-    @app_commands.command(name="colo_scout", description="How many colonies have been scouted yet")
+    @app_commands.command(name="scout", description="How many colonies have been scouted yet")
     @app_commands.describe(zoom="zoom factor", pos_x="x position", pos_y="y position")
-    async def colo_scout(self, interaction: discord.Interaction, zoom: int = 1, pos_x: int = 504, pos_y: int = 501  ):
+    async def scout(self, interaction: discord.Interaction, zoom: int = 1, pos_x: int = 504, pos_y: int = 501  ):
         await interaction.response.defer()
         self.bot.galaxyCanvas.update_lists() 
         alliance_dict: list = self.bot.galaxyCanvas.alliance_colonies() 
@@ -450,7 +450,7 @@ class Cog_Colony(commands.Cog):
         self.button_complete(view, embed)
         await interaction.followup.send(embed=embed, file=file, view=view)
     
-    @app_commands.command(name="colo_founds_alliance", description="Find possible colonies in foundcolonies")
+    @app_commands.command(name="colo_found_alliance", description="Find possible colonies in foundcolonies")
     @app_commands.describe(alliance="alliance name")
     async def colos_scouted(self, interaction: discord.Interaction, alliance: str):
         await interaction.response.defer()

@@ -215,24 +215,24 @@ class Cog_Player(commands.Cog):
         display = self.button_details(display, field, no_alliance)
         await interaction.response.send_message(embed=display[0], view=display[1])     
 
-    @app_commands.command(name="player_remove", description="Remove an existent Cog_Player")
-    @app_commands.describe(pseudo="Player's pseudo")
-    @app_commands.autocomplete(pseudo=player_autocomplete)
-    @app_commands.checks.has_role('Admin')
-    async def player_remove(self, interaction: discord.Interaction, pseudo: str):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        if pseudo.strip() == "":
-            await interaction.response.send_message(f"Cannot remove Players with a pseudo composed only of whitespace.")
-            return
-        return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
-        if return_player is None:
-            await interaction.response.send_message(f"Player named {pseudo} does not exist.")
-        else:
-            self.bot.db.remove_player(return_player)
-            await interaction.response.send_message(f"Player named {pseudo} as been removed.")
-            await self.bot.dashboard.update_Dashboard()
+    # @app_commands.command(name="player_remove", description="Remove an existent Cog_Player")
+    # @app_commands.describe(pseudo="Player's pseudo")
+    # @app_commands.autocomplete(pseudo=player_autocomplete)
+    # @app_commands.checks.has_role('Admin')
+    # async def player_remove(self, interaction: discord.Interaction, pseudo: str):
+    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+    #         await interaction.response.send_message("You don't have the permission to use this command.")
+    #         return
+    #     if pseudo.strip() == "":
+    #         await interaction.response.send_message(f"Cannot remove Players with a pseudo composed only of whitespace.")
+    #         return
+    #     return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+    #     if return_player is None:
+    #         await interaction.response.send_message(f"Player named {pseudo} does not exist.")
+    #     else:
+    #         self.bot.db.remove_player(return_player)
+    #         await interaction.response.send_message(f"Player named {pseudo} as been removed.")
+    #         await self.bot.dashboard.update_Dashboard()
 
     @app_commands.command(name="player_update", description="Update player's state")
     @app_commands.describe(pseudo="Player's pseudo", player_state="Etat du bunker")

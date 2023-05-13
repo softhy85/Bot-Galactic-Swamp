@@ -15,7 +15,7 @@ from Models.Colonies_List_Model import Colonies_List_Model
 from Models.Completed_List_Model import Completed_List_Model
 import os
 from matplotlib.patches import Rectangle
-
+import matplotlib.dates as mdates
 import discord
 from discord.ext import commands
 import datetime
@@ -172,36 +172,49 @@ class GalaxyCanvas:
       completed_list: Completed_List_Model = {'name':'completed_list', 'list_x': [screen_x], 'list_y':[screen_y]}
       self.bot.db.push_completed_list(completed_list)
   
-  def draw_recap(self):
-    fig,ax = plt.subplots(1)
-    ax.tick_params(axis='x', colors='white')
-    ax.tick_params(axis='y', colors='white')
-    plt.yticks(fontsize=5)
-    plt.xticks(fontsize=5, )
-    list = self.bot.db.get_warlog()  
-    
-    def number_formatter(data_value, indx):
+  def number_formatter(self, data_value, indx):
       if data_value >= 1_000:
         formatter = '{:1.0f}K'.format(data_value/1000)
       else:
         formatter = '{:1.0f}'.format(data_value)
       return formatter
-        
+    
+  def draw_recap(self):
+    fig,ax = plt.subplots(1)
+    ax.tick_params(axis='y', colors='white', bottom=False)
+    ax.spines['right'].set_color('#222224')
+    ax.spines['left'].set_color('#222224')
+    ax.spines['top'].set_color('#222224')
+    ax.spines['bottom'].set_color('#222224')
+    ax.yaxis.tick_right()
+    ax.yaxis.set_major_formatter(self.number_formatter)
+    ax.yaxis.set_major_locator(plt.MaxNLocator(3))
+    ax.set_facecolor("#222224")
+    fig.set_figwidth(4)
+    fig.set_figheight(1)
+    ax.axes.get_xaxis().set_ticks([])
+    ax.axes.get_yaxis().set_ticks([])
+    list_diff = []
+    red_list_timestamp = []
+    red_list = []
+    threshold = 0
+    list = self.bot.db.get_warlog()  
     it: int = 0
     for it in range (0, len(list['timestamp'])):
       list['timestamp'][it] = datetime.strftime(list['timestamp'][it],  "%m/%d-%H:%M")
-    fig.set_figwidth(4)
-    fig.set_figheight(1)
-    plt.plot(list['timestamp'], list['ally_score'], color='#5eff79', label='ally')
-    plt.plot(list['timestamp'], list['enemy_score'], color='#d348fa', label='enemy')
-    plt.legend(fontsize="5")
-    ax.set_facecolor("#2b2e31")
-    ax.yaxis.set_major_formatter(number_formatter)
-    ax.xaxis.set_major_locator(plt.MaxNLocator(3))
-    ax.yaxis.set_major_locator(plt.MaxNLocator(5))
-    # plt.draw()
-    plt.savefig('./Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#424549", edgecolor="black")
-    # plt.show()
+    for i, j in zip(list['ally_score'], list['enemy_score']):
+      list_diff.append(i - j)
+    for index, it in enumerate(list_diff):
+      if it < threshold:
+        red_list.append(list_diff[index])
+        red_list_timestamp.append(list['timestamp'][index])
+    plt.plot(list['timestamp'], list_diff, color='#5eff79', label='ally')
+    if red_list != []:
+      plt.plot(red_list_timestamp, red_list, label='ally', color='r', marker='o',markersize=1) #
+      ax.axhline(y=threshold, color='#222224')
+      ax.axhline(y=threshold, color='w', linestyle=":")
+    plt.subplots_adjust(bottom=0, right=1, top=1, left=0)
+    plt.savefig('./Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
   
   def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False):
     obj = None

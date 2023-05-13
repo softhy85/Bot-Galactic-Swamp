@@ -103,61 +103,61 @@ class Cog_Alliance(commands.Cog):
 
     #<editor-fold desc="command">
 
-    @app_commands.command(name="alliance_add", description="Add a new Cog_Alliance to the db")
-    @app_commands.describe(alliance="The name of the alliance")
-    @app_commands.checks.has_role('Admin')
-    @app_commands.default_permissions()
-    async def alliance_add(self, interaction: discord.Interaction, alliance: str):
-        await interaction.response.defer(ephemeral=True)
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-            await interaction.followup.send("You don't have the permission to use this command.")
-            return
-        if alliance.strip() == "":
-            await interaction.followup.send(f"Cannot create alliances with a name composed only of whitespace.")
-            return
-        act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
-        if act_alliance is None:
-            await interaction.followup.send("> Loading the new alliance.")
-        else:
-            await interaction.followup.send("> Updating the alliance.")
-        await self.bot.alliance.update_alliance(alliance)
+    # @app_commands.command(name="alliance_add", description="Add a new Cog_Alliance to the db")
+    # @app_commands.describe(alliance="The name of the alliance")
+    # @app_commands.checks.has_role('Admin')
+    # @app_commands.default_permissions()
+    # async def alliance_add(self, interaction: discord.Interaction, alliance: str):
+    #     await interaction.response.defer(ephemeral=True)
+    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+    #         await interaction.followup.send("You don't have the permission to use this command.")
+    #         return
+    #     if alliance.strip() == "":
+    #         await interaction.followup.send(f"Cannot create alliances with a name composed only of whitespace.")
+    #         return
+    #     act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
+    #     if act_alliance is None:
+    #         await interaction.followup.send("> Loading the new alliance.")
+    #     else:
+    #         await interaction.followup.send("> Updating the alliance.")
+    #     await self.bot.alliance.update_alliance(alliance)
 
-    @app_commands.command(name="alliance_update", description="Update an existent Cog_Alliance")
-    @app_commands.describe(alliance="Alliance's name")
-    @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.checks.has_role('Admin')
-    async def alliance_update(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int):
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        if alliance.strip() == "":
-            await interaction.response.send_message(f"Cannot update Alliances with a name composed only of whitespace.")
-            return
-        return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
-        if return_alliance is None:
-            await interaction.response.send_message(f"Alliance named {alliance} does not exist.")
-        else:
-            return_alliance["alliance_lvl"] = alliance_lvl
-            self.bot.db.update_alliance(return_alliance)
-            await interaction.response.send_message(f"Alliance named {alliance} updated.")
+    # @app_commands.command(name="alliance_update", description="Update an existent Cog_Alliance")
+    # @app_commands.describe(alliance="Alliance's name")
+    # @app_commands.autocomplete(alliance=alliance_autocomplete)
+    # @app_commands.checks.has_role('Admin')
+    # async def alliance_update(self, interaction: discord.Interaction, alliance: str, alliance_lvl: int):
+    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+    #         await interaction.response.send_message("You don't have the permission to use this command.")
+    #         return
+    #     if alliance.strip() == "":
+    #         await interaction.response.send_message(f"Cannot update Alliances with a name composed only of whitespace.")
+    #         return
+    #     return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+    #     if return_alliance is None:
+    #         await interaction.response.send_message(f"Alliance named {alliance} does not exist.")
+    #     else:
+    #         return_alliance["alliance_lvl"] = alliance_lvl
+    #         self.bot.db.update_alliance(return_alliance)
+    #         await interaction.response.send_message(f"Alliance named {alliance} updated.")
 
-    @app_commands.command(name="alliance_remove", description="Remove an existent Cog_Alliance")
-    @app_commands.describe(alliance="Alliance's name")
-    @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.checks.has_role('Admin')
-    async def alliance_remove(self, interaction: discord.Interaction, alliance: str):
-        return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
-        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-            await interaction.response.send_message("You don't have the permission to use this command.")
-            return
-        if alliance.strip() == "":
-            await interaction.response.send_message(f"Cannot remove Alliances with a name composed only of whitespace.")
-            return
-        if return_alliance is None:
-            await interaction.response.send_message(f"Alliance named {alliance} does not exist.")
-        else:
-            self.bot.db.remove_alliance(return_alliance)
-            await interaction.response.send_message(f"Alliance named {alliance} as been removed.")
+    # @app_commands.command(name="alliance_remove", description="Remove an existent Cog_Alliance")
+    # @app_commands.describe(alliance="Alliance's name")
+    # @app_commands.autocomplete(alliance=alliance_autocomplete)
+    # @app_commands.checks.has_role('Admin')
+    # async def alliance_remove(self, interaction: discord.Interaction, alliance: str):
+    #     return_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance)
+    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
+    #         await interaction.response.send_message("You don't have the permission to use this command.")
+    #         return
+    #     if alliance.strip() == "":
+    #         await interaction.response.send_message(f"Cannot remove Alliances with a name composed only of whitespace.")
+    #         return
+    #     if return_alliance is None:
+    #         await interaction.response.send_message(f"Alliance named {alliance} does not exist.")
+    #     else:
+    #         self.bot.db.remove_alliance(return_alliance)
+    #         await interaction.response.send_message(f"Alliance named {alliance} as been removed.")
        
     @app_commands.command(name="alliance_colonies", description="Get all colonies from an alliance")
     @app_commands.describe(alliance="Alliance's name")
@@ -196,7 +196,6 @@ class Cog_Alliance(commands.Cog):
     @app_commands.command(name="alliance_infos", description="Get all colonies from an alliance")
     @app_commands.describe(alliance="Alliance's name")
     @app_commands.autocomplete(alliance=alliance_autocomplete)
-    @app_commands.checks.has_any_role('Admin')
     async def alliance_infos(self, interaction: discord.Interaction,  alliance: str): 
         alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(alliance)
         if not alliance_api_info:
@@ -214,9 +213,9 @@ class Cog_Alliance(commands.Cog):
         await interaction.response.send_message(embed=display[0], view=display[1])
     
     
-    @app_commands.command(name="alliance_team_mates", description="Spy your mates because they don't answer you")
+    @app_commands.command(name="team", description="Spy your mates because they don't answer you")
     @app_commands.checks.has_any_role('Admin')
-    async def alliance_team_mates(self, interaction: discord.Interaction): 
+    async def team(self, interaction: discord.Interaction): 
         await interaction.response.defer(ephemeral=True)
         embed: discord.Embed = discord.Embed(title=f"<:empty:1088454928474841108>Crew Overview", description="Use the bot or you will be \n*smashed* 🔨 by Diablo.", color=discord.Color.from_rgb(255, 100, 100))
         obj: dict = {"name", "GALACTIC SWAMP"}
