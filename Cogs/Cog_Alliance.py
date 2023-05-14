@@ -13,16 +13,20 @@ from Models.Colony_Model import Colony_Model
 from Models.Colors import Colors
 from Models.Emoji import Emoji
 from Models.Player_Model import Player_Model
+from Utils.Autocomplete import Autocomplete
+from Utils.Utils import Utils
 
 
 class Cog_Alliance(commands.Cog):
     bot: commands.Bot = None
     war_channel_id: int = None
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
-
+    autocomplete = Autocomplete
+    
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
+        self.utils = Utils(bot)
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
         self.command_channel_id: int = int(os.getenv("COMMAND_CHANNEL"))
@@ -37,77 +41,11 @@ class Cog_Alliance(commands.Cog):
 
     #</editor-fold>
 
-    #<editor-fold desc="autocomplete">
-
-    async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        obj: dict = {}
-        if current != "":
-            obj: dict = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
-        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
-        alliances = alliances[0:25]
-        return [
-            app_commands.Choice(name=alliance["name"], value=alliance["name"])
-            for alliance in alliances
-        ]
-
-    def button_alliance(self, alliance, alliance_check: list, display):
-        if alliance != None and alliance != "":
-            button = Button(label = f"{alliance_check['alliance_state'][0]} Alliance", style=alliance_check['button_style'], emoji="🔒")       
-            async def button_callback_alliance(interaction):
-                button = Button(label = f"{alliance_check['alliance_state'][0]} Alliance ", style=discord.ButtonStyle.gray)
-                display[1].clear_items()
-                display[1].add_item(button)
-                await interaction.response.edit_message(embed=display[0], view=display[1])
-                if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-                    await interaction.followup.send("You don't have the permission to use this command.")
-                    return
-                act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
-                loading_message = await interaction.followup.send(f"> Loading the alliance... (started <t:{int(time.time())}:R>)")
-                await self.bot.alliance.update_alliance(alliance.upper())
-                await loading_message.edit(content="> Alliance Loaded ✅")
-            button.callback = button_callback_alliance
-            display[1].add_item(button)
-        return display    
-    
-    # en double: cog?
-    def has_alliance(self, alliance: str):
-        return_value: dict = {}
-        alliance_state: list = ["Add","Added"]
-        button_style = discord.ButtonStyle.green
-        alliance_db: dict = self.bot.db.get_one_alliance("name", alliance.upper())
-        if alliance_db is not None:
-            button_style = discord.ButtonStyle.blurple
-            alliance_state: list = ["Update", "Updated"]
-        return_value['alliance_state'] = alliance_state
-        return_value['button_style'] = button_style
-        return return_value
-
-    # optimisable? mettre dans dashboard
-    def empty_space(self, alliance_api_info: dict):
-        it = 0
-        return_value: list = []
-        empty_space_length = 11        
-        empty_space_score = ""
-        empty_space_lvl = ""
-        empty_space_length_lvl = empty_space_length - len(alliance_api_info['alliance_lvl'])
-        empty_space_length_score = empty_space_length - len(alliance_api_info['alliance_formatted_score'])
-        while it < empty_space_length_score:
-            empty_space_score = empty_space_score + " "
-            it += 1
-        it = 0
-        while it < empty_space_length_lvl:
-            empty_space_lvl = empty_space_lvl + " "
-            it += 1
-        return_value = [empty_space_score, empty_space_lvl]
-        return return_value
-        
-    #</editor-fold>
-
     #<editor-fold desc="command">
        
     @app_commands.command(name="alliance_colonies", description="Get all colonies from an alliance")
     @app_commands.describe(alliance="Alliance's name")
-    @app_commands.autocomplete(alliance=alliance_autocomplete)
+    @app_commands.autocomplete(alliance=autocomplete.alliance_autocomplete)
     @app_commands.checks.has_any_role('Admin')
     async def alliance_colonies(self, interaction: discord.Interaction,  alliance: str): 
         await interaction.response.defer()
@@ -145,21 +83,28 @@ class Cog_Alliance(commands.Cog):
 
     @app_commands.command(name="alliance_infos", description="Informations and stats about an alliance")
     @app_commands.describe(alliance="Alliance's name")
-    @app_commands.autocomplete(alliance=alliance_autocomplete)
+    @app_commands.autocomplete(alliance=autocomplete.alliance_autocomplete)
     async def alliance_infos(self, interaction: discord.Interaction,  alliance: str): 
         alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(alliance)
         if not alliance_api_info:
             await interaction.response.send_message(f"> The alliance called **{alliance}** doesnt exist in the game... Did you spell it correctly ? 👀")
             return 
-        empty_space = self.empty_space(alliance_api_info)
-        description = f"```💫 Score:{empty_space[0]}{alliance_api_info['alliance_formatted_score']}\n📈 WR:        {alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space[1]}{alliance_api_info['alliance_lvl']}\n👤 Members:       {len(alliance_api_info['members_list'])}```"
-        alliance_check = self.has_alliance(alliance)
+        if alliance_api_info['alliance_winrate'] != -1:
+            alliance_winrate = alliance_api_info['alliance_winrate']
+        else:
+            alliance_winrate = "xx.xx"
+        empty_space_level = self.utils.empty_space("Level:", alliance_api_info['alliance_lvl'], 18)
+        empty_space_score = self.utils.empty_space("Score:", alliance_api_info['alliance_formatted_score'], 18)
+        empty_space_members = self.utils.empty_space("Members:", str(len(alliance_api_info['members_list'])), 18)
+        empty_space_wr = self.utils.empty_space("WR:", str(alliance_winrate), 17)
+        description = f"```💫 Score:{empty_space_score}{alliance_api_info['alliance_formatted_score']}\n📈 WR:{empty_space_wr}{alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space_level}{alliance_api_info['alliance_lvl']}\n👤 Members:{empty_space_members}{len(alliance_api_info['members_list'])}```"
+        alliance_check = self.utils.has_alliance(alliance)
         embed: discord.Embed = discord.Embed(title=f"{alliance.upper()}", description=description, color=discord.Color.from_rgb(130, 255, 128))
         embed.add_field(name=f"",value=alliance_api_info['alliance_description'], inline=False)
         embed.set_thumbnail(url=alliance_api_info["emblem_url"])
         view = View()
         display: list = [embed, view]
-        self.button_alliance(alliance, alliance_check, display)
+        self.utils.button_alliance(alliance, alliance_check, display)
         await interaction.response.send_message(embed=display[0], view=display[1])      
         
     @app_commands.command(name="alliance_leaderboard", description="Leaderboard")

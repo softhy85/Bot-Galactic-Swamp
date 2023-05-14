@@ -1,16 +1,19 @@
-import discord
-from discord.ext import commands
-import datetime
-import time
-from Models.Player_Model import Player_Model
-from Models.Colony_Model import Colony_Model
-from Models.War_Model import War_Model
-from typing import List
-from pymongo.cursor import Cursor
-from bson.objectid import ObjectId
-from Models.Emoji import Emoji
-import os
 import asyncio
+import datetime
+import os
+import time
+from typing import List
+
+import discord
+from bson.objectid import ObjectId
+from discord.ext import commands
+from pymongo.cursor import Cursor
+
+from Models.Colony_Model import Colony_Model
+from Models.Emoji import Emoji
+from Models.Player_Model import Player_Model
+from Models.War_Model import War_Model
+
 
 class Select(discord.ui.Select):
     bot: commands.Bot
@@ -37,7 +40,6 @@ class Select(discord.ui.Select):
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Up"
             self.bot.db.update_player(player)
-            # obj: dict = {"_player_id": player["_id"]}
             obj: dict = {"id_gl": player["id_gl"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             colonies.sort(key=lambda item: item.get("number"))
@@ -80,18 +82,14 @@ class Select(discord.ui.Select):
             else:
                 menu_emoji = Emoji.down.value
         menu_label += " " + menu_emoji if player["MB_status"] == "Down" else " " + Emoji.SB.value
-        
-        # modification pour mettre les colos non complétées
         scouted: bool = False
         for colony in colonies:
-            # if colony["number"] >= 10:
             length = len(menu_label) + (len(menu_label) - len(player["pseudo"] + " : "  + str(player["lvl"])))*2
             if length >= 39:
                 menu_label += Emoji.more.value
                 break
-
             else:
-                if colony["updated"] or colony["colo_coord"]["x"] > -1:
+                if colony["updated"] or (colony["colo_coord"]["x"] > -1 and colony["colo_coord"]["y"] > -1 and colony["colo_sys_name"] != "-1"):
                     if colony["colo_status"] == "Down" :
                         colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
                         if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():

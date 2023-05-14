@@ -1,23 +1,21 @@
-import discord
-from discord import Embed, app_commands
-from discord.ext import commands
-from Models.Alliance_Model import Alliance_Model
-from Models.War_Model import War_Model, Status
-from Models.Player_Model import Player_Model
-from Models.Colony_Model import Colony_Model
-from Models.Next_War_Model import Next_War_Model
-from Models.Colors import Colors
-from discord.ext import tasks, commands
-from discord import Guild
+
+import datetime
+import os
+from datetime import timedelta
 from threading import Thread
 from typing import List
-import os
-import datetime
+
+import discord
+from discord import app_commands
+from discord.ext import commands, tasks
 from discord.utils import utcnow
-from datetime import timedelta
-import re
-import time
-import asyncio
+
+from Models.Alliance_Model import Alliance_Model
+from Models.Next_War_Model import Next_War_Model
+from Models.Player_Model import Player_Model
+from Models.War_Model import Status, War_Model
+from Utils.Utils import Utils
+
 
 class Cog_War(commands.Cog):
     bot: commands.Bot = None
@@ -35,6 +33,7 @@ class Cog_War(commands.Cog):
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
+        self.utils = Utils(bot)
         self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
         self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
         self.war_channel_id = int(os.getenv("WAR_CHANNEL"))
@@ -65,59 +64,7 @@ class Cog_War(commands.Cog):
 
     #</editor-fold>
 
-    #<editor-fold desc="autocomplete">
-
-    async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        obj: dict = {}
-        if current != "":
-            obj: dict = {"name": {"$regex": re.compile(current, re.IGNORECASE)}}
-        alliances: List[Alliance_Model] = list(self.bot.db.get_alliances(obj))
-        alliances = alliances[0:25]
-        return [
-            app_commands.Choice(name=alliance["name"], value=alliance["name"])
-            for alliance in alliances
-        ]
-
-    #</editor-fold>
-
-    #<editor-fold desc="command">
-
-    # @app_commands.command(name="war_new", description="Start a new war")
-    # @app_commands.describe(alliance="The name of the alliance against which you are at war")
-    # @app_commands.autocomplete(alliance=alliance_autocomplete)
-    # @app_commands.checks.has_role('Admin')
-    # @app_commands.default_permissions()
-    # async def war_new(self, interaction: discord.Interaction, alliance: str):
-    #     date: datetime.datetime = datetime.datetime.now()
-    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-    #         await interaction.response.send_message("You don't have the permission to use this command.")
-    #         return
-    #     if alliance.strip() == "":
-    #         await interaction.response.send_message(f"Cannot create alliances with a name composed only of whitespace.")
-    #         return
-    #     await   interaction.response.send_message("Loading the new war.")
-    #     await self.create_new_war(alliance)
-
-    # @app_commands.command(name="war_update", description="Check and update the current war")
-    # @app_commands.describe()
-    # @app_commands.checks.has_role('Admin')
-    # async def war_update(self, interaction: discord.Interaction):
-    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-    #         await interaction.response.send_message("You don't have the permission to use this command.")
-    #         return
-    #     actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-    #     print("Infos: command war_update started")
-    #     if actual_war is None:
-    #         await interaction.response.send_message("No war actually in progress.")
-    #     else:
-    #         await interaction.response.send_message("Updating the current war")
-    #         await self.bot.alliance.update_alliance(actual_war["alliance_name"])
-    #         await self.update_actual_war()
-    #     print("Infos: command war_update ended")
-
-
-    
-        
+    #<editor-fold desc="command">    
 
     @app_commands.command(name="war_stop", description="stop war")
     @app_commands.describe()
@@ -305,19 +252,15 @@ class Cog_War(commands.Cog):
                     count += 1
                 async for message in self.war_channel.history(oldest_first=True):
                     await message.delete()
-                # if war_thread is not None:
                 if int(war_progress['ally_alliance_score']) and int(war_progress['enemy_alliance_score']) != 0:
                     if int(war_progress['ally_alliance_score']) > int(war_progress['enemy_alliance_score']):
-                        # await war_thread.edit(name=f"{actual_war['alliance_name']} - Won",archived=True, locked=True)
                         actual_war["status"] = Status.Win.name
                         await self.war_history.send(f"✅ War against {actual_war['alliance_name']} has been won. (**{war_progress['ally_alliance_score']}** vs **{war_progress['enemy_alliance_score']}**)")
                     elif int(war_progress['ally_alliance_score']) < int(war_progress['enemy_alliance_score']):
                         actual_war["status"] = Status.Lost.name
-                        # await war_thread.edit(name=f"{actual_war['alliance_name']} - Lost",archived=True, locked=True)
                         await self.war_history.send(f"💥 War against {actual_war['alliance_name']} has been lost. (**{war_progress['ally_alliance_score']}** vs **{war_progress['enemy_alliance_score']}**)")
                 else:
                     actual_war["status"] = Status.Ended.name
-                    # await war_thread.edit(name=f"{actual_war['alliance_name']} - Over",archived=True, locked=True)
                     await self.general_channel.send(f"War against {actual_war['alliance_name']} is now over.")
                 print(f"Status : {actual_war['status']}")
                 self.bot.db.update_war(actual_war)
@@ -325,24 +268,6 @@ class Cog_War(commands.Cog):
                 await self.set_next_war(actual_war['status'])
             return actual_war["status"]
 
-    def empty_space(self, alliance_api_info: dict):
-        it = 0
-        return_value: list = []
-        empty_space_length = 28  
-        empty_space_score = ""
-        empty_space_lvl = ""
-        empty_space_length_lvl = empty_space_length - len(alliance_api_info['alliance_lvl'])
-        empty_space_length_score = empty_space_length - len(alliance_api_info['alliance_formatted_score'])
-        while it < empty_space_length_score:
-            empty_space_score = empty_space_score + " "
-            it += 1
-        it = 0
-        while it < empty_space_length_lvl:
-            empty_space_lvl = empty_space_lvl + " "
-            it += 1
-        return_value = [empty_space_score, empty_space_lvl]
-        return return_value
-    
     async def update_war_channel_name(self, active_war: bool = False):
         channel: discord.TextChannel = self.war_channel
         if active_war == True:
@@ -406,9 +331,16 @@ class Cog_War(commands.Cog):
         next_war: Next_War_Model = self.bot.db.get_nextwar()
         war_log = self.bot.db.get_warlog()  
         leaderboard = self.create_leaderboard()
-        empty_space = self.empty_space(alliance_api_info)
+        if alliance_api_info['alliance_winrate'] != -1:
+            alliance_winrate = alliance_api_info['alliance_winrate']
+        else:
+            alliance_winrate = "xx.xx"
+        empty_space_level = self.utils.empty_space("Level:", alliance_api_info['alliance_lvl'], 18)
+        empty_space_score = self.utils.empty_space("Score:", alliance_api_info['alliance_formatted_score'], 18)
+        empty_space_members = self.utils.empty_space("Members:", str(len(alliance_api_info['members_list'])), 18)
+        empty_space_wr = self.utils.empty_space("WR:", str(alliance_winrate), 17)
+        alliance_stats = f"```💫 Score:{empty_space_score}{alliance_api_info['alliance_formatted_score']}\n📈 WR:{empty_space_wr}{alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space_level}{alliance_api_info['alliance_lvl']}\n👤 Members:{empty_space_members}{len(alliance_api_info['members_list'])}```"
         embed_title: str = ""
-        alliance_stats = f"```💫 Score:{empty_space[0]}{alliance_api_info['alliance_formatted_score']}\n📈 WR:                         {alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space[1]}{alliance_api_info['alliance_lvl']}\n👤 Members:                        {len(alliance_api_info['members_list'])}```"
         war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R>"
         war_recap = discord.File("./Image/war_recap.png", filename="war_recap.png")
         if next_war['positive_votes'] > 0 and (next_war['positive_votes'] - next_war['negative_votes']) < 4:
@@ -447,8 +379,8 @@ class Cog_War(commands.Cog):
         else:
             self.bot.galaxyCanvas.draw_recap()
             await message.edit(embed=embed, attachments=[banner, war_recap])  
-        date_end: datetime.datetime = datetime.datetime.now()
         print('Infos: update_peace_embed ended')
+        
     #</editor-fold>
     
 async def setup(bot: commands.Bot):

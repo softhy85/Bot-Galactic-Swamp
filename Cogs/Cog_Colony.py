@@ -1,32 +1,27 @@
-import datetime
 import os
 import re
 from typing import List
 
 import discord
-from discord import Embed, File, app_commands, ui
-from discord.ext import commands, tasks
-from discord.ui import Button, Select, View
+from discord import app_commands
+from discord.ext import commands
 
-from Models.Alliance_Model import Alliance_Model
 from Models.Colony_Model import Colony_Model
-from Models.Colors import Colors
-from Models.Emoji import Emoji
 from Models.Player_Model import Player_Model
 from Models.War_Model import War_Model
-from Utils.GalaxyCanvas import GalaxyCanvas
-
+from Utils.Autocomplete import Autocomplete
 
 class Cog_Colony(commands.Cog):
     guild: discord.Guild = None
     bot: commands.bot = None
+    autocomplete = Autocomplete
     experiment_channel_id: int = 0
     experiment_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
     war_channel_id: int = 0
     war_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
     general_channel_id: int = 0
     general_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
-
+    
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
@@ -40,78 +35,11 @@ class Cog_Colony(commands.Cog):
         self.log_channel_id: int = int(os.getenv("LOG_CHANNEL"))
         self.log_channel = self.bot.get_channel(self.log_channel_id)
 
-
     #<editor-fold desc="listener">
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("Cog Loaded: Cog_Colony")
-
-
-    #</editor-fold>
-
-    #<editor-fold desc="autocomplete">
-
-    async def player_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        obj: dict = {}
-        if current != "":
-            obj = {"pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
-        players: List[Player_Model] = list(self.bot.db.get_players(obj))
-        players = players[0:25]
-        return [
-            app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
-            for player in players
-        ] 
-            
-    async def colo_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        pseudo = interaction.namespace.pseudo
-        player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile("^" + pseudo + "$", re.IGNORECASE)}) 
-        obj: dict = {"id_gl": int(player['id_gl'])} 
-        colos: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-        colos.sort(key=lambda item: item.get("number"))
-        colos = colos[0:25]
-        return [
-            app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]}) {colo["colo_sys_name"] if colo["updated"] else ""} {colo["colo_coord"]["x"] if colo["updated"] else ""} {colo["colo_coord"]["y"] if colo["updated"] else ""}', value=colo["number"])
-            for colo in colos
-        ]
-            
-    async def player_war_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        return_player = self.bot.db.get_one_player("pseudo", "temp_player")
-        temp_pseudo: list = [{"Name":"None"}]
-        temp_pseudo[0]["Name"] = return_player["temp_pseudo"]
-        if act_war is None:
-            if len(current) >= 4:
-                players = self.bot.galaxyLifeAPI.search_for_player(current)
-                if players:
-                    players = players + temp_pseudo
-                    return [
-                        app_commands.Choice(name=players[it]["Name"], value=players[it]["Name"])
-                        for it in range(0, len(players))
-                    ]
-            else: 
-                return [
-                    app_commands.Choice(name=return_player["temp_pseudo"], value=return_player["temp_pseudo"])
-                ]
-        else:
-            if current == "":
-                obj: dict = {"_alliance_id": act_war["_alliance_id"]}
-            else:
-                obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
-            players: List[Player_Model] = list(self.bot.db.get_players(obj))
-            players = players[0:25]
-            temp_pseudo[0]["pseudo"] = return_player["temp_pseudo"]
-            players = players + list(temp_pseudo)
-            return [
-                app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
-                for player in players
-            ]
-
-    async def gift_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
-        data = []
-        for choice in ["Always Free","Free Once", "Not Free"]:
-            data.append(app_commands.Choice(name=choice, value=choice))
-        return data
 
     #</editor-fold>
 
@@ -119,7 +47,7 @@ class Cog_Colony(commands.Cog):
 
     @app_commands.command(name="colo_update", description="Update a saved colony")
     @app_commands.describe(pseudo="Player's username", colo_number="if not found : ✅ run /player_infos and add its alliance ", colo_sys_name="Colony's system name (in CAPS)", colo_coord_x="Colony's x coordinate", colo_coord_y="Colony's y coordinate")
-    @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete)
+    @app_commands.autocomplete(pseudo=autocomplete.player_war_autocomplete, colo_number=autocomplete.colo_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def colo_update(self, interaction: discord.Interaction, pseudo: str, colo_number: int, colo_sys_name: str = "", colo_coord_x: int = -1, colo_coord_y: int = -1):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
@@ -157,7 +85,7 @@ class Cog_Colony(commands.Cog):
  
     @app_commands.command(name="colo_gift", description="Gift colony to low level players / Or tell if a colony never has defenses")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="Wich colony", gift_state="x")
-    @app_commands.autocomplete(pseudo=player_war_autocomplete, colo_number=colo_autocomplete,  gift_state=gift_state_autocomplete)
+    @app_commands.autocomplete(pseudo=autocomplete.player_war_autocomplete, colo_number=autocomplete.colo_autocomplete,  gift_state=autocomplete.gift_state_autocomplete)
     async def colo_gift(self, interaction: discord.Interaction, pseudo: str,colo_number: int, gift_state: str):
         act_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
         obj: dict = {"_player_id": act_player['_id'], "number": colo_number}
@@ -181,7 +109,7 @@ class Cog_Colony(commands.Cog):
             playerName = allianceDetails['members_list'][it_alliance]['Name']
             playerId = allianceDetails['members_list'][it_alliance]['Id']
             for it in range(len(colo_found_number)):
-                if int(colo_found_number[it]["gl_id"]) == int(playerId): #renommer en id_gl dans db
+                if int(colo_found_number[it]["gl_id"]) == int(playerId):
                     await interaction.followup.send(f"> 🪐 **__(SB x):__**\n/colo_update pseudo:{playerName} colo_number:  colo_sys_name:  colo_coord_x:{colo_found_number[it]['X']} colo_coord_y:{colo_found_number[it]['Y']}\n")  
         
     #</editor-fold>

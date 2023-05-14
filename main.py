@@ -1,25 +1,25 @@
 # This example requires the 'message_content' intent.
 import asyncio
 import os
+import sys
+from datetime import timedelta
 from typing import List
 
 import discord
-from discord import app_commands
-from discord.ext import commands
+from discord import Guild, app_commands
+from discord.ext import commands, tasks
 from discord.ext.commands import Context
-from dotenv import load_dotenv
-from Utils.Alliance import Alliance
-from Utils.Role import Role
-from Utils.DataBase import DataBase
-from Utils.Dashboard import Dashboard
-from Utils.GalaxyLifeAPI import GalaxyLifeAPI
-from Utils.GalaxyCanvas import GalaxyCanvas
-from Models.Next_War_Model import Next_War_Model
-from discord import Guild
 from discord.utils import utcnow
-from datetime import timedelta
-from discord.ext import tasks
-import sys
+from dotenv import load_dotenv
+
+from Models.Next_War_Model import Next_War_Model
+from Utils.Alliance import Alliance
+from Utils.Autocomplete import Autocomplete
+from Utils.Dashboard import Dashboard
+from Utils.DataBase import DataBase
+from Utils.GalaxyCanvas import GalaxyCanvas
+from Utils.GalaxyLifeAPI import GalaxyLifeAPI
+from Utils.Role import Role
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
@@ -34,6 +34,7 @@ async def on_ready():
     print("The bot is online")
     bot.db = db
     bot.galaxyCanvas = GalaxyCanvas(bot)
+    bot.autocomplete = Autocomplete(bot)
     bot.galaxyLifeAPI = GalaxyLifeAPI()
     bot.alliance = Alliance(bot)
     bot.spec_role = Role()
@@ -51,7 +52,6 @@ async def on_ready():
         await bot.load_extension(cog)
     reaction, user = await client.wait_for('reaction_add')
     reaction, user = await client.wait_for('reaction_remove')
-
     
     # print('doing')
     # await discord.Guild.create_scheduled_event(name="test", start_time= utcnow() + timedelta(600), channel=bot.get_channel(1043524634060017717))
@@ -73,6 +73,14 @@ async def sync(ctx: Context) -> None:
     else:
         await ctx.send("You don't have the permission to use this command.")
 
+@bot.command(pass_context=True)
+async def clear(ctx, number):
+    number = int(number) #Converting the amount of messages to delete to an integer
+    it = 0
+    while it < number:
+        await ctx.channel.purge(limit=1)
+        it += 1
+       
 @bot.event
 async def on_raw_reaction_add(reaction):
     update: bool = False
