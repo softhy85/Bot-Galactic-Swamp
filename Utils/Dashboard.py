@@ -1,20 +1,22 @@
+import asyncio
+import datetime
+import math
 import os
+import time
+from typing import List
 
 import discord
 from discord.ext import commands
-import datetime
-import time
-from Utils.Dropdown import DropView
-from Models.War_Model import War_Model
-from Models.Alliance_Model import Alliance_Model
-from Models.Player_Model import Player_Model
-from Models.Colony_Model import Colony_Model
-from Models.InfoMessage_Model import InfoMessage_Model
 from pymongo.cursor import Cursor
-from typing import List
+
+from Models.Alliance_Model import Alliance_Model
+from Models.Colony_Model import Colony_Model
 from Models.Colors import Colors
-import math
-import asyncio
+from Models.InfoMessage_Model import InfoMessage_Model
+from Models.Player_Model import Player_Model
+from Models.War_Model import War_Model
+from Utils.Dropdown import DropView
+
 
 class Dashboard:
     bot: commands.Bot = None
@@ -185,7 +187,7 @@ class Dashboard:
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             if player["MB_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
-                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: <@&1100856366802927687> `ansi \u001b[0;31m{score_per_base[player['MB_lvl']-1]} pts`")
+                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: <@&1100856366802927687> `{score_per_base[player['MB_lvl']-1]} pts`")
                 player["MB_status"] = "Up"
                 self.bot.db.update_player(player)
             if player["MB_status"] == "Up":
@@ -198,7 +200,7 @@ class Dashboard:
                     known_colonies += 1 
                     if colo["colo_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
                         print(colo)
-                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']} (SB {colo['colo_lvl'] if 'colo_lvl' in colo else 'x'})** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['y']} )`` `ansi \u001b[0;31m{score_per_base[colo['colo_lvl']-1] if 'colo_lvl' in colo else 'x'} pts`")
+                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']} (SB {colo['colo_lvl'] if 'colo_lvl' in colo else 'x'})** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['y']} )`` `{score_per_base[colo['colo_lvl']-1] if 'colo_lvl' in colo else 'x'} pts`")
                         colo["colo_status"] = "Up"
                         self.bot.db.update_colony(colo)
                     if colo["colo_status"] == "Up":

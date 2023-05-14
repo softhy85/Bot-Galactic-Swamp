@@ -1,9 +1,11 @@
-import discord
-from discord import File, Embed
-from discord.ext import commands
-import requests
-from io import BytesIO
 import os
+from io import BytesIO
+
+import discord
+import requests
+from discord import Embed, File
+from discord.ext import commands
+
 from Image.Image import arrived_image, leave_image
 
 
@@ -32,11 +34,9 @@ class Cog_Historic(commands.Cog):
             avatar = member.display_avatar
         response = requests.get(avatar.url)
         return_image = arrived_image(member.display_name, BytesIO(response.content))
-
+        embed: Embed = Embed(title=f'> **{member.display_name}** joined the alliance ! 👋🏻')
         file = File(fp=return_image, filename=f'{member.display_name}.png')
-        await self.historic_channel.send(file=file)
-        embed: Embed = Embed(title=f'{member.display_name} a rejoint nos rangs !')
-        await self.historic_channel.send(embed=embed)
+        await self.historic_channel.send(embed=embed, file=file)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
@@ -46,11 +46,9 @@ class Cog_Historic(commands.Cog):
             avatar = member.display_avatar
         response = requests.get(avatar.url)
         return_image = leave_image(member.display_name, BytesIO(response.content))
-
+        embed: Embed = Embed(title=f'> **{member.display_name}** has left the server ☠️')
         file = File(fp=return_image, filename=f'{member.display_name}.png')
-        await self.historic_channel.send(file=file)
-        embed: Embed = Embed(title=f'{member.display_name} a déserté !')
-        await self.historic_channel.send(embed=embed)
+        await self.historic_channel.send(embed=embed, file=file)
 
     #</editor-fold>
 

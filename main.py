@@ -46,7 +46,7 @@ async def on_ready():
     bot.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
     bot.general_channel = bot.get_channel(bot.general_channel_id)
     await bot.command_channel.send("@personne - The bot is online. <:O_:1043627742723317770> - v.0.9.1")
-    cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony"])
+    cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony", "Cogs.Cog_Misc", "Cogs.Cog_Scout"])
     for cog in cogs:
         await bot.load_extension(cog)
     reaction, user = await client.wait_for('reaction_add')

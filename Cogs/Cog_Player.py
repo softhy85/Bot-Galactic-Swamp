@@ -1,18 +1,22 @@
 import datetime
-import discord
-from discord import app_commands
-from discord.ext import commands
-from discord.ui import Button, View
-from Models.War_Model import War_Model
-from Models.Alliance_Model import Alliance_Model
-from Models.Player_Model import Player_Model
-from Models.Colony_Model import Colony_Model
-from pymongo.cursor import Cursor
-from typing import List
 import os
 import re
 import time
+from typing import List
+
+import discord
 from bson import ObjectId
+from discord import app_commands
+from discord.ext import commands
+from discord.ui import Button, View
+from pymongo.cursor import Cursor
+
+from Models.Alliance_Model import Alliance_Model
+from Models.Colony_Model import Colony_Model
+from Models.Colors import Colors
+from Models.Emoji import Emoji
+from Models.Player_Model import Player_Model
+from Models.War_Model import War_Model
 
 
 class Cog_Player(commands.Cog):
@@ -35,6 +39,7 @@ class Cog_Player(commands.Cog):
     #</editor-fold>
 
     #<editor-fold desc="autocomplete">
+    
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         obj: dict = {}
         if current != "":
@@ -86,8 +91,7 @@ class Cog_Player(commands.Cog):
                 return []
         else: 
             return []
-        
-        
+         
     async def player_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
         data = []
         for choice in [f"🛡️ Bunker MB", "🛡️ All Bunkers", "♻️ Reset", "🕸️ AFK", "❓ Unknown" ]:
@@ -171,7 +175,7 @@ class Cog_Player(commands.Cog):
     #<editor-fold desc="command">
 
     @app_commands.command(name="player_infos", description="Displays player's informations")
-    @app_commands.describe(pseudo="Player's pseudo")
+    @app_commands.describe(pseudo="Player's username")
     @app_commands.autocomplete(pseudo=player_api_autocomplete)
     @app_commands.checks.has_any_role('Admin','Assistant')
     async def player_add(self, interaction: discord.Interaction, pseudo: str):
@@ -181,7 +185,7 @@ class Cog_Player(commands.Cog):
         return_player["temp_pseudo"] = pseudo
         act_player = self.bot.db.update_player(return_player)
         if player is None:
-            await interaction.response.send_message(f"**{pseudo}** doesn't exist as a player.")
+            await interaction.response.send_message(f"> **{pseudo}** doesnt exist in the game... Did you spell it correctly ? 👀")
             return 
         player_stats: dict = self.bot.galaxyLifeAPI.get_player_stats(player["player_id_gl"])
         steam_url = self.bot.galaxyLifeAPI.get_steam_url(player["player_id_gl"])
@@ -215,33 +219,14 @@ class Cog_Player(commands.Cog):
         display = self.button_details(display, field, no_alliance)
         await interaction.response.send_message(embed=display[0], view=display[1])     
 
-    # @app_commands.command(name="player_remove", description="Remove an existent Cog_Player")
-    # @app_commands.describe(pseudo="Player's pseudo")
-    # @app_commands.autocomplete(pseudo=player_autocomplete)
-    # @app_commands.checks.has_role('Admin')
-    # async def player_remove(self, interaction: discord.Interaction, pseudo: str):
-    #     if not self.bot.spec_role.admin_role(interaction.guild, interaction.user):
-    #         await interaction.response.send_message("You don't have the permission to use this command.")
-    #         return
-    #     if pseudo.strip() == "":
-    #         await interaction.response.send_message(f"Cannot remove Players with a pseudo composed only of whitespace.")
-    #         return
-    #     return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
-    #     if return_player is None:
-    #         await interaction.response.send_message(f"Player named {pseudo} does not exist.")
-    #     else:
-    #         self.bot.db.remove_player(return_player)
-    #         await interaction.response.send_message(f"Player named {pseudo} as been removed.")
-    #         await self.bot.dashboard.update_Dashboard()
-
     @app_commands.command(name="player_update", description="Update player's state")
-    @app_commands.describe(pseudo="Player's pseudo", player_state="Etat du bunker")
+    @app_commands.describe(pseudo="Player's username", player_state="Player's state")
     @app_commands.autocomplete(pseudo=player_war_autocomplete, player_state=player_state_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def player_update(self, interaction: discord.Interaction, pseudo: str, player_state: str):
         return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
         if return_player is None:
-            await interaction.response.send_message(f"Player named {pseudo} does not exist.")
+            await interaction.response.send_message(f"> **{pseudo}** doesnt exist in the database... Did you spell it correctly ? 👀")
         else:
             if player_state == "🛡️ Bunker MB":
                 return_player["state"] = "MB_full"
@@ -254,9 +239,32 @@ class Cog_Player(commands.Cog):
             else:
                 return_player["state"] = False
             self.bot.db.update_player(return_player)
-            await interaction.response.send_message(f"Player {pseudo} has been updated.")
-            await self.bot.dashboard.update_Dashboard()
+            await interaction.response.send_message(f"> Player **{pseudo}** has been set to {player_state}.")
 
+    @app_commands.command(name="player_colonies", description="Display the infos of the Colonies of a Cog_Player")
+    @app_commands.describe(pseudo="Player's username")
+    @app_commands.autocomplete(pseudo=player_autocomplete)
+    async def player_colonies(self, interaction: discord.Interaction, pseudo: str):
+        player: Player_Model = self.bot.galaxyLifeAPI.get_player_infos_from_name(pseudo)
+        if player is None:
+            await interaction.response.send_message(f"> **{pseudo}** doesnt exist in the game... Did you spell it correctly ? 👀")
+        else:
+            colonies: List[Colony_Model] = list(self.bot.db.get_colonies({"id_gl": int(player['player_id_gl'])}))
+            if len(colonies) == 0:
+                await interaction.response.send_message(f"> The colonies could not be found in the database. Add **{pseudo}** first ✨")
+            else:
+                embed: discord.Embed
+                embed = discord.Embed(title=f"Colonies of: {pseudo}️", description=" ", color=Colors.gold, timestamp=datetime.datetime.now())
+                field_number: int = 0
+                for colony in colonies:
+                    if colony["updated"] != False or colony["colo_coord"]["x"] > -1:
+                        embed.add_field(name=f"{ Emoji.colo.value if colony['colo_status'] == 'Up' else Emoji.down.value } Colonie {colony['number']} : {colony['colo_sys_name']}",value=f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})", inline=False)
+                        field_number += 1
+                if field_number != 0:
+                    await interaction.response.send_message(embed=embed)
+                else:
+                    await interaction.response.send_message(f"> Sadly, we dont have any colony for **{pseudo}**... 🫥")
+                
     #</editor-fold>
 
 

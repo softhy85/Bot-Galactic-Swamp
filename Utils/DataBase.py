@@ -1,18 +1,20 @@
 import datetime
 import os
-from pymongo import MongoClient
-from pymongo.cursor import Cursor
-from Models.Alliance_Model import Alliance_Model
-from Models.Player_Model import Player_Model
-from Models.Colony_Model import Colony_Model
-from Models.InfoMessage_Model import InfoMessage_Model
-from Models.War_Model import War_Model
-from Models.Colonies_List_Model import Colonies_List_Model
-from Models.Completed_List_Model import Completed_List_Model
-from Models.Next_War_Model import Next_War_Model
-from Models.War_Log_Model import War_Log_Model
+
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
+from pymongo import MongoClient
+from pymongo.cursor import Cursor
+
+from Models.Alliance_Model import Alliance_Model
+from Models.Colonies_List_Model import Colonies_List_Model
+from Models.Colony_Model import Colony_Model
+from Models.Completed_List_Model import Completed_List_Model
+from Models.InfoMessage_Model import InfoMessage_Model
+from Models.Next_War_Model import Next_War_Model
+from Models.Player_Model import Player_Model
+from Models.War_Log_Model import War_Log_Model
+from Models.War_Model import War_Model
 
 # TODO 1 - voir comment faire pour les nombres de colonies en auto
 # TODO 2 - (si il est fait directement lors du add, ou une fonction précédente permetant de remplir les infos de la colo)
