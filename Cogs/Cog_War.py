@@ -182,9 +182,9 @@ class Cog_War(commands.Cog):
         if enemy_size >= ally_size + 5:
             refresh_duration = 6
         elif enemy_size <= ally_size :
-            refresh_duration = 4
+            refresh_duration = 3
         else:
-            refresh_duration = 4
+            refresh_duration = 3
         async for message in self.war_channel.history(oldest_first=True):
             await message.delete()
         print(f'Chosen refresh duration: {refresh_duration} hours.')
