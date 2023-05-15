@@ -75,15 +75,15 @@ class Cog_Player(commands.Cog):
             no_alliance = False
             alliance_check = self.utils.has_alliance(player['alliance_name'])
             alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(player['alliance_name'])
-        if alliance_api_info['alliance_winrate'] != -1:
-            alliance_winrate = alliance_api_info['alliance_winrate']
-        else:
-            alliance_winrate = "xx.xx"
-        empty_space_level = self.utils.empty_space("Level:", alliance_api_info['alliance_lvl'], 18)
-        empty_space_score = self.utils.empty_space("Score:", alliance_api_info['alliance_formatted_score'], 18)
-        empty_space_members = self.utils.empty_space("Members:", str(len(alliance_api_info['members_list'])), 18)
-        empty_space_wr = self.utils.empty_space("WR:", str(alliance_winrate), 17)
-        field.append(f"```💫 Score:{empty_space_score}{alliance_api_info['alliance_formatted_score']}\n📈 WR:{empty_space_wr}{alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space_level}{alliance_api_info['alliance_lvl']}\n👤 Members:{empty_space_members}{len(alliance_api_info['members_list'])}```")
+            if alliance_api_info['alliance_winrate'] != -1:
+                alliance_winrate = alliance_api_info['alliance_winrate']
+            else:
+                alliance_winrate = "xx.xx"
+            empty_space_level = self.utils.empty_space("Level:", alliance_api_info['alliance_lvl'], 18)
+            empty_space_score = self.utils.empty_space("Score:", alliance_api_info['alliance_formatted_score'], 18)
+            empty_space_members = self.utils.empty_space("Members:", str(len(alliance_api_info['members_list'])), 18)
+            empty_space_wr = self.utils.empty_space("WR:", str(alliance_winrate), 17)
+            field.append(f"```💫 Score:{empty_space_score}{alliance_api_info['alliance_formatted_score']}\n📈 WR:{empty_space_wr}{alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space_level}{alliance_api_info['alliance_lvl']}\n👤 Members:{empty_space_members}{len(alliance_api_info['members_list'])}```")
         embed: discord.Embed = discord.Embed(title=title, description=description, color=discord.Color.from_rgb(130, 255, 128))
         embed.set_thumbnail(url=avatar_url)
         view = View()
