@@ -335,10 +335,10 @@ class Cog_War(commands.Cog):
             alliance_winrate = alliance_api_info['alliance_winrate']
         else:
             alliance_winrate = "xx.xx"
-        empty_space_level = self.utils.empty_space("Level:", alliance_api_info['alliance_lvl'], 18)
-        empty_space_score = self.utils.empty_space("Score:", alliance_api_info['alliance_formatted_score'], 18)
-        empty_space_members = self.utils.empty_space("Members:", str(len(alliance_api_info['members_list'])), 18)
-        empty_space_wr = self.utils.empty_space("WR:", str(alliance_winrate), 17)
+        empty_space_level = self.utils.empty_space("Level:", alliance_api_info['alliance_lvl'], 33)
+        empty_space_score = self.utils.empty_space("Score:", alliance_api_info['alliance_formatted_score'], 33)
+        empty_space_members = self.utils.empty_space("Members:", str(len(alliance_api_info['members_list'])), 33)
+        empty_space_wr = self.utils.empty_space("WR:", str(alliance_winrate), 32)
         alliance_stats = f"```💫 Score:{empty_space_score}{alliance_api_info['alliance_formatted_score']}\n📈 WR:{empty_space_wr}{alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space_level}{alliance_api_info['alliance_lvl']}\n👤 Members:{empty_space_members}{len(alliance_api_info['members_list'])}```"
         embed_title: str = ""
         war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R>"
