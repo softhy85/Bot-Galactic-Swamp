@@ -48,14 +48,15 @@ class Cog_Player(commands.Cog):
     @app_commands.describe(pseudo="Player's username")
     @app_commands.autocomplete(pseudo=autocomplete.player_api_autocomplete)
     @app_commands.checks.has_any_role('Admin','Assistant')
-    async def player_add(self, interaction: discord.Interaction, pseudo: str):
+    async def player_infos(self, interaction: discord.Interaction, pseudo: str):
+        await interaction.response.defer()
         no_alliance = True
         player: Player_Model = self.bot.galaxyLifeAPI.get_player_infos_from_name(pseudo)
         return_player = self.bot.db.get_one_player("pseudo", "temp_player")
         return_player["temp_pseudo"] = pseudo
         self.bot.db.update_player(return_player)
         if player is None:
-            await interaction.response.send_message(f"> **{pseudo}** doesnt exist in the game... Did you spell it correctly ? 👀")
+            await interaction.followup.send(f"> **{pseudo}** doesnt exist in the game... Did you spell it correctly ? 👀")
             return 
         player_stats: dict = self.bot.galaxyLifeAPI.get_player_stats(player["player_id_gl"])
         steam_url = self.bot.galaxyLifeAPI.get_steam_url(player["player_id_gl"])
@@ -93,7 +94,7 @@ class Cog_Player(commands.Cog):
             self.utils.button_alliance(player['alliance_name'], alliance_check, display)
         display[1].add_item(button_steam)
         display = self.utils.button_details(display, field, no_alliance)
-        await interaction.response.send_message(embed=display[0], view=display[1])     
+        await interaction.followup.send(embed=display[0], view=display[1])     
 
     @app_commands.command(name="player_update", description="Update player's state")
     @app_commands.describe(pseudo="Player's username", player_state="Player's state")

@@ -72,7 +72,7 @@ async def sync(ctx: Context) -> None:
         await ctx.send(f'Synced {len(fmt)} commands.')
     else:
         await ctx.send("You don't have the permission to use this command.")
-
+    
 @bot.command(pass_context=True)
 async def clear(ctx, number):
     number = int(number)
