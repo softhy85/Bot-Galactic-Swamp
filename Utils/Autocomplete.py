@@ -85,7 +85,7 @@ class Autocomplete:
             ]
             
     async def player_api_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
-        if len(current) >= 4:
+        if len(current) >= 5:
             players = self.bot.galaxyLifeAPI.search_for_player(current)
             if players:
                 return [

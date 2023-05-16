@@ -378,7 +378,7 @@ class Cog_War(commands.Cog):
             await message.add_reaction("👎🏻")
         else:
             self.bot.galaxyCanvas.draw_recap()
-            await message.edit(embed=embed, attachments=[banner, war_recap])  
+            await message.edit(embed=embed)  
         print('Infos: update_peace_embed ended')
         
     #</editor-fold>
