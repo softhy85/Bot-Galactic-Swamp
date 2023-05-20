@@ -245,7 +245,7 @@ class Dashboard:
                 else:
                     print('score didnt evolve')
             else:
-                war_log: dict = {'name': 'warlog', 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": [time]}
+                war_log: dict = {'name': 'warlog', 'enemy_name': alliance, 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": [time]}
                 self.bot.db.push_warlog(war_log)
             print('warlog test done')
             #
