@@ -373,7 +373,7 @@ class Cog_War(commands.Cog):
         embed.set_image(url="attachment://war_recap.png")
         if updated == False:
             self.bot.galaxyCanvas.draw_recap()
-            message = await channel.send(embed=embed, file=war_recap)
+            message = await channel.send(embed=embed, files=[war_recap, banner])
             await message.add_reaction("👍🏻")
             await message.add_reaction("👎🏻")
         else:
