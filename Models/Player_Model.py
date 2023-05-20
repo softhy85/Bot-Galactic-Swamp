@@ -1,8 +1,10 @@
-from typing import TypedDict
-from bson.objectid import ObjectId
-from Models.Coord import Coord
-from enum import Enum
 import datetime
+from enum import Enum
+from typing import TypedDict
+
+from bson.objectid import ObjectId
+
+from Models.Coord import Coord
 
 
 class Player_Status(Enum):
@@ -24,5 +26,6 @@ class Player_Model(TypedDict):
     MB_last_attack_time: datetime
     MB_refresh_time: datetime
     colonies_moved: int
+    colonies_moved_bool: bool
     
     

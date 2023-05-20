@@ -54,6 +54,10 @@ class Cog_Refresh(commands.Cog):
         if act_war is not None:
             for it_player in range(0, len(players)):
                 player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(players[it_player]["id_gl"])
+                player_stats: dict = self.bot.galaxyLifeAPI.get_player_stats(players[it_player]["id_gl"])
+                if player_temp["colonies_moved"] !=  player_stats["colonies_moved"]:
+                    player_temp["colonies_moved"] = player_stats["colonies_moved"]
+                    player_temp["colonies_moved_bool"] = True
                 players[it_player]["lvl"] = player_temp["lvl"]
                 players[it_player]["MB_lvl"] = player_temp["MB_lvl"]
                 self.bot.db.update_player(players[it_player])

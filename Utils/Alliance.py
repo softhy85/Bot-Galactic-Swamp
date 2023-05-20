@@ -1,15 +1,17 @@
-import os
 import datetime
+import os
+import re
+from threading import Thread
 from typing import List
 
 import discord
 from bson import ObjectId
 from discord.ext import commands
+
 from Models.Alliance_Model import Alliance_Model
 from Models.Colony_Model import Colony_Model
 from Models.Player_Model import Player_Model
-from threading import Thread
-import re
+
 
 class Alliance:
     bot: commands.Bot = None
@@ -108,6 +110,7 @@ class Alliance:
             act_player: Player_Model = self.bot.db.get_one_player("pseudo", player["Name"])
             if act_player is not None:
                 act_player['colonies_moved'] = player_stats['colonies_moved']
+                act_player['colonies_moved_bool'] = False
                 act_player["_alliance_id"] = act_alliance["_id"]
                 act_player['id_gl'] = int(player['Id'])
                 if not 'online' in act_player:

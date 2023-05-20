@@ -186,8 +186,11 @@ class Dashboard:
             main_planet += 1 
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+            if player['colonies_moved_bool'] == True:
+                await self.log_channel.send(f"> 💢 __Level {player['lvl']}__ **{player['pseudo'].upper()}** has moved a colony !")
+                player['colonies_moved_bool'] = False
             if player["MB_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
-                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: <@&1100856366802927687> `{score_per_base[player['MB_lvl']-1]} pts`")
+                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: `{score_per_base[player['MB_lvl']-1]} pts`")
                 player["MB_status"] = "Up"
                 self.bot.db.update_player(player)
             if player["MB_status"] == "Up":
@@ -200,7 +203,7 @@ class Dashboard:
                     known_colonies += 1 
                     if colo["colo_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
                         print(colo)
-                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']} (SB {colo['colo_lvl'] if 'colo_lvl' in colo else 'x'})** is now back :seedling: <@&1100856366802927687> ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['y']} )`` `{score_per_base[colo['colo_lvl']-1] if 'colo_lvl' in colo else 'x'} pts`")
+                        await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colo['number']} (SB {colo['colo_lvl'] if 'colo_lvl' in colo else 'x'})** is now back :seedling: ``( {colo['colo_coord']['x']} ; {colo['colo_coord']['y']} )`` `{score_per_base[colo['colo_lvl']-1] if 'colo_lvl' in colo else 'x'} pts`")
                         colo["colo_status"] = "Up"
                         self.bot.db.update_colony(colo)
                     if colo["colo_status"] == "Up":
