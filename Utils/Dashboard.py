@@ -186,9 +186,10 @@ class Dashboard:
             main_planet += 1 
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-            if player['colonies_moved_bool'] == True:
-                await self.log_channel.send(f"> 💢 __Level {player['lvl']}__ **{player['pseudo'].upper()}** has moved a colony !")
-                player['colonies_moved_bool'] = False
+            if 'colonies_moved_bool' in player:
+                if player['colonies_moved_bool'] == True:
+                    await self.log_channel.send(f"> 💢 __Level {player['lvl']}__ **{player['pseudo'].upper()}** has moved a colony !")
+                    player['colonies_moved_bool'] = False
             if player["MB_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
                 await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: `{score_per_base[player['MB_lvl']-1]} pts`")
                 player["MB_status"] = "Up"

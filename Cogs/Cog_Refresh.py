@@ -1,15 +1,19 @@
 import asyncio
 import datetime
+import os
+from threading import Thread
+from typing import List
+
 import discord
 from discord import app_commands
-from discord.ext import tasks, commands
-from typing import List
-import os
+from discord.ext import commands, tasks
+
 from Models.Alliance_Model import Alliance_Model
 from Models.Colony_Model import Colony_Model
 from Models.Player_Model import Player_Model
 from Models.War_Model import Status, War_Model
-from threading import Thread
+
+
 class Cog_Refresh(commands.Cog):
     bot: commands.Bot = None
     war_channel_id: int = None
@@ -21,7 +25,8 @@ class Cog_Refresh(commands.Cog):
         self.bot = bot
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
-        self.task_check_war_status.start()
+        if not  self.task_check_war_status.is_running():
+            self.task_check_war_status.start()
 
     #<editor-fold desc="listener">
 
@@ -55,9 +60,10 @@ class Cog_Refresh(commands.Cog):
             for it_player in range(0, len(players)):
                 player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(players[it_player]["id_gl"])
                 player_stats: dict = self.bot.galaxyLifeAPI.get_player_stats(players[it_player]["id_gl"])
-                if player_temp["colonies_moved"] !=  player_stats["colonies_moved"]:
-                    player_temp["colonies_moved"] = player_stats["colonies_moved"]
-                    player_temp["colonies_moved_bool"] = True
+                if "colonies_moved" in players[it_player]:
+                    if players[it_player]["colonies_moved"] !=  player_stats["colonies_moved"]:
+                        players[it_player]["colonies_moved"] = player_stats["colonies_moved"]
+                        player_temp["colonies_moved_bool"] = True
                 players[it_player]["lvl"] = player_temp["lvl"]
                 players[it_player]["MB_lvl"] = player_temp["MB_lvl"]
                 self.bot.db.update_player(players[it_player])

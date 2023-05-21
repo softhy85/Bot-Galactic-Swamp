@@ -76,7 +76,7 @@ class Cog_War(commands.Cog):
         # war_thread: discord.Thread = self.guild.get_thread(int(actual_war["id_thread"]))
         obj: dict = {"_alliance_id": actual_war["_alliance_id"]}
         players: List[Player_Model] = list(self.bot.db.get_players(obj))
-        war_progress = self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
+        war_progress = await self.bot.dashboard.war_progress(actual_war["alliance_name"], players)
         converted_start_time = datetime.datetime.strftime(actual_war["start_time"],  "%Y/%m/%d %H:%M:%S.%f")
         strp_converted_start_time = datetime.datetime.strptime(converted_start_time, "%Y/%m/%d %H:%M:%S.%f")
         converted_actual_date = datetime.datetime.strftime(date,  "%Y/%m/%d %H:%M:%S.%f")

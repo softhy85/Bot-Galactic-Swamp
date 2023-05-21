@@ -31,7 +31,7 @@ class Cog_Scout(commands.Cog):
                     self.new_pos_x = self.new_pos_x + 0.5*int(1000/self.new_zoom)
                 else: 
                     self.new_pos_x = 1000 - 0.5*int(1000/self.new_zoom)
-                self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+                self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
                 new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
                 button_right.callback = button_callback_right
                 embed.clear_fields()
@@ -47,7 +47,7 @@ class Cog_Scout(commands.Cog):
                 self.new_pos_x = self.new_pos_x - 0.5*int(1000/self.new_zoom)
             else: 
                 self.new_pos_x = 0.5*int(1000/self.new_zoom)
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             button_left.callback = button_callback_left
             embed.clear_fields()
@@ -63,7 +63,7 @@ class Cog_Scout(commands.Cog):
                 self.new_pos_y = self.new_pos_y + 0.5*int(1000/self.new_zoom)
             else: 
                 self.new_pos_y = 1000 - 0.5*int(1000/self.new_zoom)
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_down.callback = button_callback_down
@@ -79,7 +79,7 @@ class Cog_Scout(commands.Cog):
                 self.new_pos_y = self.new_pos_y - 0.5*int(1000/self.new_zoom)
             else: 
                 self.new_pos_y = 0.5*int(1000/self.new_zoom)
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_up.callback = button_callback_up
@@ -93,7 +93,7 @@ class Cog_Scout(commands.Cog):
         async def button_callback_zoom_in(interaction):
             if self.new_zoom <= 100:
                 self.new_zoom = self.new_zoom * 2
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             button_zoom_in.callback = button_callback_zoom_in
             embed.clear_fields()
@@ -115,7 +115,7 @@ class Cog_Scout(commands.Cog):
                     self.new_pos_y = 0.5*1000/self.new_zoom
                 if 1000 - self.new_pos_y < 0.5*1000/self.new_zoom:
                     self.new_pos_y = 1000 - 0.5*1000/self.new_zoom
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             button_zoom_out.callback = button_callback_zoom_out
             embed.clear_fields()
@@ -125,6 +125,39 @@ class Cog_Scout(commands.Cog):
 
     def button_change_coords(self, view, embed): 
         button_change_coords = Button(label = f"🎯", style=discord.ButtonStyle.grey)  
+        view.add_item(button_change_coords)
+        async def button_callback_change_coords(interaction):
+            class my_modal(ui.Modal, title='Change Coordinates 🔍'):
+                pos_x=ui.TextInput(label='X coords', style=discord.TextStyle.short, placeholder='eg: 173', default="", required = True, max_length=3)
+                pos_y=ui.TextInput(label='Y coords', style=discord.TextStyle.short, placeholder='eg: 62', default="", required = True, max_length=3)
+                new_zoom = self.new_zoom
+                display_zoom = self.new_zoom
+                new_pos_x = self.new_pos_x
+                new_pos_y = self.new_pos_y
+                def update(canvas):    
+                    size_x =  1000 / self.new_zoom
+                    borders = [int(canvas.pos_x.value), 1000 - int(canvas.pos_x.value), int(canvas.pos_y.value), 1000 - int(canvas.pos_y.value)]
+                    limit_size = min(borders)
+                    if int(limit_size) < 0.5*size_x :
+                        new_zoom_adapted = 1000 / (2*int(limit_size))
+                        self.bot.galaxyCanvas.draw_map(new_zoom_adapted, int(canvas.pos_x.value), int(canvas.pos_y.value)) 
+                        canvas.display_zoom = new_zoom_adapted
+                        self.new_pos_x = int(canvas.pos_x.value)
+                        self.new_pos_y = int(canvas.pos_y.value)
+                    else:
+                        self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, int(canvas.pos_x.value), int(canvas.pos_y.value))         
+                async def on_submit(canvas, interaction):
+                    canvas.update()
+                    new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+                    embed.clear_fields()
+                    embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value='')
+                    self.new_zoom = canvas.display_zoom
+                    await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file])
+            await interaction.response.send_modal(my_modal())
+        button_change_coords.callback = button_callback_change_coords  
+
+    def button_scout_player(self, view, embed): 
+        button_change_coords = Button(label = f"", style=discord.ButtonStyle.grey)  
         view.add_item(button_change_coords)
         async def button_callback_change_coords(interaction):
             class my_modal(ui.Modal, title='Change Coordinates 🔍'):
@@ -161,7 +194,7 @@ class Cog_Scout(commands.Cog):
         view.add_item(button_refresh)
         async def button_callback_refresh(interaction):
             self.bot.galaxyCanvas.update_lists() 
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_refresh.callback = button_callback_refresh
@@ -174,7 +207,7 @@ class Cog_Scout(commands.Cog):
         view.add_item(button_scout)
         async def button_callback_scout(interaction):
             self.bot.galaxyCanvas.update_lists() 
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_scout.callback = button_callback_scout
@@ -182,20 +215,53 @@ class Cog_Scout(commands.Cog):
             await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
         button_scout.callback = button_callback_scout
 
-    def button_complete(self, view, embed):
+    def button_complete_general(self, view, embed):
         button_complete = Button(label = f"✅", style=discord.ButtonStyle.grey)
         view.add_item(button_complete)
         async def button_callback_complete(interaction):
             value_str = str(embed.fields[0].value)
             splitted_value = value_str.split('`')   
             self.bot.galaxyCanvas.mark_area_complete((int(splitted_value[1])-6)/12, (int(splitted_value[3])-3)/6) 
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_complete.callback = button_callback_complete
             embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value=f'Coords to enter: `{scout_x}` : `{scout_y}`')
             await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
         button_complete.callback = button_callback_complete
+
+    def button_complete_player(self, view, embed):
+        button_complete = Button(label = f"✅", style=discord.ButtonStyle.grey)
+        view.add_item(button_complete)
+        async def button_callback_complete_player(interaction):
+            self.bot.galaxyCanvas.update_lists() 
+            zoom, pos_x, pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout_player=self.scout_player, radius=self.radius)
+            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            embed.clear_fields()
+            button_complete.callback = button_callback_complete_player
+            embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {self.new_pos_x}   -   🎯  Y: {self.new_pos_y}       ", value=f"Coords to enter: `{int(self.scout_player['list_x'][-1])}` : `{int(self.scout_player['list_y'][-1])}`")
+            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+        button_complete.callback = button_callback_complete_player
+
+    @app_commands.command(name="scout_player", description="Search around a player's main base to find colonies. This acts as a tool")
+    @app_commands.describe(pos_x="x position", pos_y="y position", radius="How many screen size around the base. Default: 2 ")
+    async def scout_player(self, interaction: discord.Interaction, pos_x: int, pos_y: int, radius: int = 2):
+        await interaction.response.defer()
+        self.bot.galaxyCanvas.update_lists() 
+        zoom = int(1008/(radius*2*12+12+12))
+        scout_player: dict = {'list_x': [], 'list_y': [], 'new_radius':None}
+        self.scout_player = scout_player
+        self.radius = radius
+        zoom, pos_x, pos_y, scout_x, scout_y, scout_player = self.bot.galaxyCanvas.draw_map(zoom, pos_x, pos_y, scout_player=self.scout_player, radius=radius)
+        self.new_zoom = zoom
+        self.new_pos_x = pos_x
+        self.new_pos_y = pos_y
+        embed = discord.Embed()
+        embed.add_field(name=f"🔍 Zoom: {int(self.new_zoom)}   -   🎯  X: {int(self.new_pos_x)}   -   🎯  Y: {int(self.new_pos_y)}       ", value='')
+        view = View(timeout=None) 
+        file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+        self.button_complete_player(view, embed)
+        await interaction.followup.send(embed=embed, file=file, view=view)
         
     @app_commands.command(name="scout", description="How many colonies have been scouted yet")
     @app_commands.describe(zoom="zoom factor", pos_x="x position", pos_y="y position")
@@ -224,7 +290,7 @@ class Cog_Scout(commands.Cog):
                 for player in range(0,len(alliance_dict)):  
                     if alliance_dict[player]["pseudo"] in select.values:
                         selected_players_list.append(alliance_dict[player])
-                self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, selected_players_list)
+                self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, selected_players_list)
                 new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
                 embed.clear_fields()
                 str_names: str = ""
@@ -245,7 +311,7 @@ class Cog_Scout(commands.Cog):
         self.button_zoom_out(view, embed)
         self.button_refresh(view, embed)
         self.button_scout(view, embed)
-        self.button_complete(view, embed)
+        self.button_complete_general(view, embed)
         await interaction.followup.send(embed=embed, file=file, view=view)
     
 async def setup(bot: commands.Bot):

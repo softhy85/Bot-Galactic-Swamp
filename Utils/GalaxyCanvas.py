@@ -1,38 +1,36 @@
-from typing import List
-from dotenv import load_dotenv
-from Utils.DataBase import DataBase
+import asyncio
+import datetime
 import math
-from matplotlib.colors import ListedColormap
+import os
+import random as random
 import re
+import time
+from datetime import datetime
+from typing import List
+
+import discord
 import matplotlib
 import matplotlib as mpl
+import matplotlib.dates as mdates
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from discord.ext import commands
-from Models.Alliance_Model import Alliance_Model
-from Models.Colony_Model import Colony_Model
-from Models.Player_Model import Player_Model
-from Models.Colonies_List_Model import Colonies_List_Model
-from Models.Completed_List_Model import Completed_List_Model
-import os
+from dotenv import load_dotenv
+from matplotlib.colors import ListedColormap
 from matplotlib.patches import Rectangle
-import matplotlib.dates as mdates
-import discord
-from discord.ext import commands
-import datetime
-import time
-from Utils.Dropdown import DropView
-from Models.War_Model import War_Model
-from Models.Alliance_Model import Alliance_Model
-from Models.Player_Model import Player_Model
-from Models.Colony_Model import Colony_Model
-from Models.InfoMessage_Model import InfoMessage_Model
 from pymongo.cursor import Cursor
-from typing import List
+
+from Models.Alliance_Model import Alliance_Model
+from Models.Colonies_List_Model import Colonies_List_Model
+from Models.Colony_Model import Colony_Model
 from Models.Colors import Colors
-from datetime import datetime
-import math
-import asyncio
-import random as random
+from Models.Completed_List_Model import Completed_List_Model
+from Models.InfoMessage_Model import InfoMessage_Model
+from Models.Player_Model import Player_Model
+from Models.War_Model import War_Model
+from Utils.DataBase import DataBase
+from Utils.Dropdown import DropView
+
 load_dotenv()
 
 class GalaxyCanvas:
@@ -73,6 +71,76 @@ class GalaxyCanvas:
     return_value["y"] = list_y_player
     return return_value
 
+  def scout_player(self, scout_player, pos_x, pos_y, zoom, radius):
+    vertical_radius: int = (radius * 12)/6 - 2
+    first_vertical_radius = 1
+    first_radius = 1
+    first_vertical_height = pos_y + first_vertical_radius*6 
+    first_width = pos_x + first_radius*12
+    first_radius_progress = (2*first_radius + 1) * (2*first_vertical_radius + 1)
+    
+    if len(scout_player["list_y"]) < first_radius_progress:
+      width = first_width
+      vertical_radius = first_vertical_radius
+      vertical_height = first_vertical_height
+      radius = first_radius
+    else:
+      if scout_player['new_radius'] == None:
+        scout_player['new_radius'] = 'New'
+      width = pos_x + radius*12
+      vertical_radius = vertical_radius
+      vertical_height = pos_y + vertical_radius*6 
+    if len(scout_player["list_x"]) == 0:
+      scout_player["list_x"] = [pos_x]
+      scout_player["list_y"] = [pos_y]
+    else: 
+      current_progress = len(scout_player['list_x'])
+      if current_progress == 1:
+        scout_player["list_y"].append(pos_y - vertical_radius*6)
+        scout_player["list_x"].append(pos_x - radius*12)
+      else:
+        if scout_player["list_y"][-1] < vertical_height and scout_player['new_radius'] != 'New':
+          it = 1
+          it_height =  1
+          next = False
+          while next == False:
+            next_y_value = scout_player["list_y"][-1] + 6*it
+            next_x_value = scout_player["list_x"][-1]
+            for value in range(0, len(scout_player["list_y"])):
+              next = True
+              if scout_player["list_y"][value-1] == next_y_value:
+                if scout_player["list_x"][value-1] == next_x_value:
+                  it += 1
+                  next = False
+                  if scout_player["list_y"][-1] + 6*it <= vertical_height:
+                    print('?')
+                  elif scout_player["list_x"][-1] + 12 < width:
+                    next_x_value = scout_player["list_x"][-1] + 12*it_height
+                    scout_player["list_y"].append(pos_y - vertical_radius*6)
+                    it = 0
+                  break
+            if next == True:
+              break   
+          scout_player["list_y"].append(next_y_value)   
+          scout_player["list_x"].append(next_x_value)         
+        elif scout_player['new_radius'] != 'New':
+          if scout_player["list_x"][-1] + 12 <= width:
+            next_x_value = scout_player["list_x"][-1] + 12
+            scout_player["list_y"].append(pos_y - vertical_radius*6)
+            scout_player["list_x"].append(next_x_value)
+          else: 
+            if (int(1008*24/zoom) - 1) != first_radius and scout_player['new_radius'] != "Done":
+              next_x_value = pos_x - (int(1008*24/zoom) - 1)*12
+              scout_player["list_y"].append(pos_y - ((radius * 12)/6)*6) 
+            else:
+              scout_player["list_y"].append(0)
+              scout_player["list_x"].append(0)
+              print("completed all the map")
+        else:
+          scout_player["list_y"].append(pos_y - (vertical_radius*6))
+          scout_player["list_x"].append(pos_x - radius*12)
+          scout_player['new_radius'] = "Done"
+    return scout_player
             
   def alliance_colonies(self): 
     api_info = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
@@ -216,8 +284,9 @@ class GalaxyCanvas:
     plt.subplots_adjust(bottom=0, right=1, top=1, left=0)
     plt.savefig('./Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
   
-  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False):
+  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player=None, radius=None):
     obj = None
+    
     list = self.bot.db.get_colonies_list(obj)
     size_x: int = max(list[0]["list"]) / zoom
     size_y: int = max(list[1]["list"]) / zoom
@@ -229,12 +298,17 @@ class GalaxyCanvas:
     ax.locator_params(axis='y', nbins=5)
     cmap = ListedColormap(["#000000","#00163e","#012c79","#012c79", "#0140b0", "#0140b0", "#0244ba", "#0244ba", "#0244ba", "#0244ba"])
     cmap_black = ListedColormap(["#000000"])
-    myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap="inferno",  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+    if scout_player is None:
+      myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap="inferno",  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+    else:
+      ax.add_patch(Rectangle((0, 0), 1008, 1004, facecolor='black'))
     if scout == True:
       pos_x, pos_y, scout_size, scout_x, scout_y = self.locate_area(ax, myHist)
     else:
       scout_x = 0
       scout_y = 0
+    if scout_player is not None:
+      scout_player = self.scout_player(scout_player, pos_x, pos_y, zoom, radius)
     if players_list != None:
       total_list_x: list = []
       total_list_y: list = []
@@ -302,6 +376,11 @@ class GalaxyCanvas:
         max_y = max(list[1]["list"])
       pos_x = (or_x + max_x)/2
       pos_y = (or_y + max_y)/2
+    if scout_player is not None:
+      if len(scout_player['list_x']) > 1:
+        for it in range(0, len(scout_player["list_x"])-1):
+          ax.add_patch(Rectangle(((scout_player["list_x"][it] - 6), scout_player["list_y"][it] - 3), 12, 6, facecolor='#25b373'))
+      ax.add_patch(Rectangle(((scout_player["list_x"][-1] - 6), scout_player["list_y"][-1] - 3), 12, 6, facecolor='none', edgecolor='white', linewidth=3))  
     plt.axis([or_x, max_x, max_y, or_y])
       # if int(pos_x) < 0.5*size_x :
       #     pos_x =  0.5*size_x
@@ -316,4 +395,4 @@ class GalaxyCanvas:
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
     plt.savefig('./Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
-    return (int(zoom), pos_x, pos_y, scout_x, scout_y)
+    return (int(zoom), pos_x, pos_y, scout_x, scout_y, scout_player)
