@@ -83,7 +83,7 @@ class Cog_Alliance(commands.Cog):
                 total_size: int = 0
                 field_count: int = 0
         if answer != "":
-            embed.add_field(name='Other colonies', value="*(might be innacurate)*")
+            embed.add_field(name='Other colonies', value="*(might be imprecise)*")
             embed.add_field(name=' ', value=answer, inline=False)
         embed.description = f"({colo_count} colonies)"
         if total_size != 0:
