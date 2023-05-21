@@ -53,6 +53,7 @@ class Cog_Alliance(commands.Cog):
         if alliance_info == None:
             await interaction.followup.send(f"> The alliance called **{alliance}** doesnt exist in the database... Did you spell it correctly ? 👀")
         alliance_api_info = self.bot.galaxyLifeAPI.get_alliance(alliance_info["name"])
+        colo_found_number: List[Colony_Model] = list(self.bot.db.get_all_found_colonies())
         obj: dict = {"_alliance_id": alliance_info["_id"]}
         players: List[Player_Model] = self.bot.db.get_players(obj)
         embed: discord.Embed = discord.Embed(title=f"{alliance_info['name']}", description="", color=discord.Color.from_rgb(8, 1, 31))
@@ -60,6 +61,7 @@ class Cog_Alliance(commands.Cog):
         total_size: int = 0
         field_count: int = 0
         colo_count: int = 0
+        answer: str = ""
         for player in players:
             value: str = ""
             obj: dict = {"_player_id": player["_id"]}
@@ -69,18 +71,25 @@ class Cog_Alliance(commands.Cog):
                     value = value + f"\n🪐 n° **{colo['number']}**  - SB {colo['colo_lvl']}:\n `{colo['colo_sys_name']} ({colo['colo_coord']['x']} :{colo['colo_coord']['y']})` \n"
                     colo_count += 1
             if value != "": 
-                embed.add_field(name=f"\n✅ {player['pseudo']}",value=value, inline=False)
+                embed.add_field(name=f"\n✅ {player['pseudo']}", value=value, inline=False)
                 field_count += 1
             total_size += len(value) + len(player) + 5
+            for it in range(len(colo_found_number)):
+                if int(colo_found_number[it]["gl_id"]) == int(player["id_gl"]):
+                    answer = answer + f"> ✅ **{player['pseudo']}** : \n🪐 `({colo_found_number[it]['X']} ; {colo_found_number[it]['Y']})`\n"
             if total_size >= 2500 or field_count >= 20:
                 await interaction.followup.send(embed=embed)
                 embed: discord.Embed = discord.Embed(title="", description="", color=discord.Color.from_rgb(8, 1, 31)) 
                 total_size: int = 0
                 field_count: int = 0
+        if answer != "":
+            embed.add_field(name='Other colonies', value="*(might be innacurate)*")
+            embed.add_field(name=' ', value=answer, inline=False)
         embed.description = f"({colo_count} colonies)"
         if total_size != 0:
             await interaction.followup.send(embed=embed)
 
+    
     @app_commands.command(name="alliance_infos", description="Informations and stats about an alliance")
     @app_commands.describe(alliance="Alliance's name")
     @app_commands.autocomplete(alliance=autocomplete.alliance_autocomplete)

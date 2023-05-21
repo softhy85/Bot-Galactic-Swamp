@@ -11,6 +11,7 @@ from Models.Player_Model import Player_Model
 from Models.War_Model import War_Model
 from Utils.Autocomplete import Autocomplete
 
+
 class Cog_Colony(commands.Cog):
     guild: discord.Guild = None
     bot: commands.bot = None
@@ -99,19 +100,6 @@ class Cog_Colony(commands.Cog):
             await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁")
             await interaction.response.send_message(f"> The free state of colony n°{act_colony['number']} of {pseudo} has been updated. 🎁")
             
-    @app_commands.command(name="colo_found_alliance", description="Find possible colonies in foundcolonies")
-    @app_commands.describe(alliance="alliance name")
-    async def colos_scouted(self, interaction: discord.Interaction, alliance: str):
-        await interaction.response.defer()
-        colo_found_number: List[Colony_Model] = list(self.bot.db.get_all_found_colonies())
-        allianceDetails = self.bot.galaxyLifeAPI.get_alliance(alliance)
-        for it_alliance in range(allianceDetails['alliance_size']):
-            playerName = allianceDetails['members_list'][it_alliance]['Name']
-            playerId = allianceDetails['members_list'][it_alliance]['Id']
-            for it in range(len(colo_found_number)):
-                if int(colo_found_number[it]["gl_id"]) == int(playerId):
-                    await interaction.followup.send(f"> 🪐 **__(SB x):__**\n/colo_update pseudo:{playerName} colo_number:  colo_sys_name:  colo_coord_x:{colo_found_number[it]['X']} colo_coord_y:{colo_found_number[it]['Y']}\n")  
-        
     #</editor-fold>
 
 async def setup(bot: commands.Bot):
