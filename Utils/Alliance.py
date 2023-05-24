@@ -150,3 +150,12 @@ class Alliance:
         t: Thread = Thread(target=self.update_alliance_from_api, args=(alliance,), kwargs={'act_alliance':act_alliance}) 
         t.start()
         return act_alliance
+    
+    async def update_alliance_war(self, alliance: str):
+        act_alliance: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())
+        if act_alliance is None:
+            act_alliance = await self.add_alliance(alliance)
+            if act_alliance is None:
+                return None
+        self.update_alliance_from_api(alliance, act_alliance) 
+        return act_alliance

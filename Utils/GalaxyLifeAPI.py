@@ -1,7 +1,9 @@
-import discord
 import json
-import requests
 import os
+
+import discord
+import requests
+
 
 class GalaxyLifeAPI:
     url_gl: str 
@@ -72,6 +74,9 @@ class GalaxyLifeAPI:
                     it += 1
                 return_value[f"{it}"] = alliance + 1
                 break
+        if return_value is None:
+            return_value["0"] = None
+            return_value["1"] = leaderboard[50]
         return return_value
     
     def get_player_infos_from_name(self, player_name):

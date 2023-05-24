@@ -171,7 +171,7 @@ class Cog_War(commands.Cog):
             await self.command_channel.send(f"We are already at war with {actual_war['alliance_name']}.")
             return
         print('War_Infos: Updating Alliance...')
-        act_alliance: Alliance_Model = await self.bot.alliance.update_alliance(alliance)
+        act_alliance: Alliance_Model = await self.bot.alliance.update_alliance_war(alliance)
         await self.command_channel.send("> New war started.")
         api_alliance_en = self.bot.galaxyLifeAPI.get_alliance(alliance)
         api_alliance_gs = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
@@ -180,7 +180,7 @@ class Cog_War(commands.Cog):
         enemy_size: int =  api_alliance_en["alliance_size"]
         ally_size: int =  api_alliance_gs["alliance_size"]
         if enemy_size >= ally_size + 5:
-            refresh_duration = 6
+            refresh_duration = 3
         elif enemy_size <= ally_size :
             refresh_duration = 3
         else:
@@ -296,11 +296,14 @@ class Cog_War(commands.Cog):
         return_value = {}
         leaderboard: dict = self.bot.galaxyLifeAPI.get_alliance_leaderboard()
         leaderboard_name: str = f"📈 Current Rank: "
-        leaderboard_value: str = (f"```ansi\n\u001b[0;0m{leaderboard['3']-2}# ⏫ {leaderboard['-2']['Name']}:    +\u001b[0;31m{leaderboard['-2']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
-                      f"\n{leaderboard['3']-1}# 🔼 {leaderboard['-1']['Name']}:    +\u001b[0;31m{leaderboard['-1']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
-                      f"\n{leaderboard['3']}# ✅ {leaderboard['0']['Name']}:    -------"+
-                      f"\n{leaderboard['3']+1}# 🔽 {leaderboard['1']['Name']}:    -\u001b[0;30m{abs(leaderboard['1']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m"+
-                      f"\n{leaderboard['3']+2}# ⏬ {leaderboard['2']['Name']}:    -\u001b[0;30m{abs(leaderboard['2']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m```")
+        if leaderboard["0"] is not None:
+            leaderboard_value: str = (f"```ansi\n\u001b[0;0m{leaderboard['3']-2}# ⏫ {leaderboard['-2']['Name']}:    +\u001b[0;31m{leaderboard['-2']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
+                        f"\n{leaderboard['3']-1}# 🔼 {leaderboard['-1']['Name']}:    +\u001b[0;31m{leaderboard['-1']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
+                        f"\n{leaderboard['3']}# ✅ {leaderboard['0']['Name']}:    -------"+
+                        f"\n{leaderboard['3']+1}# 🔽 {leaderboard['1']['Name']}:    -\u001b[0;30m{abs(leaderboard['1']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m"+
+                        f"\n{leaderboard['3']+2}# ⏬ {leaderboard['2']['Name']}:    -\u001b[0;30m{abs(leaderboard['2']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m```")
+        else:
+            leaderboard_value: str = f"```The alliance is under the top 50. Dashboard is deactivated.\nTop 50: {leaderboard['1']['Name']} : {leaderboard['1']['Warpoints']} ```"
         return_value["name"] = leaderboard_name
         return_value["value"] = leaderboard_value
         return return_value
