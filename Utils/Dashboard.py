@@ -230,12 +230,9 @@ class Dashboard:
         if 'ally_initial_score' in war_infos:
             return_value["ally_alliance_score"] = ally_alliance['alliance_score'] - war_infos['ally_initial_score']
             return_value["enemy_alliance_score"] = enemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
-            #
-            print('warlog test')
             war_log: dict = self.bot.db.get_warlog()
             if war_log:
                 if war_log['enemy_score'][len(war_log['enemy_score'])-1] != return_value['enemy_alliance_score'] or war_log['ally_score'][len(war_log['ally_score'])-1] != return_value['ally_alliance_score']:  
-                    print('appending enemy score')
                     war_log['enemy_score'].append(return_value["enemy_alliance_score"])
                     war_log['ally_score'].append(return_value["ally_alliance_score"])
                     war_log['timestamp'].append(time)
@@ -243,13 +240,9 @@ class Dashboard:
                     if war_log['enemy_score'][len(war_log['enemy_score'])-2] < war_log['ally_score'][len(war_log['ally_score'])-2] and war_log['enemy_score'][len(war_log['enemy_score'])-1] > war_log['ally_score'][len(war_log['ally_score'])-1]:
                         print('Alert. Beating Us')
                         await self.war_channel.send(f"> ⚠️ Alert : The enemy is beating us !! ⚠️")
-                else:
-                    print('score didnt evolve')
             else:
                 war_log: dict = {'name': 'warlog', 'enemy_name': alliance, 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": [time]}
                 self.bot.db.push_warlog(war_log)
-            print('warlog test done')
-            #
         else: 
             return_value["ally_alliance_score"] = "x"
             return_value["enemy_alliance_score"] = "x"

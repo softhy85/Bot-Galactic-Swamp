@@ -89,7 +89,7 @@ class Select(discord.ui.Select):
                 menu_label += Emoji.more.value
                 break
             else:
-                if colony["updated"] or (colony["colo_coord"]["x"] > -1 and colony["colo_coord"]["y"] > -1 and colony["colo_sys_name"] != "-1"):
+                if colony["updated"] or (colony["colo_coord"]["x"] > -1 and colony["colo_coord"]["y"] > -1):
                     if colony["colo_status"] == "Down" :
                         colo_refresh_date: datetime.datetime = colony['colo_refresh_time']
                         if colo_refresh_date.date() == act_date.date() and colo_refresh_date.time() > act_date.time():
@@ -171,13 +171,13 @@ class Select(discord.ui.Select):
                     else:
                         menu_emoji = Emoji.down.value
                     menu_label = f"{colony['colo_sys_name'].upper()}"
-                    if colony['colo_sys_name'] == "?":
+                    if colony['colo_sys_name'] == "?" or colony['colo_sys_name'] == "-1":
                         menu_label = "Unknown System"
                     date_refresh: datetime.datetime = colony['colo_refresh_time']
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) - (Back at {date_refresh.strftime('%H:%M:%S')})"
                 else :
                     menu_label = f"{colony['colo_sys_name'].upper()}"
-                    if colony['colo_sys_name'] == "?":
+                    if colony['colo_sys_name'] == "?" or colony['colo_sys_name'] == "-1":
                         menu_label = "Unknown System"
                     menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
                     if "gift_state" in colony:

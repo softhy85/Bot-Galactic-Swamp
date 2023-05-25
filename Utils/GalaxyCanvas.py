@@ -71,75 +71,19 @@ class GalaxyCanvas:
     return_value["y"] = list_y_player
     return return_value
 
-  def scout_player(self, scout_player, pos_x, pos_y, zoom, radius):
-    vertical_radius: int = (radius * 12)/6 - 2
-    first_vertical_radius = 1
-    first_radius = 1
-    first_vertical_height = pos_y + first_vertical_radius*6 
-    first_width = pos_x + first_radius*12
-    first_radius_progress = (2*first_radius + 1) * (2*first_vertical_radius + 1)
-    
-    if len(scout_player["list_y"]) < first_radius_progress:
-      width = first_width
-      vertical_radius = first_vertical_radius
-      vertical_height = first_vertical_height
-      radius = first_radius
-    else:
-      if scout_player['new_radius'] == None:
-        scout_player['new_radius'] = 'New'
-      width = pos_x + radius*12
-      vertical_radius = vertical_radius
-      vertical_height = pos_y + vertical_radius*6 
-    if len(scout_player["list_x"]) == 0:
-      scout_player["list_x"] = [pos_x]
-      scout_player["list_y"] = [pos_y]
-    else: 
-      current_progress = len(scout_player['list_x'])
-      if current_progress == 1:
-        scout_player["list_y"].append(pos_y - vertical_radius*6)
-        scout_player["list_x"].append(pos_x - radius*12)
-      else:
-        if scout_player["list_y"][-1] < vertical_height and scout_player['new_radius'] != 'New':
-          it = 1
-          it_height =  1
-          next = False
-          while next == False:
-            next_y_value = scout_player["list_y"][-1] + 6*it
-            next_x_value = scout_player["list_x"][-1]
-            for value in range(0, len(scout_player["list_y"])):
-              next = True
-              if scout_player["list_y"][value-1] == next_y_value:
-                if scout_player["list_x"][value-1] == next_x_value:
-                  it += 1
-                  next = False
-                  if scout_player["list_y"][-1] + 6*it <= vertical_height:
-                    print('?')
-                  elif scout_player["list_x"][-1] + 12 < width:
-                    next_x_value = scout_player["list_x"][-1] + 12*it_height
-                    scout_player["list_y"].append(pos_y - vertical_radius*6)
-                    it = 0
-                  break
-            if next == True:
-              break   
-          scout_player["list_y"].append(next_y_value)   
-          scout_player["list_x"].append(next_x_value)         
-        elif scout_player['new_radius'] != 'New':
-          if scout_player["list_x"][-1] + 12 <= width:
-            next_x_value = scout_player["list_x"][-1] + 12
-            scout_player["list_y"].append(pos_y - vertical_radius*6)
-            scout_player["list_x"].append(next_x_value)
-          else: 
-            if (int(1008*24/zoom) - 1) != first_radius and scout_player['new_radius'] != "Done":
-              next_x_value = pos_x - (int(1008*24/zoom) - 1)*12
-              scout_player["list_y"].append(pos_y - ((radius * 12)/6)*6) 
-            else:
-              scout_player["list_y"].append(0)
-              scout_player["list_x"].append(0)
-              print("completed all the map")
-        else:
-          scout_player["list_y"].append(pos_y - (vertical_radius*6))
-          scout_player["list_x"].append(pos_x - radius*12)
-          scout_player['new_radius'] = "Done"
+  def scout_player(self, scout_player_step, pos_x, pos_y, zoom):
+    list_step = {'x': [0, -1, -1, -1, 0, 0, 1, 1, 1, -2, -2, -2, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 2, 2, 2 ],
+                 'y': [0, -1, 0, 1, -1, 1, -1, 0, 1, -2, -1, 0, 1, 2, -2, 2, -2, 2, -2, -2, -2, -1, 0, 1, 2]
+                 }
+    screen_width = 12
+    screen_height = 6
+    scout_player: dict = {}
+    scout_player['list_x'] = []
+    scout_player['list_y'] = []
+    for it in range(0, scout_player_step + 1):
+      scout_player['list_x'].append(pos_x + list_step["x"][it]* screen_width)
+      scout_player['list_y'].append(pos_y + list_step["y"][it]* screen_height)
+    scout_player['step'] = scout_player_step + 1
     return scout_player
             
   def alliance_colonies(self): 
@@ -284,9 +228,8 @@ class GalaxyCanvas:
     plt.subplots_adjust(bottom=0, right=1, top=1, left=0)
     plt.savefig('./Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
   
-  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player=None, radius=None):
+  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None, id=None):
     obj = None
-    
     list = self.bot.db.get_colonies_list(obj)
     size_x: int = max(list[0]["list"]) / zoom
     size_y: int = max(list[1]["list"]) / zoom
@@ -298,7 +241,7 @@ class GalaxyCanvas:
     ax.locator_params(axis='y', nbins=5)
     cmap = ListedColormap(["#000000","#00163e","#012c79","#012c79", "#0140b0", "#0140b0", "#0244ba", "#0244ba", "#0244ba", "#0244ba"])
     cmap_black = ListedColormap(["#000000"])
-    if scout_player is None:
+    if scout_player_step is None:
       myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap="inferno",  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
     else:
       ax.add_patch(Rectangle((0, 0), 1008, 1004, facecolor='black'))
@@ -307,8 +250,8 @@ class GalaxyCanvas:
     else:
       scout_x = 0
       scout_y = 0
-    if scout_player is not None:
-      scout_player = self.scout_player(scout_player, pos_x, pos_y, zoom, radius)
+    if scout_player_step is not None:
+      scout_player = self.scout_player(scout_player_step, pos_x, pos_y, zoom)
     if players_list != None:
       total_list_x: list = []
       total_list_y: list = []
@@ -394,5 +337,10 @@ class GalaxyCanvas:
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
-    plt.savefig('./Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
+    if id == None:
+      id = ''
+    else:
+      id = '_' + id
+    plt.savefig('./Image/scout_map'+ id +'.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
+    plt.close('all')
     return (int(zoom), pos_x, pos_y, scout_x, scout_y, scout_player)

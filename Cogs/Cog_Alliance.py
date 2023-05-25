@@ -67,8 +67,12 @@ class Cog_Alliance(commands.Cog):
             obj: dict = {"_player_id": player["_id"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             for colo in colonies:
+                if colo['colo_sys_name'] != "-1":
+                    colo_sys_name: str = colo['colo_sys_name']
+                else:
+                    colo_sys_name: str = "Unknown System"
                 if colo['colo_coord']['x'] != -1:
-                    value = value + f"\n🪐 n° **{colo['number']}**  - SB {colo['colo_lvl']}:\n `{colo['colo_sys_name']} ({colo['colo_coord']['x']} :{colo['colo_coord']['y']})` \n"
+                    value = value + f"\n🪐 n° **{colo['number']}**  - SB {colo['colo_lvl']}:\n `{colo_sys_name} ({colo['colo_coord']['x']} :{colo['colo_coord']['y']})` \n"
                     colo_count += 1
             if value != "": 
                 embed.add_field(name=f"\n✅ {player['pseudo']}", value=value, inline=False)
