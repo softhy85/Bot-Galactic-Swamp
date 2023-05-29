@@ -73,7 +73,7 @@ class GalaxyCanvas:
 
   def scout_player(self, scout_player_step, pos_x, pos_y, zoom):
     list_step = {'x': [0, -1, -1, -1, 0, 0, 1, 1, 1, -2, -2, -2, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 2, 2, 2 ],
-                 'y': [0, -1, 0, 1, -1, 1, -1, 0, 1, -2, -1, 0, 1, 2, -2, 2, -2, 2, -2, -2, -2, -1, 0, 1, 2]
+                 'y': [0, -1, 0, 1, -1, 1, -1, 0, 1, -2, -1, 0, 1, 2, -2, 2, -2, 2, -2, 2, -2, -1, 0, 1, 2]
                  }
     screen_width = 12
     screen_height = 6
@@ -228,8 +228,9 @@ class GalaxyCanvas:
     plt.subplots_adjust(bottom=0, right=1, top=1, left=0)
     plt.savefig('./Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
   
-  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None, id=None):
+  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None):
     obj = None
+    print('enters')
     list = self.bot.db.get_colonies_list(obj)
     size_x: int = max(list[0]["list"]) / zoom
     size_y: int = max(list[1]["list"]) / zoom
@@ -250,8 +251,11 @@ class GalaxyCanvas:
     else:
       scout_x = 0
       scout_y = 0
+    print('then')
     if scout_player_step is not None:
       scout_player = self.scout_player(scout_player_step, pos_x, pos_y, zoom)
+    else:
+      scout_player = None
     if players_list != None:
       total_list_x: list = []
       total_list_y: list = []
@@ -284,7 +288,6 @@ class GalaxyCanvas:
         max_x = max(list[0]["list"])
       if max_y > max(list[1]["list"]):
         max_y = max(list[1]["list"])
-      # print(f"window: ({pos_x - temp_size_x - 40};{pos_y - temp_size_y - 40} - ({pos_x + temp_size_x + 40};{pos_y + temp_size_y + 40}")
     elif scout == True:
       or_x = pos_x - scout_size*12
       max_x = pos_x + scout_size*12
@@ -319,28 +322,16 @@ class GalaxyCanvas:
         max_y = max(list[1]["list"])
       pos_x = (or_x + max_x)/2
       pos_y = (or_y + max_y)/2
-    if scout_player is not None:
+    if scout_player_step is not None:
       if len(scout_player['list_x']) > 1:
         for it in range(0, len(scout_player["list_x"])-1):
           ax.add_patch(Rectangle(((scout_player["list_x"][it] - 6), scout_player["list_y"][it] - 3), 12, 6, facecolor='#25b373'))
       ax.add_patch(Rectangle(((scout_player["list_x"][-1] - 6), scout_player["list_y"][-1] - 3), 12, 6, facecolor='none', edgecolor='white', linewidth=3))  
     plt.axis([or_x, max_x, max_y, or_y])
-      # if int(pos_x) < 0.5*size_x :
-      #     pos_x =  0.5*size_x
-      # if int(pos_y) < 0.5*size_y :
-      #   pos_y =  0.5*size_y
-      # if int(pos_x) > 1008 - 0.5*size_x :
-      #   pos_x =  1008 - 0.5*size_x
-      # if int(pos_y) > 1002 - 0.5*size_y :
-      #   pos_y =  1002 - 0.5*size_y
     plt.scatter(list[0]["list"], list[1]["list"], color = '#c88944', alpha=1, s=1*zoom)
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
-    if id == None:
-      id = ''
-    else:
-      id = '_' + id
-    plt.savefig('./Image/scout_map'+ id +'.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
+    plt.savefig('./Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
     plt.close('all')
     return (int(zoom), pos_x, pos_y, scout_x, scout_y, scout_player)

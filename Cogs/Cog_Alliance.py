@@ -46,7 +46,7 @@ class Cog_Alliance(commands.Cog):
     @app_commands.command(name="alliance_colonies", description="Get all colonies from an alliance")
     @app_commands.describe(alliance="Alliance's name")
     @app_commands.autocomplete(alliance=autocomplete.alliance_autocomplete)
-    @app_commands.checks.has_any_role('Admin')
+    @app_commands.checks.has_any_role('Admin','Assistant')
     async def alliance_colonies(self, interaction: discord.Interaction,  alliance: str): 
         await interaction.response.defer()
         alliance_info: Alliance_Model = self.bot.db.get_one_alliance("name", alliance.upper())

@@ -98,7 +98,7 @@ class Cog_Scout(commands.Cog):
         self.new_zoom = int(splitted_name[1])
         self.new_pos_x = int(splitted_name[3])
         self.new_pos_y = int(splitted_name[5])    
-        if embed.fields[0].value != None:
+        if embed.fields[0].value:
             value_str = str(embed.fields[0].value)
             splitted_value = value_str.split('`')  
             self.scout_player_step = int(splitted_value[5])
