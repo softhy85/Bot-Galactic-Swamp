@@ -246,7 +246,7 @@ class GalaxyCanvas:
     cmap = ListedColormap(["#000000","#00163e","#012c79","#012c79", "#0140b0", "#0140b0", "#0244ba", "#0244ba", "#0244ba", "#0244ba"])
     cmap_black = ListedColormap(["#000000"])
     if scout_player_step is None:
-      myHist, xedges, yedges, image  = plt.hist2d(list_all['x'], list_all["y"], bins=[84,167], cmap=cmap,  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+      myHist, xedges, yedges, image  = plt.hist2d(list_all['x'], list_all["y"], bins=[84,167], cmap='inferno',  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
     else:
       ax.add_patch(Rectangle((0, 0), 1008, 1004, facecolor='black'))
     if scout == True:
