@@ -34,6 +34,7 @@ class Select(discord.ui.Select):
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
         status_emoji: str = Emoji.offline.value
+        troop_list = ["Falcons","Colossus", "Wasps", "Zepellins", "Falcons / Colossus","Colossus / Menders", "Unknown"]
         if player["online"] == 2:
             status_emoji = Emoji.online.value 
             player["MB_refresh_time"] = self.date
@@ -146,10 +147,12 @@ class Select(discord.ui.Select):
                 menu_emoji = Emoji.down.value
             menu_label = f"Main Base {scout_state}"
             date_refresh: datetime.datetime = player['MB_refresh_time']
-            menu_description = f"SB ({player_MB_lvl}) - (Back at {date_refresh.strftime('%H:%M:%S')}) - 🪐 {colonies_moved} colonie(s) moved"
+            menu_description = f"SB {player_MB_lvl} - ♻️ Up: {date_refresh.strftime('%H:%M')} - 🪐 {colonies_moved} moved"
         else :
             menu_label = f"Main Base {scout_state}"
-            menu_description = f"SB ({player_MB_lvl}) - 🪐 {colonies_moved} colonie(s) moved"
+            menu_description = f"SB {player_MB_lvl} - 🪐 {colonies_moved} moved"
+            if 'bunker_troops' in player:
+                menu_description = menu_description + f" - 🛡️ {troop_list[player['bunker_troops']]}"
             menu_emoji = Emoji.SB.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
@@ -174,12 +177,14 @@ class Select(discord.ui.Select):
                     if colony['colo_sys_name'] == "?" or colony['colo_sys_name'] == "-1":
                         menu_label = "Unknown System"
                     date_refresh: datetime.datetime = colony['colo_refresh_time']
-                    menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']}) - (Back at {date_refresh.strftime('%H:%M:%S')})"
+                    menu_description = f"SB {colony['colo_lvl']} - ({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - ♻️ Up: {date_refresh.strftime('%H:%M')}"
                 else :
                     menu_label = f"{colony['colo_sys_name'].upper()}"
                     if colony['colo_sys_name'] == "?" or colony['colo_sys_name'] == "-1":
                         menu_label = "Unknown System"
-                    menu_description = f"({colony['colo_coord']['x']} ; {colony['colo_coord']['y']}) - SB ({colony['colo_lvl']})"
+                    menu_description = f"SB {colony['colo_lvl']} - ({colony['colo_coord']['x']} ; {colony['colo_coord']['y']})"
+                    if 'bunker_troops' in colony:
+                        menu_description = menu_description + f" - 🛡️ {troop_list[colony['bunker_troops']]}"
                     if "gift_state" in colony:
                         if colony["gift_state"] != "Not Free":  
                             menu_emoji = Emoji.gift.value
@@ -188,8 +193,8 @@ class Select(discord.ui.Select):
                     else:
                         menu_emoji = Emoji.colo.value
             else:
-                menu_label = f" ?????"
-                menu_description = f"( ? ; ? ) - SB ({colony['colo_lvl']})"
+                menu_label = f" ????? ( ? ; ? )"
+                menu_description = f"SB {colony['colo_lvl']}"
                 menu_emoji = Emoji.colo_empty.value
             if colony["number"] <= 12:
                 player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "colony" + ";" + str(colony["_id"])))

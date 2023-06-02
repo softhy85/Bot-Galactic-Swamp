@@ -61,7 +61,7 @@ class Autocomplete:
             if len(current) >= 4:
                 players = self.bot.galaxyLifeAPI.search_for_player(current)
                 if players:
-                    players = players + temp_pseudo
+                    players = players[0:23] + temp_pseudo
                     return [
                         app_commands.Choice(name=players[it]["Name"], value=players[it]["Name"])
                         for it in range(0, len(players))
@@ -76,7 +76,7 @@ class Autocomplete:
             else:
                 obj: dict = {"_alliance_id": act_war["_alliance_id"], "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
             players: List[Player_Model] = list(self.bot.db.get_players(obj))
-            players = players[0:25]
+            players = players[0:24]
             temp_pseudo[0]["pseudo"] = return_player["temp_pseudo"]
             players = players + list(temp_pseudo)
             return [
@@ -100,6 +100,25 @@ class Autocomplete:
     async def player_state_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
         data = []
         for choice in [f"🛡️ Bunker MB", "🛡️ All Bunkers", "♻️ Reset", "🕸️ AFK", "❓ Unknown" ]:
+            data.append(app_commands.Choice(name=choice, value=choice))
+        return data
+    
+    async def planet_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
+        data = []
+        pseudo = interaction.namespace.pseudo
+        player: Player_Model = self.bot.db.get_one_player("pseudo", {"$regex": re.compile("^" + pseudo + "$", re.IGNORECASE)}) 
+        obj: dict = {"id_gl": int(player['id_gl'])} 
+        colos: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+        colos.sort(key=lambda item: item.get("number"))
+        data.append(app_commands.Choice(name='🌍 Main Base', value='0'))
+        for colo in colos:
+            if colo['updated']:
+                data.append(app_commands.Choice(name=f'{Emoji.updated.value if colo["updated"] and colo["colo_status"] == "Up" else Emoji.down.value if colo["updated"] and colo["colo_status"] == "Down" else Emoji.native.value} Colo n°{colo["number"]} (SB{colo["colo_lvl"]}) {colo["colo_sys_name"] if colo["updated"] else ""} {colo["colo_coord"]["x"] if colo["updated"] else ""} {colo["colo_coord"]["y"] if colo["updated"] else ""}', value=str(colo["number"])))    
+        return data
+    
+    async def troop_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]: 
+        data = []
+        for choice in ["🛩️ Falcons","🚛 Colossus", "⚡ Wasps", "💣 Zepellins", "🚛🛩️ Falcons / Colossus","🚛⛑️ Colossus / Menders", "❓ Other"]:
             data.append(app_commands.Choice(name=choice, value=choice))
         return data
     

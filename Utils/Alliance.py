@@ -90,11 +90,9 @@ class Alliance:
         self.bot.db.update_alliance(act_alliance)
         obj: dict = {"_alliance_id": act_alliance["_id"]}
         db_players: List[Player_Model] = self.bot.db.get_players(obj)
-        print(api_alliance_info["members_list"])
         for index, player in enumerate(api_alliance_info["members_list"]):
             if player["Name"].upper() == return_player['temp_pseudo'].upper():
                 api_alliance_info["members_list"].insert(0, api_alliance_info["members_list"].pop(index))
-                print(api_alliance_info['members_list'])
                 break
         for db_player in db_players:
             player_is_in_api: bool = False
@@ -105,6 +103,7 @@ class Alliance:
                 db_player["_alliance_id"] = None
                 self.bot.db.update_player(db_player)
         for player in api_alliance_info["members_list"]:
+            player_war_info: dict = next(item for item in api_alliance_info['members_list'] if item["Name"] == f"{player['Name']}")
             player_stats: dict = self.bot.galaxyLifeAPI.get_player_stats(player["Id"])
             player_api: dict = self.bot.galaxyLifeAPI.get_player_infos(player["Id"])
             act_player: Player_Model = self.bot.db.get_one_player("pseudo", player["Name"])
@@ -126,10 +125,14 @@ class Alliance:
                     act_player['MB_refresh_time'] = date
                 if not 'colonies_moved' in act_player:
                     act_player['colonies_moved'] = player_stats['colonies_moved']
+                if not 'last_attack_time' in act_player:
+                    act_player['last_attack_time'] =  date - datetime.timedelta(hours=1)
+                act_player['war_points_delta'] = 0
+                act_player['total_war_points'] = player_war_info['WarPoints']
                 self.bot.db.update_player(act_player)
                 self.update_colonies_from_api(act_alliance["_id"], act_player)
             else:
-                new_player: Player_Model = {'_alliance_id': act_alliance["_id"], 'pseudo': player["Name"], "lvl": player_api["lvl"],  'id_gl': int(player["Id"]), 'MB_lvl':player_api['MB_lvl'], 'MB_status': 'Up', 'MB_last_attack_time': date, 'MB_refresh_time': date, 'bunker_full': False, 'colonies_moved': player_stats['colonies_moved'], 'online': 0}
+                new_player: Player_Model = {'_alliance_id': act_alliance["_id"], 'pseudo': player["Name"], "lvl": player_api["lvl"],  'id_gl': int(player["Id"]), 'MB_lvl':player_api['MB_lvl'], 'MB_status': 'Up', 'last_attack_time': date - datetime.timedelta(hours=1),'MB_last_attack_time': date, 'MB_refresh_time': date, 'bunker_full': False, 'colonies_moved': player_stats['colonies_moved'], 'online': 0, 'total_war_points':player_war_info['WarPoints'], 'war_points_delta': 0}
                 act_player = self.bot.db.push_new_player(new_player)
                 if act_player is None:
                     continue

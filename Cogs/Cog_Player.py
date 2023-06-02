@@ -118,6 +118,36 @@ class Cog_Player(commands.Cog):
             self.bot.db.update_player(return_player)
             await interaction.response.send_message(f"> Player **{pseudo}** has been set to {player_state}.")
 
+    @app_commands.command(name="player_bunkers", description="Update player's bunkers state")
+    @app_commands.describe(pseudo="Player's username", planet='Mb or colony', troops="Troop inside the bunkers")
+    @app_commands.autocomplete(pseudo=autocomplete.player_war_autocomplete, planet=autocomplete.planet_autocomplete, troops=autocomplete.troop_autocomplete)
+    @app_commands.checks.has_any_role('Admin', 'Assistant')
+    async def player_bunkers(self, interaction: discord.Interaction, pseudo: str, planet: str, troops: str):
+        return_player: Player_Model = self.bot.db.get_one_player("pseudo", pseudo)
+        troop_list = ["🛩️ Falcons","🚛 Colossus", "⚡ Wasps", "💣 Zepellins", "🚛🛩️ Falcons / Colossus","🚛⛑️ Colossus / Menders", "❓ Other"]
+        planet_list = ["🌍 main base", "🪐 n°1", "🪐 n°2", "🪐 n°3", "🪐 n°4", "🪐 n°5", "🪐 n°6", "🪐 n°7",
+                     "🪐 n°8", "🪐 n°9", "🪐 n°10", "🪐 n°11"]
+        if return_player is None:
+            await interaction.response.send_message(f"> **{pseudo}** doesnt exist in the database... Did you spell it correctly ? 👀")
+        else:
+            if int(planet) == 0:
+                for it in range(0, len(troop_list)):
+                    if troops == troop_list[it]:
+                        return_player['bunker_troops'] = it
+                self.bot.db.update_player(return_player)
+                print(return_player)
+            print(pseudo)
+            print(planet)
+            print(troops)
+            if int(planet) > 0:
+                colony: Colony_Model = list(self.bot.db.get_colonies({"id_gl": int(return_player['id_gl']), "number": int(planet)}))
+                colony = colony[0]
+                for it in range(0, len(troop_list)):
+                    if troops == troop_list[it]:
+                        colony['bunker_troops'] = it
+                self.bot.db.update_colony(colony)
+            await interaction.response.send_message(f"> Player **{pseudo}** has bunkers of **{planet_list[int(planet)]}** filled with `{troops}`.")
+    
     @app_commands.command(name="player_colonies", description="Display the infos of the Colonies of a Cog_Player")
     @app_commands.describe(pseudo="Player's username")
     @app_commands.autocomplete(pseudo=autocomplete.player_db_autocomplete)

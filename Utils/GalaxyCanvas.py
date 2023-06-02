@@ -37,8 +37,10 @@ class GalaxyCanvas:
 
   def __init__(self, bot: commands.Bot):
     self.bot = bot
-    self.list_x = list()
-    self.list_y = list()
+    self.list_x_found = list()
+    self.list_y_found = list()
+    self.list_x_scouted = list()
+    self.list_y_scouted = list()
     self.list_x_player = list()
     self.list_y_player = list()
     self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")   
@@ -49,16 +51,17 @@ class GalaxyCanvas:
           if self.all_colonies[it]["updated"] == True:
             if self.all_colonies[it]["colo_coord"]["x"] != -1 and self.all_colonies[it]["colo_coord"]["x"] != "-1" and self.all_colonies[it]["colo_coord"]["y"] != -1 and self.all_colonies[it]["colo_coord"]["y"] != "-1":
               if self.all_colonies[it]["colo_coord"]["x"] <=  size_x and  self.all_colonies[it]["colo_coord"]["y"] <= size_y:
-                self.list_x.append(self.all_colonies[it]['colo_coord']['x'])
-                self.list_y.append(self.all_colonies[it]['colo_coord']['y'])
+                self.list_x_scouted.append(self.all_colonies[it]['colo_coord']['x'])
+                self.list_y_scouted.append(self.all_colonies[it]['colo_coord']['y'])
             
   def plot_found_colonies(self, size_x, size_y):
       it = 0
       for it in range(len(self.colo_db)):
         if self.colo_db[it]["X"] != -1:
           if self.colo_db[it]["X"] <=  size_x and self.colo_db[it]["Y"] <=  size_y:
-            self.list_x.append(self.colo_db[it]["X"])
-            self.list_y.append(self.colo_db[it]["Y"])
+            self.list_x_found.append(self.colo_db[it]["X"])
+            self.list_y_found.append(self.colo_db[it]["Y"])
+          
 
   def my_colonies(self, zoom, color, player=None):
     list_x_player = []
@@ -168,8 +171,8 @@ class GalaxyCanvas:
     self.list_y: list = []
     self.plot_found_colonies( size_x, size_y) # fix that, freezing/
     self.plot_scouted_colonies( size_x, size_y)
-    list_x_store: Colonies_List_Model = {"name": "x", "list": self.list_x}
-    list_y_store: Colonies_List_Model = {"name": "y", "list": self.list_y}
+    list_x_store: Colonies_List_Model = {"name": "x", "list_found": self.list_x_found, "list_scouted": self.list_x_scouted}
+    list_y_store: Colonies_List_Model = {"name": "y", "list_found": self.list_y_found, "list_scouted": self.list_y_scouted}
     self.bot.db.push_colonies_list(list_x_store)
     self.bot.db.push_colonies_list(list_y_store)
     
@@ -230,10 +233,10 @@ class GalaxyCanvas:
   
   def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None):
     obj = None
-    print('enters')
     list = self.bot.db.get_colonies_list(obj)
-    size_x: int = max(list[0]["list"]) / zoom
-    size_y: int = max(list[1]["list"]) / zoom
+    list_all = {"x": list[0]['list_found'] + list[0]['list_scouted'], "y": list[1]['list_found'] + list[1]['list_scouted']}
+    size_x: int = max(list_all["x"]) / zoom
+    size_y: int = max(list_all["y"]) / zoom
     fig,ax = plt.subplots(1)
     ax.xaxis.tick_top()
     ax.tick_params(axis='x', colors='white', direction="in", pad=-12)
@@ -243,7 +246,7 @@ class GalaxyCanvas:
     cmap = ListedColormap(["#000000","#00163e","#012c79","#012c79", "#0140b0", "#0140b0", "#0244ba", "#0244ba", "#0244ba", "#0244ba"])
     cmap_black = ListedColormap(["#000000"])
     if scout_player_step is None:
-      myHist, xedges, yedges, image  = plt.hist2d(list[0]["list"], list[1]["list"], bins=[84,167], cmap="inferno",  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+      myHist, xedges, yedges, image  = plt.hist2d(list_all['x'], list_all["y"], bins=[84,167], cmap=cmap,  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
     else:
       ax.add_patch(Rectangle((0, 0), 1008, 1004, facecolor='black'))
     if scout == True:
@@ -251,7 +254,6 @@ class GalaxyCanvas:
     else:
       scout_x = 0
       scout_y = 0
-    print('then')
     if scout_player_step is not None:
       scout_player = self.scout_player(scout_player_step, pos_x, pos_y, zoom)
     else:
@@ -273,53 +275,53 @@ class GalaxyCanvas:
       temp_size_x: int = max(total_list_y + total_list_x) 
       temp_size_y: int = max(total_list_y + total_list_x) 
       # print(f"pos_x: {pos_x} - temp_size_x :{temp_size_x} - total_list_x :{total_list_x}\npos y : {pos_y} - temp_size_y :{temp_size_y} - total_list_y :{total_list_y}")
-      ax.add_patch(Rectangle(((pos_x - temp_size_x - 40), (pos_y - temp_size_y - 40)), 2*temp_size_x + 80, 2*temp_size_y + 80, facecolor='none', edgecolor='white', linewidth=3))
+      # ax.add_patch(Rectangle(((pos_x - temp_size_x - 40), (pos_y - temp_size_y - 40)), 2*temp_size_x + 80, 2*temp_size_y + 80, facecolor='none', edgecolor='white', linewidth=3))
       or_x = pos_x - temp_size_x - 40
       or_y = pos_y - temp_size_y - 40
       max_x = pos_x + temp_size_x + 40
       max_y = pos_y + temp_size_y + 40
       win_size = 2*temp_size_x + 80
-      zoom = max(list[0]["list"] + list[1]["list"])/win_size
+      zoom = max(list_all["x"] + list_all["y"])/win_size
       if or_x < 0:
         or_x = 0
       if or_y < 0:
         or_y = 0
-      if max_x > max(list[0]["list"]):
-        max_x = max(list[0]["list"])
-      if max_y > max(list[1]["list"]):
-        max_y = max(list[1]["list"])
+      if max_x > max(list_all["x"]):
+        max_x = max(list_all["x"])
+      if max_y > max(list_all["y"]):
+        max_y = max(list_all["y"])
     elif scout == True:
       or_x = pos_x - scout_size*12
       max_x = pos_x + scout_size*12
       if or_x < 0:
         or_x = 0
-      if max_x > max(list[0]["list"]):
-        max_x = max(list[0]["list"])
+      if max_x > max(list_all["x"]):
+        max_x = max(list_all["x"])
       win_size = max_x - or_x 
       or_y = pos_y - int(win_size/2)
       max_y = pos_y + int(win_size/2)
       if or_y < 0:
         or_y = 0
         max_y = win_size
-      if max_y > max(list[1]["list"]):
-        or_y = max(list[1]["list"]) - win_size
-        max_y = max(list[1]["list"])
+      if max_y > max(list_all["y"]):
+        or_y = max(list_all["y"]) - win_size
+        max_y = max(list_all["y"])
       pos_x = (or_x + max_x)/2
       pos_y = (or_y + max_y)/2
-      zoom = max(list[0]["list"] + list[1]["list"])/(win_size)  
+      zoom = max(list_all["x"] + list_all["y"])/(win_size)  
     else:
-      or_x = pos_x - 0.5*max(list[0]["list"] + list[1]["list"])/zoom
-      or_y = pos_y - 0.5*max(list[1]["list"] + list[1]["list"])/zoom
-      max_x = pos_x + 0.5*max(list[0]["list"] + list[1]["list"])/zoom
-      max_y = pos_y + 0.5*max(list[1]["list"] + list[1]["list"])/zoom
+      or_x = pos_x - 0.5*max(list_all["x"] + list_all["y"])/zoom
+      or_y = pos_y - 0.5*max(list_all["y"] + list_all["y"])/zoom
+      max_x = pos_x + 0.5*max(list_all["x"] + list_all["y"])/zoom
+      max_y = pos_y + 0.5*max(list_all["y"] + list_all["y"])/zoom
       if or_x < 0:
         or_x = 0
       if or_y < 0:
         or_y = 0
-      if max_x > max(list[0]["list"]):
-        max_x = max(list[0]["list"])
-      if max_y > max(list[1]["list"]):
-        max_y = max(list[1]["list"])
+      if max_x > max(list_all["x"]):
+        max_x = max(list_all["x"])
+      if max_y > max(list_all["y"]):
+        max_y = max(list_all["y"])
       pos_x = (or_x + max_x)/2
       pos_y = (or_y + max_y)/2
     if scout_player_step is not None:
@@ -328,7 +330,8 @@ class GalaxyCanvas:
           ax.add_patch(Rectangle(((scout_player["list_x"][it] - 6), scout_player["list_y"][it] - 3), 12, 6, facecolor='#25b373'))
       ax.add_patch(Rectangle(((scout_player["list_x"][-1] - 6), scout_player["list_y"][-1] - 3), 12, 6, facecolor='none', edgecolor='white', linewidth=3))  
     plt.axis([or_x, max_x, max_y, or_y])
-    plt.scatter(list[0]["list"], list[1]["list"], color = '#c88944', alpha=1, s=1*zoom)
+    plt.scatter(list[0]["list_scouted"], list[1]["list_scouted"], color = '#c88944', alpha=1, s=1*zoom)
+    plt.scatter(list[0]["list_found"], list[1]["list_found"], color = '#49b02c', alpha=1, s=1*zoom)
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)

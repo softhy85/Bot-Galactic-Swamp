@@ -18,3 +18,4 @@ class Colony_Model(TypedDict):
     colo_refresh_time: datetime
     updated: bool
     gift_state: str
+    bunker_troops: str

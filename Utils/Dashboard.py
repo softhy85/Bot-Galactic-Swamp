@@ -84,7 +84,6 @@ class Dashboard:
             it += 1
         slider: str = ""
         slider_length = 15
-
         if (war_progress['ally_alliance_score'] + war_progress['enemy_alliance_score']) != 0:
             slider_score = int(war_progress['ally_alliance_score'] / (war_progress['ally_alliance_score']+ war_progress['enemy_alliance_score']) * slider_length)
         else:
@@ -182,6 +181,10 @@ class Dashboard:
         instant_score: int = 0
         dealt_score: int = 0
         score_per_base: list = [100, 200, 300, 500, 600, 1000, 1500, 2000, 2500]
+        war_infos: War_Model = self.bot.db.get_one_war("status", "InProgress")
+        enemy_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)
+        ally_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
+        
         for player in players:
             main_planet += 1 
             obj: dict = {"_player_id": player["_id"]}
@@ -190,9 +193,13 @@ class Dashboard:
                 if player['colonies_moved_bool'] == True:
                     await self.log_channel.send(f"> 💢 __Level {player['lvl']}__ **{player['pseudo'].upper()}** has moved a colony !")
                     player['colonies_moved_bool'] = False
-            if player["MB_status"] == "Back_Up": #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
-                await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: `{score_per_base[player['MB_lvl']-1]} pts`")
-                player["MB_status"] = "Up"
+            if player["MB_status"] == "Back_Up" or player['war_points_delta'] != 0: #remettre ça dans le thread plus tard en trouvant un moyen d'await la task threadée
+                if player["MB_status"] == "Back_Up":
+                    await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: `{score_per_base[player['MB_lvl']-1]} pts`")
+                    player["MB_status"] = "Up"
+                if player['war_points_delta'] != 0:
+                    # await self.log_channel.send(f">  `☠️ Level {player['lvl']}:` `{player['pseudo']} scored {player['war_points_delta']} points.`")
+                    player['war_points_delta'] = 0
                 self.bot.db.update_player(player)
             if player["MB_status"] == "Up":
                 instant_score += score_per_base[player["MB_lvl"]-1]
@@ -215,6 +222,7 @@ class Dashboard:
                 else: 
                     
                     hidden_colonies += 1
+            
         score_per_cycle = dealt_score + instant_score
         return_value["planets_up"] = planets_up
         return_value["known_colonies"] = known_colonies
@@ -224,9 +232,8 @@ class Dashboard:
         return_value["instant_score"] = instant_score
         return_value["score_per_cycle"] = score_per_cycle
         
-        war_infos: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        enemy_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(alliance)
-        ally_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
+
+        
         if 'ally_initial_score' in war_infos:
             return_value["ally_alliance_score"] = ally_alliance['alliance_score'] - war_infos['ally_initial_score']
             return_value["enemy_alliance_score"] = enemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
@@ -239,7 +246,7 @@ class Dashboard:
                     self.bot.db.update_warlog(war_log)
                     if war_log['enemy_score'][len(war_log['enemy_score'])-2] < war_log['ally_score'][len(war_log['ally_score'])-2] and war_log['enemy_score'][len(war_log['enemy_score'])-1] > war_log['ally_score'][len(war_log['ally_score'])-1]:
                         print('Alert. Beating Us')
-                        await self.war_channel.send(f"> ⚠️ Alert : The enemy is beating us !! ⚠️")
+                        await self.log_channel.send(f"> ⚠️ Alert : The enemy is beating us !! ⚠️")
             else:
                 war_log: dict = {'name': 'warlog', 'enemy_name': alliance, 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": [time]}
                 self.bot.db.push_warlog(war_log)

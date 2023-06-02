@@ -102,7 +102,7 @@ class Cog_Scout(commands.Cog):
             value_str = str(embed.fields[0].value)
             splitted_value = value_str.split('`')  
             self.scout_player_step = int(splitted_value[5])
-            
+           
     def button_zoom_in(self, view, embed):    
         button_zoom_in = Button(label = f"＋", style=discord.ButtonStyle.green)
         view.add_item(button_zoom_in)
@@ -215,7 +215,9 @@ class Cog_Scout(commands.Cog):
         async def button_callback_refresh(interaction):
             self.retrieve_embed(embed)
             self.bot.galaxyCanvas.update_lists() 
-            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
+            if self.scout_player_step:
+                self.scout_player_step = self.scout_player_step - 1
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout_player_step=self.scout_player_step)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_refresh.callback = button_callback_refresh
@@ -258,7 +260,7 @@ class Cog_Scout(commands.Cog):
         view.add_item(button_complete)
         async def button_callback_complete_player(interaction):
             self.retrieve_embed(embed)
-            self.bot.galaxyCanvas.update_lists() 
+            #self.bot.galaxyCanvas.update_lists() 
             zoom, pos_x, pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout_player_step=self.scout_player_step)
             new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
@@ -289,12 +291,14 @@ class Cog_Scout(commands.Cog):
         view = View(timeout=None) 
         file = discord.File("./Image/scout_map.png", filename="scout_map.png")
         self.button_complete_player(view, embed)
+        self.button_refresh(view, embed)
         await interaction.followup.send(embed=embed, file=file, view=view)
         
     @app_commands.command(name="scout", description="How many colonies have been scouted yet")
     @app_commands.describe(zoom="zoom factor", pos_x="x position", pos_y="y position")
     async def scout(self, interaction: discord.Interaction, zoom: int = 1, pos_x: int = 504, pos_y: int = 501  ):
         await interaction.response.defer()
+        self.scout_player_step = None
         self.bot.galaxyCanvas.update_lists() 
         alliance_dict: list = self.bot.galaxyCanvas.alliance_colonies() 
         self.bot.galaxyCanvas.draw_map(zoom, pos_x, pos_y)

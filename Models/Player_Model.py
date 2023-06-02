@@ -20,6 +20,7 @@ class Player_Model(TypedDict):
     pseudo: str
     lvl: int
     online: int
+    last_attack_time: datetime
     MB_sys_name: str
     MB_lvl: int
     MB_status: str
@@ -27,5 +28,8 @@ class Player_Model(TypedDict):
     MB_refresh_time: datetime
     colonies_moved: int
     colonies_moved_bool: bool
+    total_war_points: int
+    war_points_delta: int
+    bunker_troops: int
     
     
