@@ -25,6 +25,10 @@ class Cog_Refresh(commands.Cog):
         self.bot = bot
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
+        self.thread_players: Thread = Thread(target=self.thread_update_players)
+        self.thread_war: Thread = Thread(target=self.thread_task_update_war_infos)
+        self.thread_war.daemon = True
+        self.thread_players.daemon = True
         if not  self.task_check_war_status.is_running():
             self.task_check_war_status.start()
 
@@ -157,9 +161,7 @@ class Cog_Refresh(commands.Cog):
     @tasks.loop(minutes=1) #TODO a threader
     async def task_update_war_infos(self):
         # print("Infos: task_update_war_infos started")
-        t: Thread = Thread(target=self.thread_task_update_war_infos)
-        t.daemon = True
-        t.start()
+        self.thread_war.start()
 
     # @tasks.loop(minutes=1) #TODO a threader
     # async def task_update_base_status(self):
@@ -176,9 +178,8 @@ class Cog_Refresh(commands.Cog):
     @tasks.loop(minutes=1)
     async def task_update_players(self):
         print("Infos: task_update_players_online started")
-        t: Thread = Thread(target=self.thread_update_players)
-        t.daemon = True
-        t.start()
+        if not self.thread_players.is_alive():
+            self.thread_players.start()
 
     @tasks.loop(minutes=1)
     async def task_check_war_status(self):
