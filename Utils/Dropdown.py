@@ -3,7 +3,7 @@ import datetime
 import os
 import time
 from typing import List
-
+from threading import Thread 
 import discord
 from bson.objectid import ObjectId
 from discord.ext import commands
@@ -208,6 +208,7 @@ class Select(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         date = datetime.datetime.now()
+        log_message = None     
         if self.values[0] == "":
             return
         date_resfresh: datetime.datetime = date + datetime.timedelta(hours=self.actual_war["refresh_duration"])
@@ -217,13 +218,11 @@ class Select(discord.ui.Select):
             player: Player_Model = self.bot.db.get_one_player("_id", ObjectId(values[1]))
             if player is None:
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-                # await self.bot.dashboard.update_Dashboard()
                 return
             player["MB_refresh_time"] = self.date
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Up"
             self.bot.db.update_player(player)
-            # obj: dict = {"_player_id": player["_id"]}
             obj: dict = {"id_gl": player["id_gl"]}
             colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
             for colony in colonies:
@@ -232,26 +231,23 @@ class Select(discord.ui.Select):
                 colony["colo_status"] = "Up"
                 self.bot.db.update_colony(colony)
             await interaction.response.send_message(f"Reset player : {player['pseudo']} by {interaction.user.display_name}")
-            
-            # await self.bot.dashboard.update_Dashboard()
             return
         if len(values) != 3:
             await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-            # await self.bot.dashboard.update_Dashboard()
             return
         
         if values[1] == "player":
             player: Player_Model = self.bot.db.get_one_player("_id", ObjectId(values[2]))
             if player is None:
                 await interaction.response.send_message(f"Something goes wrong while updating the database.\nPlease report this bug to Softy.")
-                # await self.bot.dashboard.update_Dashboard()
                 return
             player["MB_refresh_time"] = date_resfresh
             player["MB_last_attack_time"] = self.date
             player["MB_status"] = "Down"
             self.bot.db.update_player(player)
             player_lvl: str = player["lvl"]
-            await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🌍 main base destroyed by {interaction.user.display_name}")
+            log_message = await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🌍 main base destroyed by {interaction.user.display_name}")
+            
         elif values[1] == "colony":
             colony: Colony_Model = self.bot.db.get_one_colony("_id", ObjectId(values[2]))
             if colony is None:
@@ -268,11 +264,46 @@ class Select(discord.ui.Select):
                 self.bot.db.update_colony(colony)
                 player: Player_Model = self.bot.db.get_one_player("_id", colony["_player_id"])
                 player_lvl: str = player["lvl"]
-                await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
+                log_message = await self.log_channel.send(f"> 💥 __Level {player_lvl}__ **{player['pseudo'].upper()}**: 🪐 colony number **{colony['number']}**  destroyed by {interaction.user.display_name}")
             else:
                 return
-        #await interaction.response.defer(ephemeral=True)
-        # await self.bot.dashboard.update_Dashboard()
+        
+        if log_message:
+            colo_leaked = self.bot.db.get_leaked_colonies()
+            print(colo_leaked)
+            reaction_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+            for item in reaction_list:
+                await log_message.add_reaction(f'{item}')
+            # history = [message async for message in self.log_channel.history(before=date - datetime.timedelta(seconds=30), after=colo_leaked["last_update"])]
+            # for message in history:
+            #     for index in range(0, len(message.reactions)):
+            #         await message.remove_reaction(emoji=message.reactions[index].emoji, member=message.author)
+            # for message in history:
+            #     username = message.content.split('**')[1]
+            #     for index in range(0, len(message.reactions)):
+            #         users = [user async for user in message.reactions[index].users()]
+            #         for user in users:
+            #             emoji = message.reactions[index].emoji
+            #             if user.name in colo_leaked:
+            #                 emoji = message.reactions[index].emoji
+            #                 if not username in colo_leaked[user.name]:
+            #                     colo_leaked[user.name][username] = {}
+            #                 if emoji in colo_leaked[user.name][username]:
+            #                     colo_leaked[user.name][username][emoji.name] += 1
+            #                 else:
+            #                     colo_leaked[user.name][username][emoji] = 1
+            #             else: 
+            #                 colo_leaked[user.name] = {}
+            #                 colo_leaked[user.name][username] = {}
+            #                 colo_leaked[user.name][username][emoji] = {}
+            #                 colo_leaked[user.name][username][emoji] = 1
+            # print(colo_leaked)
+            # end_date = datetime.datetime.now()
+            # colo_leaked["last_update"] = end_date - datetime.timedelta(minutes=1)
+            # self.bot.db.update_leaked_colonies(colo_leaked)
+            # print('updated')
+        await interaction.response.defer(ephemeral=True)
+        await self.bot.dashboard.update_Dashboard()
 
 
 class DropView(discord.ui.View):

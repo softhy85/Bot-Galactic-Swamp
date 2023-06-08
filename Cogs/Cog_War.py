@@ -296,14 +296,14 @@ class Cog_War(commands.Cog):
         return_value = {}
         leaderboard: dict = self.bot.galaxyLifeAPI.get_alliance_leaderboard()
         leaderboard_name: str = f"📈 Current Rank: "
-        if leaderboard["0"] is not None:
+        if "0" in leaderboard and "1" in leaderboard and "2" in leaderboard and "-1" in leaderboard and "-2" in leaderboard: 
             leaderboard_value: str = (f"```ansi\n\u001b[0;0m{leaderboard['3']-2}# ⏫ {leaderboard['-2']['Name']}:    +\u001b[0;31m{leaderboard['-2']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
                         f"\n{leaderboard['3']-1}# 🔼 {leaderboard['-1']['Name']}:    +\u001b[0;31m{leaderboard['-1']['Warpoints']-leaderboard['0']['Warpoints']}\u001b[0;0m"+
                         f"\n{leaderboard['3']}# ✅ {leaderboard['0']['Name']}:    -------"+
                         f"\n{leaderboard['3']+1}# 🔽 {leaderboard['1']['Name']}:    -\u001b[0;30m{abs(leaderboard['1']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m"+
                         f"\n{leaderboard['3']+2}# ⏬ {leaderboard['2']['Name']}:    -\u001b[0;30m{abs(leaderboard['2']['Warpoints']-leaderboard['0']['Warpoints'])}\u001b[0;0m```")
         else:
-            leaderboard_value: str = f"```The alliance is under the top 50. Dashboard is deactivated.\nTop 50: {leaderboard['1']['Name']} : {leaderboard['1']['Warpoints']} ```"
+            leaderboard_value: str = f"```The alliance is under the top 50. Dashboard is deactivated.\nTop 50: ```" #{leaderboard['1']['Name']} : {leaderboard['1']['Warpoints']} 
         return_value["name"] = leaderboard_name
         return_value["value"] = leaderboard_value
         return return_value

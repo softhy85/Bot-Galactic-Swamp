@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 from typing import List
@@ -99,6 +100,24 @@ class Cog_Colony(commands.Cog):
             self.bot.db.update_colony(act_colony)
             await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁")
             await interaction.response.send_message(f"> The free state of colony n°{act_colony['number']} of {pseudo} has been updated. 🎁")
+    
+    @app_commands.command(name="colo_leaked", description="Check which player knows your colonies")
+    async def colo_leaked(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        content = ""
+        leaked_colonies = self.bot.db.get_leaked_colonies()
+        for index_player in leaked_colonies:
+            if index_player != 'last_update':
+                content = content + f"**{index_player}**:"
+                for enemy in leaked_colonies[f'{index_player}']:
+                    content = content + f"\n`{enemy}:"
+                    for colony in leaked_colonies[f'{index_player}'][f'{enemy}']:
+                        content = content + f"{colony} "
+                    content = content + "`"
+        if content == "":
+            await interaction.followup.send(f'`you didnt leak any colony ya boi`:')
+        else: 
+            await interaction.followup.send(f'{content}')
             
     #</editor-fold>
 

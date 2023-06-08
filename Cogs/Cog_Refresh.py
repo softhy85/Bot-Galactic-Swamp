@@ -25,10 +25,6 @@ class Cog_Refresh(commands.Cog):
         self.bot = bot
         self.war_channel_id: int = int(os.getenv("WAR_CHANNEL"))
         self.war_channel = self.bot.get_channel(self.war_channel_id)
-        self.thread_players: Thread = Thread(target=self.thread_update_players)
-        self.thread_war: Thread = Thread(target=self.thread_task_update_war_infos)
-        self.thread_war.daemon = True
-        self.thread_players.daemon = True
         if not  self.task_check_war_status.is_running():
             self.task_check_war_status.start()
 
@@ -50,64 +46,60 @@ class Cog_Refresh(commands.Cog):
             enemy_alliance: dict = self.bot.galaxyLifeAPI.get_alliance(war_alliance['name'])
             if war_alliance is not None:
                 obj: dict = {"_alliance_id": act_war["_alliance_id"]}
-                players: List[Player_Model] = list(self.bot.db.get_players(obj))
+                # players: List[Player_Model] = list(self.bot.db.get_players(obj))
                 it = 0
-                for player in players:
-                    if "id_gl" in players[it]:
-                        players[it]["online"] = self.bot.galaxyLifeAPI.get_player_status(players[it]['id_gl'])
+                for member in enemy_alliance['members_list']:
+                    obj: dict = {"pseudo":member['Name']}
+                    player = self.bot.db.get_one_player(obj)
+                    print(player)
+                    if "id_gl" in player:
+                        player["online"] = self.bot.galaxyLifeAPI.get_player_status(player['id_gl'])
                     else:
-                        players[it]["online"] = None
+                        player["online"] = None
                     player_war_info: dict = next(item for item in enemy_alliance['members_list'] if item["Name"] == f"{player['pseudo']}")
                     # print(player_war_info)
                     if player['total_war_points'] < player_war_info['WarPoints']:
                         player['war_points_delta'] = int(player_war_info['WarPoints']) - int(player['total_war_points'])
                         player['total_war_points'] = player_war_info['WarPoints']
                         player['last_attack_time'] = date_start
-                    if players[it]["online"] is None or players[it]["online"] == 1:
-                        if players[it]['last_attack_time'] + datetime.timedelta(minutes=15) > date_start:
-                            players[it]["online"] = 2
+                    if player["online"] is None or player["online"] == 1:
+                        if player['last_attack_time'] + datetime.timedelta(minutes=15) > date_start:
+                            player["online"] = 2
                         else: 
-                            players[it]["online"] = 0
+                            player["online"] = 0
                     self.bot.db.update_player(player)
                     it += 1
-                    
+                    player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(player["id_gl"])
+                    player_stats: dict = self.bot.galaxyLifeAPI.get_player_stats(player["id_gl"])
+                    if "colonies_moved" in player:
+                        if player["colonies_moved"] !=  player_stats["colonies_moved"]:
+                            player["colonies_moved"] = player_stats["colonies_moved"]
+                            player_temp["colonies_moved_bool"] = True
+                    player["lvl"] = player_temp["lvl"]
+                    player["MB_lvl"] = player_temp["MB_lvl"]
+                    self.bot.db.update_player(player)
+                    obj: dict = {"_player_id": player["_id"]}
+                    colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
+                    # if len(colonies) != len(player_temp['colo_list']):
+                    #     continue
+                    colonies.sort(key=lambda item: item.get("number"), reverse = False)
+                    # if player["id_gl"] == 85029:
+                        # print(f"-----------> colonies:{colonies}\nplayer temp: {player_temp['colo_list']}")
+                    # print('if gone')
+                    for it_colo in range(0, len(player_temp["colo_list"])): 
+                        if it_colo < len(colonies):
+                            # print(len(colonies))
+                            # # print(colonies[it_colo], player_temp['colo_list'])
+                            # print(player["id_gl"])
+                            colonies[it_colo]["colo_lvl"] = player_temp["colo_list"][it_colo]
+                            self.bot.db.update_colony(colonies[it_colo]) #ajouté récemment
+                        else:
+                            # print(colonies[it_colo-1])
+                            # print(player_temp["colo_list"][it_colo])
+                            new_colony: Colony_Model = {"_alliance_id": player["_alliance_id"], 'id_gl': player["id_gl"], '_player_id': player['_id'], 'number': it_colo, 'colo_sys_name': "?", 'colo_lvl': player_temp["colo_list"][it_colo], 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date_start, 'colo_refresh_time': date_start, 'updated': False, 'gift_state': "Not Free"}
+                            self.bot.db.push_new_colony(new_colony)   
         date_end: datetime.datetime = datetime.datetime.now()
-        print("Infos: players_online updated", "time :", date_end - date_start)
-        # print("Infos: task_update_players_online ended")
-        # print("Infos: task_update_players_level started")        
-        if act_war is not None:
-            for it_player in range(0, len(players)):
-                player_temp: dict = self.bot.galaxyLifeAPI.get_player_infos(players[it_player]["id_gl"])
-                player_stats: dict = self.bot.galaxyLifeAPI.get_player_stats(players[it_player]["id_gl"])
-                if "colonies_moved" in players[it_player]:
-                    if players[it_player]["colonies_moved"] !=  player_stats["colonies_moved"]:
-                        players[it_player]["colonies_moved"] = player_stats["colonies_moved"]
-                        player_temp["colonies_moved_bool"] = True
-                players[it_player]["lvl"] = player_temp["lvl"]
-                players[it_player]["MB_lvl"] = player_temp["MB_lvl"]
-                self.bot.db.update_player(players[it_player])
-                obj: dict = {"_player_id": players[it_player]["_id"]}
-                colonies: List[Colony_Model] = list(self.bot.db.get_colonies(obj))
-                # if len(colonies) != len(player_temp['colo_list']):
-                #     continue
-                colonies.sort(key=lambda item: item.get("number"), reverse = False)
-                # if players[it_player]["id_gl"] == 85029:
-                    # print(f"-----------> colonies:{colonies}\nplayer temp: {player_temp['colo_list']}")
-                # print('if gone')
-                for it_colo in range(0, len(player_temp["colo_list"])): 
-                    if it_colo < len(colonies):
-                        # print(len(colonies))
-                        # # print(colonies[it_colo], player_temp['colo_list'])
-                        # print(players[it_player]["id_gl"])
-                        colonies[it_colo]["colo_lvl"] = player_temp["colo_list"][it_colo]
-                        self.bot.db.update_colony(colonies[it_colo]) #ajouté récemment
-                    else:
-                        # print(colonies[it_colo-1])
-                        # print(player_temp["colo_list"][it_colo])
-                        new_colony: Colony_Model = {"_alliance_id": players[it_player]["_alliance_id"], 'id_gl': players[it_player]["id_gl"], '_player_id': players[it_player]['_id'], 'number': it_colo, 'colo_sys_name': "?", 'colo_lvl': player_temp["colo_list"][it_colo], 'colo_coord': {"x": -1, "y": -1}, 'colo_status': "Up", 'colo_last_attack_time': date_start, 'colo_refresh_time': date_start, 'updated': False, 'gift_state': "Not Free"}
-                        self.bot.db.push_new_colony(new_colony)
-        print("Infos: task_update_players_level ended")    
-        
+        print("Infos: players updated", "time :", date_end - date_start)
 
     def thread_task_update_war_infos(self):
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
@@ -161,7 +153,10 @@ class Cog_Refresh(commands.Cog):
     @tasks.loop(minutes=1) #TODO a threader
     async def task_update_war_infos(self):
         # print("Infos: task_update_war_infos started")
-        self.thread_war.start()
+        thread_war: Thread = Thread(target=self.thread_task_update_war_infos)
+        thread_war.daemon = True
+        thread_war.start()
+        # thread_war.join()
 
     # @tasks.loop(minutes=1) #TODO a threader
     # async def task_update_base_status(self):
@@ -174,12 +169,21 @@ class Cog_Refresh(commands.Cog):
         
     #     t: Thread = Thread(target=self.thread_task_update_players_level)
     #     t.start()
-        
+    
+    # @tasks.loop(minutes=1)
+    # async def task_update_reactions(self):
+    #     print("Infos: task_update_reactions started")
+    #     thread_players: Thread = Thread(target=self.thread_update_players)
+    #     thread_players.daemon = True
+    #     thread_players.start()
+    
     @tasks.loop(minutes=1)
     async def task_update_players(self):
         print("Infos: task_update_players_online started")
-        if not self.thread_players.is_alive():
-            self.thread_players.start()
+        thread_players: Thread = Thread(target=self.thread_update_players)
+        thread_players.daemon = True
+        # thread_players.start()
+        # thread_players.join()
 
     @tasks.loop(minutes=1)
     async def task_check_war_status(self):

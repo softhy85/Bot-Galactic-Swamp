@@ -156,7 +156,32 @@ class DataBase:
 
     def get_colonies_list(self, obj) -> Cursor[Colonies_List_Model]:
         return self.db.galaxycanvas.find(obj)
-        
+    
+    def create_leaked_colonies(self)  -> ObjectId | None:
+        date = datetime.datetime.now()
+        content: dict = {"name": "leaked_colonies", "content": None}  
+        content['content'] = {"last_update": date}
+        self.db.leakedcolonies.insert_one(content).inserted_id
+        return content["content"]
+    
+    def get_leaked_colonies(self):
+        obj = {'name': "leaked_colonies"}
+        result = self.db.leakedcolonies.find_one(obj)
+        if not result:
+            content = self.create_leaked_colonies()
+            return content
+        else:
+            return result['content']
+    
+    def update_leaked_colonies(self, leaked_colonies) -> None:
+        print('enters update')
+        obj = {'name': "leaked_colonies"}
+        leaked_colonies_db = self.get_colonies_list(obj)
+        leaked_colonies_db = {'content': None}
+        leaked_colonies_db['content'] = leaked_colonies
+        if leaked_colonies_db:
+            self.db.leakedcolonies.update_one({"name": "leaked_colonies"}, {'$set': leaked_colonies_db})
+            
     def update_colonies_list(self, list: Colonies_List_Model) -> None:
         obj = None
         return_list: Colonies_List_Model = self.get_colonies_list(obj)
