@@ -105,12 +105,10 @@ class Cog_Player(commands.Cog):
         if return_player is None:
             await interaction.response.send_message(f"> **{pseudo}** doesnt exist in the database... Did you spell it correctly ? 👀")
         else:
-            if player_state == "🛡️ Bunker MB":
-                return_player["state"] = "MB_full"
-            elif player_state == "🛡️ All Bunkers":
-                return_player["state"] = "everything_full"
-            elif player_state == "🕸️ AFK":
+            if player_state == "🕸️ AFK":
                 return_player["state"] = "afk"
+            elif player_state == "🪐 Leaker":
+                return_player["state"] = "leaker"
             elif player_state == "❓ Unknown":
                 return_player["state"] = "unknown"
             else:
@@ -131,9 +129,7 @@ class Cog_Player(commands.Cog):
             await interaction.response.send_message(f"> **{pseudo}** doesnt exist in the database... Did you spell it correctly ? 👀")
         else:
             if int(planet) == 0:
-                for it in range(0, len(troop_list)):
-                    if troops == troop_list[it]:
-                        return_player['bunker_troops'] = it
+                return_player['bunker_troops'] = troops
                 self.bot.db.update_player(return_player)
                 print(return_player)
             print(pseudo)
@@ -142,9 +138,7 @@ class Cog_Player(commands.Cog):
             if int(planet) > 0:
                 colony: Colony_Model = list(self.bot.db.get_colonies({"id_gl": int(return_player['id_gl']), "number": int(planet)}))
                 colony = colony[0]
-                for it in range(0, len(troop_list)):
-                    if troops == troop_list[it]:
-                        colony['bunker_troops'] = it
+                colony['bunker_troops'] = troops
                 self.bot.db.update_colony(colony)
             await interaction.response.send_message(f"> Player **{pseudo}** has bunkers of **{planet_list[int(planet)]}** filled with `{troops}`.")
     

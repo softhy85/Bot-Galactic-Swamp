@@ -229,7 +229,8 @@ class GalaxyCanvas:
       ax.axhline(y=threshold, color='#222224')
       ax.axhline(y=threshold, color='w', linestyle=":")
     plt.subplots_adjust(bottom=0, right=1, top=1, left=0)
-    plt.savefig('./Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
+    plt.savefig('./Bot-War/Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
+    plt.close('all')
   
   def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None):
     obj = None
@@ -335,6 +336,6 @@ class GalaxyCanvas:
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
-    plt.savefig('./Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
+    plt.savefig('./Bot-War/Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
     plt.close('all')
     return (int(zoom), pos_x, pos_y, scout_x, scout_y, scout_player)

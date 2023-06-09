@@ -34,7 +34,7 @@ class Cog_Scout(commands.Cog):
                 else: 
                     self.new_pos_x = 1000 - 0.5*int(1000/self.new_zoom)
                 self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
-                new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+                new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
                 button_right.callback = button_callback_right
                 embed.clear_fields()
                 embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
@@ -51,7 +51,7 @@ class Cog_Scout(commands.Cog):
             else: 
                 self.new_pos_x = 0.5*int(1000/self.new_zoom)
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             button_left.callback = button_callback_left
             embed.clear_fields()
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
@@ -68,7 +68,7 @@ class Cog_Scout(commands.Cog):
             else: 
                 self.new_pos_y = 1000 - 0.5*int(1000/self.new_zoom)
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_down.callback = button_callback_down
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
@@ -85,7 +85,7 @@ class Cog_Scout(commands.Cog):
             else: 
                 self.new_pos_y = 0.5*int(1000/self.new_zoom)
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_up.callback = button_callback_up
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
@@ -111,7 +111,7 @@ class Cog_Scout(commands.Cog):
             if self.new_zoom <= 100:
                 self.new_zoom = self.new_zoom * 2
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             button_zoom_in.callback = button_callback_zoom_in
             embed.clear_fields()
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
@@ -134,7 +134,7 @@ class Cog_Scout(commands.Cog):
                 if 1000 - self.new_pos_y < 0.5*1000/self.new_zoom:
                     self.new_pos_y = 1000 - 0.5*1000/self.new_zoom
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             button_zoom_out.callback = button_callback_zoom_out
             embed.clear_fields()
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
@@ -167,7 +167,7 @@ class Cog_Scout(commands.Cog):
                         self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, int(canvas.pos_x.value), int(canvas.pos_y.value))         
                 async def on_submit(canvas, interaction):
                     canvas.update()
-                    new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+                    new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
                     embed.clear_fields()
                     embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
                     self.new_zoom = canvas.display_zoom
@@ -201,7 +201,7 @@ class Cog_Scout(commands.Cog):
                         self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, int(canvas.pos_x.value), int(canvas.pos_y.value))         
                 async def on_submit(canvas, interaction):
                     canvas.update()
-                    new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+                    new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
                     embed.clear_fields()
                     embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
                     self.new_zoom = canvas.display_zoom
@@ -218,7 +218,7 @@ class Cog_Scout(commands.Cog):
             if self.scout_player_step:
                 self.scout_player_step = self.scout_player_step - 1
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout_player_step=self.scout_player_step)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_refresh.callback = button_callback_refresh
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
@@ -232,7 +232,7 @@ class Cog_Scout(commands.Cog):
             self.retrieve_embed(embed)
             self.bot.galaxyCanvas.update_lists() 
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_scout.callback = button_callback_scout
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value=f'Coords to enter: `{scout_x}` : `{scout_y}`')
@@ -248,7 +248,7 @@ class Cog_Scout(commands.Cog):
             splitted_value = value_str.split('`')   
             self.bot.galaxyCanvas.mark_area_complete((int(splitted_value[1])-6)/12, (int(splitted_value[3])-3)/6) 
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_complete.callback = button_callback_complete
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value=f'Coords to enter: `{scout_x}` : `{scout_y}`')
@@ -262,7 +262,7 @@ class Cog_Scout(commands.Cog):
             self.retrieve_embed(embed)
             #self.bot.galaxyCanvas.update_lists() 
             zoom, pos_x, pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout_player_step=self.scout_player_step)
-            new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+            new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
             embed.clear_fields()
             button_complete.callback = button_callback_complete_player
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value=f"Coords to enter: `{int(self.scout_player['list_x'][-1])}` : `{int(self.scout_player['list_y'][-1])}` - Step: `{len(self.scout_player['list_x'])}` / `25`")
@@ -289,7 +289,7 @@ class Cog_Scout(commands.Cog):
         
         embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value=f"Coords to enter: `{int(scout_player['list_x'][-1])}` : `{int(scout_player['list_y'][-1])}` - Step: `{len(scout_player['list_x'])}` / `25`")
         view = View(timeout=None) 
-        file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+        file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
         self.button_complete_player(view, embed)
         self.button_refresh(view, embed)
         await interaction.followup.send(embed=embed, file=file, view=view)
@@ -308,7 +308,7 @@ class Cog_Scout(commands.Cog):
         embed = discord.Embed()
         embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
         view = View(timeout=None) 
-        file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+        file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
         if alliance_dict is not None:
             options: List[discord.SelectOption] = [ 
                     discord.SelectOption(label=alliance_dict[0]["pseudo"], emoji="💫"),
@@ -323,7 +323,7 @@ class Cog_Scout(commands.Cog):
                     if alliance_dict[player]["pseudo"] in select.values:
                         selected_players_list.append(alliance_dict[player])
                 self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, selected_players_list)
-                new_file = discord.File("./Image/scout_map.png", filename="scout_map.png")
+                new_file = discord.File("./Bot-War/Image/scout_map.png", filename="scout_map.png")
                 embed.clear_fields()
                 str_names: str = ""
                 list_color: list = ["🔴 ","🟢 ","🟣 ","🔵 ","🟠 "]

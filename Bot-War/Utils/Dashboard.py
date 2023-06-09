@@ -116,6 +116,7 @@ class Dashboard:
         embed: discord.Embed = await self.create_embed_alliance(actual_war, war_alliance, players)
         message = await self.war_channel.send(embed=embed)
         await message.add_reaction("<:star:1043627831973924944>")
+        await message.add_reaction("🪐")
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
         for it in range(0, nb_message):

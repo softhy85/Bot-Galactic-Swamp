@@ -34,7 +34,6 @@ class Select(discord.ui.Select):
         act_forty_five_date: datetime.datetime = act_date + datetime.timedelta(minutes=45)
         player_drop_down: List[discord.SelectOption] = []
         status_emoji: str = Emoji.offline.value
-        troop_list = ["Falcons","Colossus", "Wasps", "Zepellins", "Falcons / Colossus","Colossus / Menders", "Unknown"]
         if player["online"] == 2:
             status_emoji = Emoji.online.value 
             player["MB_refresh_time"] = self.date
@@ -54,9 +53,7 @@ class Select(discord.ui.Select):
                 status_emoji = Emoji.maybe.value
             else:
                 if "state" in player:
-                    if player["state"] == "MB_full":
-                        status_emoji = Emoji.bouclier_MB.value
-                    elif player["state"] == "everything_full":
+                    if player["state"] == "leaker":
                         status_emoji = Emoji.bouclier_tout.value
                     elif player["state"] == "afk":
                         status_emoji = Emoji.afk.value
@@ -152,7 +149,7 @@ class Select(discord.ui.Select):
             menu_label = f"Main Base {scout_state}"
             menu_description = f"SB {player_MB_lvl} - 🪐 {colonies_moved} moved"
             if 'bunker_troops' in player:
-                menu_description = menu_description + f" - 🛡️ {troop_list[player['bunker_troops']]}"
+                menu_description = menu_description + f" - 🛡️ {player['bunker_troops']}"
             menu_emoji = Emoji.SB.value
         player_drop_down.append(discord.SelectOption(label = menu_label, emoji = menu_emoji, description = menu_description, value = str(it) + ";" + "player" + ";" + str(player["_id"])))
         it += 1
@@ -184,7 +181,7 @@ class Select(discord.ui.Select):
                         menu_label = "Unknown System"
                     menu_description = f"SB {colony['colo_lvl']} - ({colony['colo_coord']['x']} ; {colony['colo_coord']['y']})"
                     if 'bunker_troops' in colony:
-                        menu_description = menu_description + f" - 🛡️ {troop_list[colony['bunker_troops']]}"
+                        menu_description = menu_description + f" - 🛡️ {colony['bunker_troops']}"
                     if "gift_state" in colony:
                         if colony["gift_state"] != "Not Free":  
                             menu_emoji = Emoji.gift.value
@@ -270,38 +267,9 @@ class Select(discord.ui.Select):
         
         if log_message:
             colo_leaked = self.bot.db.get_leaked_colonies()
-            print(colo_leaked)
             reaction_list = ["<:1_:1116487769833873518>", "<:2:1116483624972341289>", "<:3:1116483668865732718>",  "<:4:1116483731339878532>",  "<:5:1116483769445122120>",  "<:6:1116483998743531530>",  "<:7:1116484030158876682>",  "<:8:1116101064706506792>",  "<:9:1116484067198767104>",  "<:10:1116484093752914062>",  "<:11_:1116484146617929758>" ]
             for item in reaction_list:
                 await log_message.add_reaction(f'{item}')
-            # history = [message async for message in self.log_channel.history(before=date - datetime.timedelta(seconds=30), after=colo_leaked["last_update"])]
-            # for message in history:
-            #     for index in range(0, len(message.reactions)):
-            #         await message.remove_reaction(emoji=message.reactions[index].emoji, member=message.author)
-            # for message in history:
-            #     username = message.content.split('**')[1]
-            #     for index in range(0, len(message.reactions)):
-            #         users = [user async for user in message.reactions[index].users()]
-            #         for user in users:
-            #             emoji = message.reactions[index].emoji
-            #             if user.name in colo_leaked:
-            #                 emoji = message.reactions[index].emoji
-            #                 if not username in colo_leaked[user.name]:
-            #                     colo_leaked[user.name][username] = {}
-            #                 if emoji in colo_leaked[user.name][username]:
-            #                     colo_leaked[user.name][username][emoji.name] += 1
-            #                 else:
-            #                     colo_leaked[user.name][username][emoji] = 1
-            #             else: 
-            #                 colo_leaked[user.name] = {}
-            #                 colo_leaked[user.name][username] = {}
-            #                 colo_leaked[user.name][username][emoji] = {}
-            #                 colo_leaked[user.name][username][emoji] = 1
-            # print(colo_leaked)
-            # end_date = datetime.datetime.now()
-            # colo_leaked["last_update"] = end_date - datetime.timedelta(minutes=1)
-            # self.bot.db.update_leaked_colonies(colo_leaked)
-            # print('updated')
         await interaction.response.defer(ephemeral=True)
         await self.bot.dashboard.update_Dashboard()
 

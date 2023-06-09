@@ -30,6 +30,6 @@ class Player_Model(TypedDict):
     colonies_moved_bool: bool
     total_war_points: int
     war_points_delta: int
-    bunker_troops: int
+    bunker_troops: str
     
     

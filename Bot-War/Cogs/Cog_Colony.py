@@ -88,7 +88,6 @@ class Cog_Colony(commands.Cog):
 
     @app_commands.command(name="move_colony", description="tell the bot you moved a leaked")
     @app_commands.describe(colo_number="if not found : ✅ run /player_infos and add its alliance ")
-    # @app_commands.autocomplete(pseudo=autocomplete.player_ally_autocomplete, colo_number=autocomplete.colo_autocomplete)
     @app_commands.checks.has_any_role('Admin', 'Assistant')
     async def move_colony(self, interaction: discord.Interaction, colo_number: int):
         if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
@@ -96,15 +95,17 @@ class Cog_Colony(commands.Cog):
             return
         else:
             leaked_colonies = self.bot.db.get_leaked_colonies()
+            if len(leaked_colonies) <= 2:
+                await interaction.response.send_message("> 🚫 No war currently happening. You don't need to use this command. Use your last braincell instead !")
+                return
             print(leaked_colonies)
             name = interaction.user.name
 
             if f"{name}" in leaked_colonies:
                 print(leaked_colonies[name])
                 for enemy in leaked_colonies[name]:
-                    if enemy != 'last_update' and enemy != 'registered_users':
+                    if enemy != 'last_update' and enemy != 'registered_users' and len(leaked_colonies[name][enemy]) >= 1:
                         print(leaked_colonies[name][enemy])
-                        
                         leaked_colonies[name][enemy].remove(f"{colo_number}")
             print(leaked_colonies)
             await interaction.response.send_message(f"> Colony n°**{colo_number}** of **{name}** moved. ✅")

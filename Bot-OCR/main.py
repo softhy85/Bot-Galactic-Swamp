@@ -36,16 +36,19 @@ async def on_ready():
     bot.ocr_channel = bot.get_channel(bot.ocr_channel_id)
     bot.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
     bot.general_channel = bot.get_channel(bot.general_channel_id)
+    bot.raw_channel_id = int(os.getenv("RAW_CHANNEL"))
+    bot.raw_channel = bot.get_channel(bot.raw_channel_id)
     bot.machine_id = os.getenv("MACHINE_ID")
     bot.easter: int = 0
     bot.path = 'Bot-OCR\\Processed'
+    bot.path_unprocessed = "Bot-OCR\\Unprocessed"
+    bot.path_processed = "Bot-OCR\\Processed"
     await bot.command_channel.send(f"> `[{bot.machine_id}]` -📝 The OCR bot is **online**. ✨")
-    await generate_message()
-    cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony", "Cogs.Cog_Misc", "Cogs.Cog_Scout"])
-    for cog in cogs:
-        await bot.load_extension(cog)
+    # await generate_message()
+    message, user = await client.wait_for('message')
     reaction, user = await client.wait_for('reaction_add')
-    reaction, user = await client.wait_for('reaction_remove')
+
+    
     
 
 @bot.command()
@@ -61,7 +64,24 @@ async def clear(ctx, number):
     number = int(number)
     await ctx.channel.purge(limit=number)
 
+# @bot.event
+# async def on_message(message):
+#     if message.channel == bot.raw_channel:
+#         it: int = 0
+#         async for message in bot.raw_channel.history(oldest_first=True, limit=10): #, limit=1
+#             # for attachment in message.attachments:
+#             attachment = message.attachments[0]
+#             if attachment.filename.endswith(".png") == True:
+#                 print(message.attachments[0])
+#                 file_path = message.attachments[it]
+#                 myfile = requests.get(file_path)
+#                 with open(f"{bot.path_unprocessed}/screen_{it+1}.png", "wb") as outfile:
+#                     outfile.write(myfile.content)
+#                 it += 1       
+                # if it >= 2:
+                #     break          
 
+                       
 async def add_menu(data, view, content):
     for it_player in range(0, len(data['Players'])):
         if  data['Players'][it_player] in data["Proposal"]:
