@@ -36,6 +36,7 @@ class Cog_Colony(commands.Cog):
         self.guild = self.bot.get_guild(int(os.getenv("SERVER_ID")))
         self.log_channel_id: int = int(os.getenv("LOG_CHANNEL"))
         self.log_channel = self.bot.get_channel(self.log_channel_id)
+        self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
 
     #<editor-fold desc="listener">
 
@@ -84,6 +85,31 @@ class Cog_Colony(commands.Cog):
                 else:
                     await interaction.response.send_message(f"> Colony n°**{colo_number}** of **{pseudo}** has been removed from the updated colonies 💢")
                     self.bot.db.update_colony(act_colony)
+
+    @app_commands.command(name="move_colony", description="tell the bot you moved a leaked")
+    @app_commands.describe(colo_number="if not found : ✅ run /player_infos and add its alliance ")
+    # @app_commands.autocomplete(pseudo=autocomplete.player_ally_autocomplete, colo_number=autocomplete.colo_autocomplete)
+    @app_commands.checks.has_any_role('Admin', 'Assistant')
+    async def move_colony(self, interaction: discord.Interaction, colo_number: int):
+        if not self.bot.spec_role.admin_role(interaction.guild, interaction.user) and not self.bot.spec_role.assistant_role(interaction.guild, interaction.user):
+            await interaction.response.send_message("> 🚫 You don't have the permission to use this command.")
+            return
+        else:
+            leaked_colonies = self.bot.db.get_leaked_colonies()
+            print(leaked_colonies)
+            name = interaction.user.name
+
+            if f"{name}" in leaked_colonies:
+                print(leaked_colonies[name])
+                for enemy in leaked_colonies[name]:
+                    if enemy != 'last_update' and enemy != 'registered_users':
+                        print(leaked_colonies[name][enemy])
+                        
+                        leaked_colonies[name][enemy].remove(f"{colo_number}")
+            print(leaked_colonies)
+            await interaction.response.send_message(f"> Colony n°**{colo_number}** of **{name}** moved. ✅")
+            self.bot.db.update_leaked_colonies(leaked_colonies)
+                
  
     @app_commands.command(name="colo_gift", description="Gift colony to low level players / Or tell if a colony never has defenses")
     @app_commands.describe(pseudo="Player's pseudo", colo_number="Wich colony", gift_state="x")
@@ -100,24 +126,7 @@ class Cog_Colony(commands.Cog):
             self.bot.db.update_colony(act_colony)
             await self.log_channel.send(f"> <@&1089184438442786896> a new free colony has been added !! 🎁")
             await interaction.response.send_message(f"> The free state of colony n°{act_colony['number']} of {pseudo} has been updated. 🎁")
-    
-    @app_commands.command(name="colo_leaked", description="Check which player knows your colonies")
-    async def colo_leaked(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-        content = ""
-        leaked_colonies = self.bot.db.get_leaked_colonies()
-        for index_player in leaked_colonies:
-            if index_player != 'last_update':
-                content = content + f"**{index_player}**:"
-                for enemy in leaked_colonies[f'{index_player}']:
-                    content = content + f"\n`{enemy}:"
-                    for colony in leaked_colonies[f'{index_player}'][f'{enemy}']:
-                        content = content + f"{colony} "
-                    content = content + "`"
-        if content == "":
-            await interaction.followup.send(f'`you didnt leak any colony ya boi`:')
-        else: 
-            await interaction.followup.send(f'{content}')
+
             
     #</editor-fold>
 

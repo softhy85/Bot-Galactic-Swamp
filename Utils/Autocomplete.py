@@ -1,3 +1,4 @@
+import os
 import re
 from typing import List
 
@@ -17,6 +18,7 @@ class Autocomplete:
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")
 
     async def alliance_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
             obj: dict = {}
@@ -83,6 +85,18 @@ class Autocomplete:
                 app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
                 for player in players
             ]
+    
+    async def player_ally_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
+        if current == "":
+            obj: dict = {"_alliance_id": self.ally_alliance_name}
+        else:
+            obj: dict = {"_alliance_id": self.ally_alliance_name, "pseudo": {"$regex": re.compile(current, re.IGNORECASE)}}
+        players: List[Player_Model] = list(self.bot.db.get_players(obj))
+        players = players[0:24]
+        return [
+            app_commands.Choice(name=player["pseudo"], value=player["pseudo"])
+            for player in players
+        ]
             
     async def player_api_autocomplete(self, interaction: discord.Interaction, current: str) -> List[app_commands.Choice[str]]:
         if len(current) >= 5:

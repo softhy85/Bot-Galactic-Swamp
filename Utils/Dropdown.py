@@ -271,7 +271,7 @@ class Select(discord.ui.Select):
         if log_message:
             colo_leaked = self.bot.db.get_leaked_colonies()
             print(colo_leaked)
-            reaction_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+            reaction_list = ["<:1_:1116487769833873518>", "<:2:1116483624972341289>", "<:3:1116483668865732718>",  "<:4:1116483731339878532>",  "<:5:1116483769445122120>",  "<:6:1116483998743531530>",  "<:7:1116484030158876682>",  "<:8:1116101064706506792>",  "<:9:1116484067198767104>",  "<:10:1116484093752914062>",  "<:11_:1116484146617929758>" ]
             for item in reaction_list:
                 await log_message.add_reaction(f'{item}')
             # history = [message async for message in self.log_channel.history(before=date - datetime.timedelta(seconds=30), after=colo_leaked["last_update"])]
