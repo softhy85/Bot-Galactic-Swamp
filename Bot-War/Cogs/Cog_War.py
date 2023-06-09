@@ -50,6 +50,7 @@ class Cog_War(commands.Cog):
         self.voice_channel = self.bot.get_channel(self.voice_channel_id)
         self.war_history_id: int = int(os.getenv("WAR_HISTORY"))
         self.war_history = self.guild.get_thread(self.war_history_id)
+        self.program_path: str = os.getenv("PROGRAM_PATH")
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
             self.task_war_over.start()
@@ -346,7 +347,9 @@ class Cog_War(commands.Cog):
         alliance_stats = f"```💫 Score:{empty_space_score}{alliance_api_info['alliance_formatted_score']}\n📈 WR:{empty_space_wr}{alliance_api_info['alliance_winrate'] if alliance_api_info['alliance_winrate'] != -1 else 'xx.xx'}% \n⭐ Level:{empty_space_level}{alliance_api_info['alliance_lvl']}\n👤 Members:{empty_space_members}{len(alliance_api_info['members_list'])}```"
         embed_title: str = ""
         war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R>"
-        war_recap = discord.File("./Bot-War/Image/war_recap.png", filename="war_recap.png")
+        
+        war_recap = discord.File(f"{self.program_path}/Image/war_recap.png", filename="war_recap.png")
+        
         if next_war['positive_votes'] > 0 and (next_war['positive_votes'] - next_war['negative_votes']) < 4:
             war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R> `({4-next_war['positive_votes']+next_war['negative_votes']} votes to start)`"
             vote_string = self.vote_string(next_war)
@@ -373,8 +376,11 @@ class Cog_War(commands.Cog):
         embed.add_field(name="⛔ Players online:", value=next_war['players_online_list'], inline=False)
         embed.add_field(name=war_start_string, value=vote_string, inline=False)
         embed.add_field(name=f"💥 Last war recap: `{war_log['enemy_name']}`", value=f"``{war_log['ally_score'][-1]}`` vs ``{war_log['enemy_score'][-1]}`` - ``{len(war_log['ally_score'])} attacks`` - ``{'Win' if war_log['ally_score'][-1] >war_log['enemy_score'][-1] else 'Lost'}``", inline=False)
-        banner = discord.File("./Bot-War/Image/banner.png", filename="banner.png")
+        print('0')
+        banner = discord.File(f"{self.program_path}/Image/banner.png", filename="banner.png")
         embed.set_image(url="attachment://war_recap.png")
+        print('1')
+        print(f"{self.program_path}/Image/war_recap.png")
         if updated == False:
             self.bot.galaxyCanvas.draw_recap()
             message = await channel.send(embed=embed, files=[war_recap, banner])

@@ -43,7 +43,8 @@ class GalaxyCanvas:
     self.list_y_scouted = list()
     self.list_x_player = list()
     self.list_y_player = list()
-    self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")   
+    self.ally_alliance_name = os.getenv("ALLY_ALLIANCE_NAME")  
+    self.program_path: str = os.getenv("PROGRAM_PATH") 
 
   def plot_scouted_colonies(self, size_x, size_y):  
       for it in range(0, len(self.all_colonies)):
@@ -229,7 +230,7 @@ class GalaxyCanvas:
       ax.axhline(y=threshold, color='#222224')
       ax.axhline(y=threshold, color='w', linestyle=":")
     plt.subplots_adjust(bottom=0, right=1, top=1, left=0)
-    plt.savefig('./Bot-War/Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
+    plt.savefig(f'{self.program_path}/Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
     plt.close('all')
   
   def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None):
@@ -336,6 +337,6 @@ class GalaxyCanvas:
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
-    plt.savefig('./Bot-War/Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
+    plt.savefig(f'{self.program_path}/Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
     plt.close('all')
     return (int(zoom), pos_x, pos_y, scout_x, scout_y, scout_player)
