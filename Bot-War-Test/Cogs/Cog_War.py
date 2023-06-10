@@ -28,7 +28,7 @@ class Cog_War(commands.Cog):
     experiment_channel_id: int = None
     experiment_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
     ally_alliance_name: str = None
-    
+
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot

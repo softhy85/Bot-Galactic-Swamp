@@ -1,0 +1,1 @@
+pyinstaller --noconfirm --onefile --console --icon "D:/GitHub/Bot-Galactic-Swamp/Image/worker.ico" --name "Bot-Galactic-Swamp" --add-data "D:/GitHub/Bot-Galactic-Swamp/Models;Models/" --add-data "D:/GitHub/Bot-Galactic-Swamp/Utils;Utils/" --paths "D:/GitHub/Bot-Galactic-Swamp/bot-env/Lib/site-packages"  "D:/GitHub/Bot-Galactic-Swamp/main.py"

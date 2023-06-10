@@ -1,10 +1,12 @@
-import discord
-from discord import app_commands, Client
-from discord.ext import commands, tasks
-from typing import List
 import datetime
 import os
+from typing import List
+
+import discord
+from discord import Client, app_commands
+from discord.ext import commands, tasks
 from Models.War_Model import War_Model
+
 
 class Cog_Tasks(commands.Cog):
     bot: commands.Bot = None
@@ -39,7 +41,7 @@ class Cog_Tasks(commands.Cog):
         history = [message async for message in self.bot.log_channel.history(before=date, after=leaked_colonies["last_update"])]
         for message in history:
             username = message.content.split('**')[1]
-            if message.author.name == "Galactic-Swamp-app":
+            if message.author.name == app_name:
                 for index in range(0, len(message.reactions)):
                     users = [user async for user in message.reactions[index].users()]
                     for user in users:

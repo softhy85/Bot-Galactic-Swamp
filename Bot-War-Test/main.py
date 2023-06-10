@@ -24,13 +24,13 @@ from Utils.Role import Role
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
-app_name: str = os.getenv("APP_NAME")
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 db = DataBase()
 bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
 client = discord.Client(intents=intents)
+app_name: str = os.getenv("APP_NAME")
 @bot.event
 async def on_ready():
     print("The bot is online")

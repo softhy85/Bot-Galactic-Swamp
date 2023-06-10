@@ -1,12 +1,12 @@
 # This example requires the 'message_content' intent.
 import asyncio
+import datetime
 import json
 import os
 import random
 import re
 import sys
 import time
-import datetime
 from inspect import getcallargs
 from typing import List
 
@@ -18,11 +18,11 @@ from discord.ext.commands import Context
 from discord.ui import Button, Select, View
 from discord.utils import utcnow
 from dotenv import load_dotenv
-
 from Utils.DataBase import DataBase
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
+app_name: str = os.getenv("APP_NAME")
 intents = discord.Intents().all()
 intents.message_content = True
 intents.members = True
@@ -62,7 +62,7 @@ async def on_raw_reaction_add(reaction: discord.reaction):
         # member: discord.Member = reaction.member
         # member.id
         if reaction.emoji.name == "🪐":
-            if reaction.member.name != "Galactic-Swamp-app":
+            if reaction.member.name != app_name:
                 leaked_colonies = bot.db.get_leaked_colonies()
                 print(reaction.member.id)
                 if not str(reaction.member.id) in leaked_colonies['registered_users']:
@@ -78,7 +78,7 @@ async def on_raw_reaction_add(reaction: discord.reaction):
                     await message.add_reaction("❌")
                 else: 
                     print('user is already registered')
-    elif reaction.member.name != "Galactic-Swamp-app":
+    elif reaction.member.name != app_name:
         if user_channel.id == reaction.channel_id:
             if reaction.emoji.name == "❌":
                 print('unsus')
@@ -93,7 +93,7 @@ async def on_raw_reaction_add(reaction: discord.reaction):
 #         if reaction.emoji.name == "🪐":
 #             print(reaction.member)
 #             print('removed colo emoji')
-#             if reaction.member.name != "Galactic-Swamp-app":
+#             if reaction.member.name != app_name:
 #                 print('damn')
 #                 leaked_colonies = bot.db.get_leaked_colonies()
 #                 print(reaction.member.id)
