@@ -181,7 +181,7 @@ async def on_command_error(ctx, error):
 @bot.command()
 async def disconnect(ctx: Context):
     if bot.spec_role.admin_role(ctx.guild, ctx.author):
-        await bot.command_channel.send(f"> `[{bot.machine_id}]` - The bot is **shutting down**. 💢")
+        await bot.command_channel.send(f"> `[{bot.machine_id}]` - The war bot is **shutting down**. 💢")
         print("Closing the bot.")
         bot.db.close()
         await bot.close()

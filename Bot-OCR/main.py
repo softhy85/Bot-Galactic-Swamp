@@ -117,9 +117,11 @@ async def menu(data, view, it_player, content):
         options.append(discord.SelectOption(label="No good answer", emoji="❌", default=False))  
         for it in range(0, len(data['Proposal'][data['Players'][it_player]])):
             if it < 20:
+                
                 options.append(discord.SelectOption(label=data['Proposal'][data['Players'][it_player]][it], emoji="💫", default=False))
         select = Select(min_values=1, max_values=1, options = options, placeholder=f"{it_player + 1} - {data['Players'][it_player]}", custom_id=data['Players'][it_player])  
         view.add_item(select)
+        
         async def my_callback(interaction):
             print('selected value:', select.values[0])
             for it_player in range(0, len(data['Players'])):
@@ -164,13 +166,10 @@ async def add_button(data, view, content):
 
 
 def parse_location(data):
-    print(data["Location"])
     # location = data["Location"].replace(" ", "")
-    
     # location_list = list(location.split(","))
     # data["Location"] = location_list
     location_list = data["Location"]
-    print(data)
     return data
 
 def get_screen(data):
@@ -224,7 +223,7 @@ async def generate_message(data):
             content = content + "🔳"
     content = content + "`"
     if true_number == len(data["Players"]):
-        print('processed result was perfect')
+        print('✅✅✅ processed result was perfect')
         await store_colonies(data)
     data = parse_location(data)
     file = get_screen(data)

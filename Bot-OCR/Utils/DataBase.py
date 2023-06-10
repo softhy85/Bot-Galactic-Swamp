@@ -129,7 +129,7 @@ class DataBase:
     
     def push_found_colony(self, colony: Found_Colony_Model) -> ObjectId | None:
         existing_colony: Found_Colony_Model = self.db.foundcolonies.find_one({"gl_id": colony["gl_id"], 'X': colony['X'], 'Y': colony['Y']})
-        print(existing_colony)
+        print("existing colony:", existing_colony)
         if not existing_colony:
             print('storing the following colony:', colony)
             return self.db.foundcolonies.insert_one(colony).inserted_id

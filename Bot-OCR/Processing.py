@@ -29,6 +29,7 @@ class Processing():
         self.path_unprocessed = f'{self.program_path}\\Unprocessed'
         self.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
         self.processed_channel = self.bot.get_channel(self.processed_channel_id)
+        self.worked_first_try = False
      
     async def process(self):
         self.matching_list = []
@@ -64,35 +65,30 @@ class Processing():
             self.data['Players'].append("player")
         for it in range(0, len(self.data["Players"])):
             self.data['Ready_to_store'].append(False)
-        print("len players", it)
         print(self.user_list)
-        print(len(self.user_list))
         self.OCR_sender()   
         print('everything all done')
         return self.data
    
         
     async def get_data(self):
-        print('enters get data')
         it_message = 0
-        history = self.processed_channel.history(oldest_first=False, limit=1)
-        hist_list = [hist_list async for hist_list in self.processed_channel.history(limit=10)]
-        print(hist_list)
+        history = self.processed_channel.history(oldest_first=True, limit=1)
+        hist_list = [hist_list async for hist_list in self.processed_channel.history(limit=1, oldest_first=False)]
         if hist_list != []:
             for message in hist_list: #, limit=1
+                print(message)
                 # for attachment in message.attachments:
                 it = 0
                 data =  json.loads(message.content)
-                print(message.attachments)
-                attachment = message.attachments[1]
+                attachment = message.attachments[0]
+                print(attachment)
                 if attachment.filename.endswith(".png") == True:
                     # print(list(message.attachments))
-                    file_path = message.attachments[1]
+                    file_path = message.attachments[0]
                     myfile = requests.get(file_path)
                     # print(f"{bot.path_unprocessed}/screen_{it+1}.png")
                     screen_name = str(data['Location']).split(', ')
-                    
-                    print(screen_name)
                     with open(f"{self.path}/{screen_name[0]}_{screen_name[1]}.png", "wb") as outfile:
                         outfile.write(myfile.content)
                     it += 1    
@@ -200,17 +196,17 @@ class Processing():
         return username_list
 
     def api_check(self, username_list):
+        self.worked_first_try = False
         given_results = []
         username_list = username_list [0:10]
         results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={username_list[0]}', timeout=15.0)
         if chr(results.content[0]) == '{':  
-            print(chr(results.content[0]))
             results = json.loads(results.content)
             if results != []:
-                print('worked at 1st try')
+                print('✅ worked at 1st try', results)
+                self.worked_first_try = True
                 results = [[(f"{results['Name']}")]]
                 self.data['Players'][self.it] = str(results)[3:-3]
-                print(results)
                 return results
         for it in range(0, len(username_list)):
             resulting_name: bool = False
@@ -254,10 +250,9 @@ class Processing():
     def most_frequent(self, List):
         if List != []:
             most_common = [item for item in Counter(List).most_common()]
-            # print (str(most_common))
             return str(most_common[0:25])
         else:
-            return 'No result found'
+            return 'No most frequent result found'
         
     def test_username(self, player_input, username_list):  
         
@@ -290,57 +285,77 @@ class Processing():
             self.username_count += 1
             user, username_list = self.preprocess(user)
             self.data["Players"][self.it] = user
-            print('user:', user)
-            result = self.test_username(user, username_list)
-            while result == None:
-                if len(user) > 4:
-                    print("decreasing size")
-                    user = user[1:]
-                    user = user[:len(user)-1]
-                    username_list = [user]
-                    result = self.test_username(user, username_list)
-                else:
-                    print('No result found')
-                    result = "No result Found"
-                    self.data['No_Result'].append(self.user_list[self.it]) 
-                    self.fail += 1
-            
-            self.matching_list.append(result)
-            print("print", result, len(result))
-            if result != 'No result Found':
-                elements: int = 0
-                for chr in result:
-                    if chr == '(':
-                        elements += 1
-                if elements == 1:
-                    self.user_list[self.it] = result
-                    self.success_count += 1
-                elif elements > 1:
-                    self.multiple_answer_count += 1
-                    result = list(result.split("'"))
-                    print(result)
-                    result_list = []
-                    for proposal in range(0, len(result)):
-                        if proposal %2 == 1:
-                            result[proposal] = result[proposal]
-                            print(result[proposal])
-                            result_list.append(result[proposal])
-                    self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
-                    print(self.data["Proposal"])
-                    # 
+            if user != "":
+                not_decreased = True
+                result = self.test_username(user, username_list)
+                while result == None:
+                    if len(user) > 4:
+                        print("decreasing size")
+                        not_decreased = False
+                        user = user[1:]
+                        user = user[:len(user)-1]
+                        username_list = [user]
+                        result = self.test_username(user, username_list)
+                    else:
+                        print('No result found')
+                        result = "No result Found"
+                        self.data['No_Result'].append(self.user_list[self.it]) 
+                        self.fail += 1
+                
+                self.matching_list.append(result)
+                if result != 'No result Found':
+                    elements: int = 0
+                    for chr in result:
+                        if chr == '(':
+                            elements += 1
+                    if elements == 1 and self.worked_first_try == True and not_decreased == True:
+                        print('✅ worked first try is true')
+                        self.user_list[self.it] = result
+                        self.success_count += 1
+                    elif elements == 1 and self.worked_first_try == True and not_decreased == False:
+                        print('❌ one result but username got decreased in size')
+                        result_list = []
+                        result = list(result.split("'"))
+                        for proposal in range(0, len(result)):
+                            if proposal %2 == 1:
+                                result[proposal] = result[proposal]
+                                result_list.append(result[proposal])
+                        self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                    elif elements == 1 and self.worked_first_try == False:
+                        print('❌ one result but didnt work at first try')
+                        result_list = []
+                        result = list(result.split("'"))
+                        for proposal in range(0, len(result)):
+                            if proposal %2 == 1:
+                                result[proposal] = result[proposal]
+                                result_list.append(result[proposal])
+                        self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                    
+                    elif elements > 1:
+                        self.multiple_answer_count += 1
+                        result = list(result.split("'"))
+                        result_list = []
+                        for proposal in range(0, len(result)):
+                            if proposal %2 == 1:
+                                result[proposal] = result[proposal]
+                                result_list.append(result[proposal])
+                        self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+            else:
+                print('❌ No result found because there was no name')
+                result = "No result Found"
+                self.data["Players"][self.it] = "No_Name"
+                self.data['No_Result'].append("No_Name") 
+                self.fail += 1
             self.it += 1
-
-        # print(matching_list)
         time_end: datetime.datetime = datetime.datetime.now()
-        print(f'program executed for {time_end - time_start} ')
-        print('usernames', self.username_count)
-        print('success:', self.success_count)
-        print('multiple answer:', self.multiple_answer_count)
-        print('fail:', self.fail)
+        # print(f'program executed for {time_end - time_start} ')
+        # print('usernames', self.username_count)
+        # print('success:', self.success_count)
+        # print('multiple answer:', self.multiple_answer_count)
+        # print('fail:', self.fail)
         location = self.data["Location"].replace(" ", "")
         location_list = list(location.split(","))
         self.data["Location"] = location_list
-        
         it = 0
         for name in range(0, len(self.data['Players'])):
             accurate_name = str(self.matching_list[name]).split("'")
@@ -349,6 +364,8 @@ class Processing():
                 print(self.data['Players'][name], "---->", accurate_name[1], "\n")
                 self.data['Ready_to_store'][it] = True
                 self.data['Players'][it] = accurate_name[1]
+            elif self.matching_list[name] == 'No result Found':
+                print(self.data['Players'][name], "---->", self.matching_list[name], "\n")
             else:
                 print(self.data['Players'][name], "---->", self.data['Proposal'][self.data['Players'][name]], "\n")
             it += 1

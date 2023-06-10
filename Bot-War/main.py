@@ -6,6 +6,7 @@ import sys
 import time
 from datetime import timedelta
 from typing import List
+import requests
 
 import discord
 from discord import Guild, app_commands
@@ -49,7 +50,12 @@ async def on_ready():
     bot.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
     bot.general_channel = bot.get_channel(bot.general_channel_id)
     bot.machine_id = os.getenv("MACHINE_ID")
+    bot.raw_backup_channel_id = int(os.getenv("RAW_BACKUP_CHANNEL"))
+    bot.raw_backup_channel = bot.get_channel(bot.raw_backup_channel_id)
+    bot.raw_channel_id = int(os.getenv("RAW_CHANNEL"))
+    bot.raw_channel = bot.get_channel(bot.raw_channel_id)
     bot.easter: int = 0
+    bot.path = os.getenv("PROGRAM_PATH")
     await bot.command_channel.send(f"> `[{bot.machine_id}]` - The bot is **online**. ✨")
     cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony", "Cogs.Cog_Misc", "Cogs.Cog_Scout"])
     for cog in cogs:
@@ -178,10 +184,45 @@ async def on_command_error(ctx, error):
             bot.easter = 1
         
 
+@bot.command(pass_context=True)
+async def woops(ctx: Context, content: int):
+    await  ctx.send(f"> :flag_fr: Damn, you fucked up once again? [FRENCH BOT] will fix that for you 🥖")
+    hist_list = [hist_list async for hist_list in bot.raw_backup_channel.history(limit=content)]
+    for file in os.listdir(f"{bot.path}/Test"):
+        if file.endswith(".png"):
+            path = os.path.join(f"{bot.path}/Test", file)
+            try:
+                os.remove(f"D:\💻 DOCUMENTS\🛠 Programmation\Bot-Galactic-Swamp\Bot-War\Test\{file}")
+            except OSError as e: # name the Exception `e`
+                print ("Failed with:", e.strerror )# look what it says
+                print ("Error code:", e.code )
+    it: int = 0
+    it_max: int = len(hist_list)     
+    for message in hist_list:
+        print('remaing:', it_max - it, "/", it_max)
+        it += 1
+        if message.content == "API request failed":
+            for file in message.attachments:
+                if file.filename.endswith(".png") == True:
+                    file_path = file
+                    files = []
+                    myfile = requests.get(file_path)
+                    with open(f"{bot.path}/Test/{file.filename}", "wb") as outfile:
+                        outfile.write(myfile.content)
+                        outfile.close()
+            for file in os.listdir(f"{bot.path}/Test"):
+                if file.endswith(".png"):
+                    file_saved = discord.File(f'{bot.path}/Test/{file}', filename=f"{file}")
+                    files.append(file_saved)
+            await message.delete()
+            await bot.raw_channel.send(content="", files=files)
+    await ctx.send("I've fixed all for you. But dont make that mistake again 😎")
+
+
 @bot.command()
 async def disconnect(ctx: Context):
     if bot.spec_role.admin_role(ctx.guild, ctx.author):
-        await bot.command_channel.send(f"> `[{bot.machine_id}]` - The bot is **shutting down**. 💢")
+        await bot.command_channel.send(f"> `[{bot.machine_id}]` - The war bot is **shutting down**. 💢")
         print("Closing the bot.")
         bot.db.close()
         await bot.close()
