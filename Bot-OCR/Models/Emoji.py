@@ -22,6 +22,7 @@ class Emoji(Enum):
     unknown: str = "❓"
     gift: str = "🎁"
     more: str = "⏩"
-    
+    empty: str ="<:empty:1088454928474841108>"
+    star: str = "<:star:1043627831973924944>"
     
    

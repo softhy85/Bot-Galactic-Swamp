@@ -11,7 +11,7 @@ from pymongo.cursor import Cursor
 
 from Models.Alliance_Model import Alliance_Model
 from Models.Colony_Model import Colony_Model
-from Models.Colors import Colors
+from Models.Emoji import Emoji
 from Models.InfoMessage_Model import InfoMessage_Model
 from Models.Player_Model import Player_Model
 from Models.War_Model import War_Model
@@ -51,7 +51,7 @@ class Dashboard:
             alliance['alliance_winrate'] = 0
         winrate: str = f"Winrate: {alliance['alliance_winrate'] if alliance['alliance_winrate'] != -1 else '?'}%­ "
         embed = discord.Embed(title=title, description=description,timestamp=datetime.datetime.now())
-        embed.add_field(name=f"{score['title']}",value=f"<:empty:1088454928474841108>\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}\n🎯 Target score: {war_progress['instant_score']}/{war_progress['score_per_cycle']}")
+        embed.add_field(name=f"{score['title']}",value=f"{Emoji.empty.value}\n📈 {winrate}\n💥 Destroyed Planets: {war_progress['total_known_planets']-war_progress['planets_up']}/{war_progress['total_known_planets']}\n🪐 Discovered Colonies: {war_progress['known_colonies']}/{war_progress['total_colonies']}\n🎯 Target score: {war_progress['instant_score']}/{war_progress['score_per_cycle']}")
         embed.set_thumbnail(url=alliance["emblem_url"])
         return embed
 
@@ -65,7 +65,7 @@ class Dashboard:
         filler_number_char = (25 - title_space)/2
         filler_number_emojis =  round(filler_number_char * 15 / 25) - 2
         while it <= filler_number_emojis:
-            filler = filler + "<:empty:1088454928474841108>"
+            filler = filler + f"{Emoji.empty.value}"
             it += 1
         centered_title = f"{filler}⚔️  {title}  ⚔️"
         
@@ -76,11 +76,11 @@ class Dashboard:
         return_value: dict = {}
         war_progress: dict = await self.war_progress(alliance["name"], players)
         score_space =  (len(str(war_progress['ally_alliance_score'])) - 1 + len(str(war_progress['enemy_alliance_score']))- 1)
-        filler = "<:empty:1088454928474841108>"
+        filler = f"{Emoji.empty.value}"
         filler_number = 14 - score_space
         while it <= filler_number:
             if len(filler) <= 200:
-                filler = filler + "<:empty:1088454928474841108>"
+                filler = filler + f"{Emoji.empty.value}"
             it += 1
         slider: str = ""
         slider_length = 15
@@ -115,7 +115,7 @@ class Dashboard:
             nb_message += 1   
         embed: discord.Embed = await self.create_embed_alliance(actual_war, war_alliance, players)
         message = await self.war_channel.send(embed=embed)
-        await message.add_reaction("<:star:1043627831973924944>")
+        await message.add_reaction(f"{Emoji.star.value}")
         await message.add_reaction("🪐")
         infoMessage: InfoMessage_Model = {"_id_linked": actual_war["_id"], "id_message": message.id, "type_embed": "Dashboard"}
         self.bot.db.push_new_info_message(infoMessage)
