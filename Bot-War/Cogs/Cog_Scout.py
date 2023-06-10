@@ -98,11 +98,12 @@ class Cog_Scout(commands.Cog):
         splitted_name = name_str.split('`')   
         self.new_zoom = int(splitted_name[1])
         self.new_pos_x = int(splitted_name[3])
-        self.new_pos_y = int(splitted_name[5])    
+        self.new_pos_y = int(splitted_name[5])
         if embed.fields[0].value:
             value_str = str(embed.fields[0].value)
-            splitted_value = value_str.split('`')  
-            self.scout_player_step = int(splitted_value[5])
+            splitted_value = value_str.split('`') 
+            if len(splitted_value) > 5:
+                self.scout_player_step = int(splitted_value[5])
            
     def button_zoom_in(self, view, embed):    
         button_zoom_in = Button(label = f"＋", style=discord.ButtonStyle.green)
