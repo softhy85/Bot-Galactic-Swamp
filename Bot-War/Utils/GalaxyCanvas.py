@@ -118,10 +118,10 @@ class GalaxyCanvas:
     y: int = 0
     x_found: int = 0
     y_found: int = 0
-    limit_x: int = 10
-    limit_y: int = 15
+    limit_x: int = 15
+    limit_y: int = 30
     scout_size: int = 1
-    colo_number_threshold = 1.
+    colo_number_threshold = 2.
     found = False
     obj = {"name":"completed_list"}
     completed_list: dict = self.bot.db.get_completed_list(obj)
