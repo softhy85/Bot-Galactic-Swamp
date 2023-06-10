@@ -1,31 +1,49 @@
+import asyncio
 import datetime
+import time
 import itertools
 import json
+import os
 import re
 from collections import Counter
-import os
+
+import discord
 import requests
+from discord.ext import commands
+from discord.ext.commands import Context
+from discord.ui import Button, Select, View
 
-# player_input = "MYSNCCCCC"
 
-class OCR_API:
+class Processing():
+    bot: commands.Bot = None
 
-    def __init__(self):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
         self.username_count = 0
         self.success_count = 0
         self.multiple_answer_count = 0
         self.fail = 0
         self.matching_list = []
-        self.path_unprocessed = "Bot-OCR\\Unprocessed"
-        self.path_processed = "Bot-OCR\\Processed"
-        for file in os.listdir(self.path_unprocessed):
-            if file.endswith(".json"):
-                break
-        with open(f'{self.path_unprocessed}\{file}') as fp:
-                self.data = json.load(fp)
-        # "SLAY","2ITOO","SEBAKING33","/NATIXEU","1","YHORDANPERZ019","MNOJOREK", "OIRIAURE","ELDEREKDIMITRY","NATATEK",
-        #,"JOHNNY","DICTUMN","HUGO12345","BRODERTUCK","BROZ2DI","1","YUJIROTHEOGRE","21737215","JOHNYKO!", "SZNEJKS","SErGIOIZGOT","MANLEY","AMARUXXGR","FELLOWJITSTER","HERCIO","1","ARGENTINAPAPASNDIGUERREIRC", "MNASTGOL","COUTIETJ","QRTHXR","TDDMEATHOOK","SHAFUL","kaspianziomAal","|","MAGASKILLLS","~~","ALBEN\\ONA","VVALENIN","30n030200", "goz2l4az20","ROBER289","CARLOSS5582","SANILEPUNCHS)!","GIGAMIN","MAGASKILLLS", "WNICOS","SAHIANACORDOBA","ZZ2PIPEEENNISSBUNBLEBEESC","/VIATIANA","RUINMTETROTTER"
-        self.user_list = self.data["Players"]
+        self.program_path = os.getenv("PROGRAM_PATH")
+        self.path = f'{self.program_path}\\Processed'
+        self.path_unprocessed = f'{self.program_path}\\Unprocessed'
+        self.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
+        self.processed_channel = self.bot.get_channel(self.processed_channel_id)
+     
+    async def process(self):
+        self.matching_list = []
+        self.data = await self.get_data()
+        print(self.data)
+        self.user_list = []
+        for player in self.data['PlanetInfos']:
+            print(player)
+            if player['PlayerName'] != "" and len(player['PlayerName']) >= 3:
+                self.user_list.append(player['PlayerName'])
+                print('appending')
+        print(self.user_list)
+        # if self.user_list == []:
+        #     print("the user list is empty !!!")
+        self.data = {'Title': self.data['Title'], 'Location': self.data['Location']}
         self.data['Proposal'] = {}
         self.data['No_Result'] = []
         self.data['Ready_to_store'] = []
@@ -36,7 +54,6 @@ class OCR_API:
                 while len(word) > 10:
                     word = word[1:]
                     word = word[:len(word)-1]
-                print(word)
                 self.user_list[index] = word
             if len(word) < 4:
                 del self.user_list[index]
@@ -45,13 +62,46 @@ class OCR_API:
         self.data['Players'] = []
         for it in self.user_list:
             self.data['Players'].append("player")
-        print(self.data)
         for it in range(0, len(self.data["Players"])):
             self.data['Ready_to_store'].append(False)
         print("len players", it)
         print(self.user_list)
         print(len(self.user_list))
         self.OCR_sender()   
+        print('everything all done')
+        return self.data
+   
+        
+    async def get_data(self):
+        print('enters get data')
+        it_message = 0
+        history = self.processed_channel.history(oldest_first=False, limit=1)
+        hist_list = [hist_list async for hist_list in self.processed_channel.history(limit=10)]
+        print(hist_list)
+        if hist_list != []:
+            for message in hist_list: #, limit=1
+                # for attachment in message.attachments:
+                it = 0
+                data =  json.loads(message.content)
+                print(message.attachments)
+                attachment = message.attachments[1]
+                if attachment.filename.endswith(".png") == True:
+                    # print(list(message.attachments))
+                    file_path = message.attachments[1]
+                    myfile = requests.get(file_path)
+                    # print(f"{bot.path_unprocessed}/screen_{it+1}.png")
+                    screen_name = str(data['Location']).split(', ')
+                    
+                    print(screen_name)
+                    with open(f"{self.path}/{screen_name[0]}_{screen_name[1]}.png", "wb") as outfile:
+                        outfile.write(myfile.content)
+                    it += 1    
+                it_message += 1 
+                await message.delete()
+        else:
+            print('currently no message in channel')
+            return
+        return data
         
     def preprocess(self, player_input):
         player_input = player_input.replace("/N", "M")
@@ -60,7 +110,26 @@ class OCR_API:
         player_input = player_input.replace("_", "")
         player_input = player_input.replace("\\", "")
         player_input = player_input.replace("€", "E")
+        player_input = player_input.replace("&", "E")
+        player_input = player_input.replace("§", "6")
         player_input = player_input.replace(":", "3")
+        player_input = player_input.replace(",", "")
+        
+        chr = "\ "
+        player_input = player_input.replace(f'{chr[0]}', "1")
+        player_input = player_input.replace("(", "O")
+        player_input = player_input.replace(")", "1") 
+        player_input = player_input.replace("!", "1")   
+        player_input = player_input.replace("^", "A")
+        player_input = player_input.replace(",", "")
+        
+        player_input = player_input.replace("«s>", "")
+        player_input = player_input.replace("«s»", "")
+        player_input = player_input.replace("<s>", "")
+        player_input = player_input.replace("«", "")
+        player_input = player_input.replace("<", "")
+        player_input = player_input.replace("_", "")    
+
         print("pre processed username:", player_input)
         username_list = [player_input]
         return player_input, username_list
@@ -75,34 +144,31 @@ class OCR_API:
         char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> B
         char_found_index.append([m.start() for m in re.finditer('B', player_input)]) # B -> 3
         
-        char_found_index.append([m.start() for m in re.finditer('NN', player_input)]) # NN -> M
-        char_found_index.append([m.start() for m in re.finditer('MN', player_input)]) # MN -> M
-        char_found_index.append([m.start() for m in re.finditer('AM', player_input)]) # AM -> M
-        
-        char_found_index.append([m.start() for m in re.finditer('N', player_input)]) # N -> T1
-        
-        char_found_index.append([m.start() for m in re.finditer('UW', player_input)]) # UW -> W
-        char_found_index.append([m.start() for m in re.finditer('WW', player_input)]) # WW -> W
+        char_found_index.append([m.start() for m in re.finditer('O', player_input)]) # O -> 0
+        char_found_index.append([m.start() for m in re.finditer('0', player_input)]) # 0 -> O
         
         char_found_index.append([m.start() for m in re.finditer('Z', player_input)]) # Z -> 2
         char_found_index.append([m.start() for m in re.finditer('2', player_input)]) # 2 -> Z
-        char_found_index.append([m.start() for m in re.finditer('Z2', player_input)]) # Z2 -> Z
         
         char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> 5
         char_found_index.append([m.start() for m in re.finditer('5', player_input)]) # 5 -> S
         
-        char_found_index.append([m.start() for m in re.finditer('O', player_input)]) # O -> 0
-        char_found_index.append([m.start() for m in re.finditer('0', player_input)]) # 0 -> O
+        char_found_index.append([m.start() for m in re.finditer('11', player_input)]) # 11 -> N
+        char_found_index.append([m.start() for m in re.finditer('A', player_input)]) # A -> 4
         
-        char_found_index.append([m.start() for m in re.finditer('Y', player_input)]) # Y -> 1
-        char_found_index.append([m.start() for m in re.finditer('1', player_input)]) # 1 -> Y
+        char_found_index.append([m.start() for m in re.finditer('E', player_input)]) # E -> S
+        char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> E
+        
+        char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> 8
+        
         
         char_found_index.append([m.start() for m in re.finditer('N', player_input)]) # N -> M
-        char_found_index.append([m.start() for m in re.finditer('N', player_input)]) # N -> A
         char_found_index.append([m.start() for m in re.finditer('I', player_input)]) # I -> 1
+        char_found_index.append([m.start() for m in re.finditer('I', player_input)]) # I -> T
+        
 
-        replace_chr: list = ["3", "S", "B", "NN", "MN", "AM", "N", "UW", "WW", "Z", "2", "Z2", "S", "5", "O", "0", "Y", "1", "N", "N", "I"] 
-        original_chr: list = ["B", "B", "3", "M", "M", "M", "T1", "W", "W", "2", "Z", "Z", "5", "S", "0", "O", "1", "Y", "M", "A", "1"] 
+        replace_chr: list = ["3", "S", "B", "O", "0", "Z", "2", "S", "5", "11", "A", "E", "S", "S", "N", "I", "I"] 
+        original_chr: list = ["B", "B", "3", "0", "O", "2", "Z", "5", "S", "N", "4", "S", "E", "8", "M", "1", "T"] 
         return char_found_index, original_chr, replace_chr
 
     # it_char_found : position in list of replacement chars 
@@ -224,6 +290,7 @@ class OCR_API:
             self.username_count += 1
             user, username_list = self.preprocess(user)
             self.data["Players"][self.it] = user
+            print('user:', user)
             result = self.test_username(user, username_list)
             while result == None:
                 if len(user) > 4:
@@ -258,7 +325,7 @@ class OCR_API:
                             result[proposal] = result[proposal]
                             print(result[proposal])
                             result_list.append(result[proposal])
-                    self.data["Proposal"][f'{self.user_list[self.it]}'] = result_list
+                    self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
                     print(self.data["Proposal"])
                     # 
             self.it += 1
@@ -276,16 +343,21 @@ class OCR_API:
         
         it = 0
         for name in range(0, len(self.data['Players'])):
-            print(self.data['Players'][name], "---->", self.matching_list[name], "\n")
+            accurate_name = str(self.matching_list[name]).split("'")
+            
             if not self.data['Players'][name] in self.data['Proposal'] and self.matching_list[name] != 'No result Found':
+                print(self.data['Players'][name], "---->", accurate_name[1], "\n")
                 self.data['Ready_to_store'][it] = True
+                self.data['Players'][it] = accurate_name[1]
+            else:
+                print(self.data['Players'][name], "---->", self.data['Proposal'][self.data['Players'][name]], "\n")
             it += 1
-        print(self.data)        
-        json_file = json.dumps(self.data, indent=1)
+        print(self.data)    
+        # json_file = json.dumps(self.data, indent=1)
         
-        with open(f"{self.path_processed}/{location_list[0]}_{location_list[1]}.json", "w") as outfile:
-            outfile.write(json_file)
-        os.remove(f"{self.path_unprocessed}\{location_list[0]}_{location_list[1]}.json")
+        # with open(f"{self.path_processed}/{location_list[0]}_{location_list[1]}.json", "w") as outfile:
+        #     outfile.write(json_file)
+        # os.remove(f"{self.path_unprocessed}\{location_list[0]}_{location_list[1]}.json")
     # ✅ take data from json
     # ✅ preprocess
     # ✅ generate variations
@@ -294,4 +366,3 @@ class OCR_API:
     # ✅ if one result, replace name in data["Players"][it]
     # if multiple results, add to data['Proposal'] = {f'{data["Players"][it]}':[self.matching_list]}
     # think about how to handle No results
-OCR_API()

@@ -3,11 +3,13 @@ import asyncio
 import json
 import os
 import random
+import re
 import sys
 import time
 from datetime import timedelta
-from typing import List
 from inspect import getcallargs
+from typing import List
+
 import discord
 import requests
 from discord import Guild, app_commands, ui
@@ -16,7 +18,10 @@ from discord.ext.commands import Context
 from discord.ui import Button, Select, View
 from discord.utils import utcnow
 from dotenv import load_dotenv
-import re
+from Models.Found_Colony_Model import Found_Colony_Model
+from Processing import Processing
+from Utils.DataBase import DataBase
+from Utils.GalaxyLifeAPI import GalaxyLifeAPI
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
@@ -25,9 +30,12 @@ intents.message_content = True
 intents.members = True
 bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
 client = discord.Client(intents=intents)
+db = DataBase()
+
 @bot.event
 async def on_ready():
     print("The bot is online")
+    bot.db = db
     bot.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
     bot.command_channel = bot.get_channel(bot.command_channel_id)
     bot.war_channel_id = int(os.getenv("WAR_CHANNEL"))
@@ -36,20 +44,35 @@ async def on_ready():
     bot.ocr_channel = bot.get_channel(bot.ocr_channel_id)
     bot.general_channel_id = int(os.getenv("GENERAL_CHANNEL"))
     bot.general_channel = bot.get_channel(bot.general_channel_id)
-    bot.raw_channel_id = int(os.getenv("RAW_CHANNEL"))
-    bot.raw_channel = bot.get_channel(bot.raw_channel_id)
+    bot.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
+    bot.processed_channel = bot.get_channel(bot.processed_channel_id)
     bot.machine_id = os.getenv("MACHINE_ID")
     bot.easter: int = 0
-    bot.path = 'Bot-OCR\\Processed'
-    bot.path_unprocessed = "Bot-OCR\\Unprocessed"
-    bot.path_processed = "Bot-OCR\\Processed"
+    bot.program_path = os.getenv("PROGRAM_PATH")
+    bot.path = f'{bot.program_path}/Processed'
+    bot.path_unprocessed = f'{bot.program_path}/Unprocessed'
+    bot.path_processed = "Bot-OCR/Processed"
+    bot.processing  = Processing(bot)
+    bot.galaxyLifeAPI = GalaxyLifeAPI()
     await bot.command_channel.send(f"> `[{bot.machine_id}]` -📝 The OCR bot is **online**. ✨")
-    # await generate_message()
+    await start()
+    
     message, user = await client.wait_for('message')
     reaction, user = await client.wait_for('reaction_add')
 
     
-    
+async def start():
+    data = None
+    processed_messages = [processed_messages async for processed_messages in bot.processed_channel.history(limit=10)]
+    while len(processed_messages) == 0:
+        processed_messages = [processed_messages async for processed_messages in bot.processed_channel.history(limit=10)]
+    print('found messages in processed')
+    data = await bot.processing.process()
+
+    hist_list = [hist_list async for hist_list in bot.ocr_channel.history(limit=10)]
+    if len(hist_list) < 2 or hist_list == []:
+        print('currently not enough messages (', len(hist_list), ')')
+        await generate_message(data)
 
 @bot.command()
 async def sync(ctx: Context) -> None:
@@ -66,9 +89,9 @@ async def clear(ctx, number):
 
 # @bot.event
 # async def on_message(message):
-#     if message.channel == bot.raw_channel:
+#     if message.channel == bot.processed_channel:
 #         it: int = 0
-#         async for message in bot.raw_channel.history(oldest_first=True, limit=10): #, limit=1
+#         async for message in bot.processed_channel.history(oldest_first=True, limit=10): #, limit=1
 #             # for attachment in message.attachments:
 #             attachment = message.attachments[0]
 #             if attachment.filename.endswith(".png") == True:
@@ -91,18 +114,16 @@ async def add_menu(data, view, content):
 
 async def menu(data, view, it_player, content):
         options: List[discord.SelectOption] = []
+        options.append(discord.SelectOption(label="No good answer", emoji="❌", default=False))  
         for it in range(0, len(data['Proposal'][data['Players'][it_player]])):
             if it < 20:
                 options.append(discord.SelectOption(label=data['Proposal'][data['Players'][it_player]][it], emoji="💫", default=False))
-        options.append(discord.SelectOption(label="No good answer", emoji="❌", default=False))  
         select = Select(min_values=1, max_values=1, options = options, placeholder=f"{it_player + 1} - {data['Players'][it_player]}", custom_id=data['Players'][it_player])  
         view.add_item(select)
         async def my_callback(interaction):
             print('selected value:', select.values[0])
             for it_player in range(0, len(data['Players'])):
-                print(data['Players'][it_player], select.custom_id)
                 if data['Players'][it_player] == select.custom_id:
-                    print(select.values)
                     if select.values[0] != "No good answer":
                         data['Players'][it_player] = select.values[0]
                         data['Ready_to_store'][it_player] = True
@@ -120,12 +141,8 @@ async def menu(data, view, it_player, content):
                         if true_number == len(data['Players']):
                             await store_colonies(data)
                     else:
-                        print("Menu_number")
-                        print(data['Players'][it_player])
                         for it in range(0, len(data['Proposal'])):
-                            print('1')
                             if  data['Players'][it_player] in data["Proposal"]:
-                                print('found and decide to remove')
                                 view.remove_item(view.children[it])
                                 await button_write_name(view, data, it_player, content)  
                                 data["No_Result"].append(data['Players'][it_player])
@@ -136,26 +153,15 @@ async def menu(data, view, it_player, content):
         
         
 async def add_button(data, view, content):
-    print('enters 1')
     for it_player in range(0, len(data['Players'])):
         
         if data['Players'][it_player] in data["No_Result"]:
-            print('yes')
             await button_write_name(view, data, it_player, content)
     if view is not None:
         return view
     else:
         return 
 
-def get_data():
-    for file in os.listdir(bot.path):
-        if file.endswith(".json"):
-            print(file)
-            file_chosen = file
-            break
-    with open(f'{bot.path}\{file_chosen}') as fp:
-        data = json.load(fp)  
-    return data
 
 def parse_location(data):
     print(data["Location"])
@@ -169,15 +175,23 @@ def parse_location(data):
 
 def get_screen(data):
     filename = f"{data['Location'][0]}_{data['Location'][1]}.png"
-    file = discord.File(f"{bot.path}\{filename}", filename=filename)
+    file = discord.File(f"{bot.path}/{filename}", filename=filename)
     return file
 
+
+def db_handle(data):
+    for player in data['Players']:
+        player_infos = bot.galaxyLifeAPI.get_player_infos_from_name(player)
+        player_id = player_infos['player_id_gl']        
+        print(f"attempting to store colony:  {player} ({player_id}): {data['Title']}({data['Location']})")
+        colony: Found_Colony_Model = {'gl_id': player_id, 'colo_sys_name':data['Title'], 'X': int(data['Location'][0]), 'Y':int(data['Location'][1])}
+        bot.db.push_found_colony(colony)
+        
 async def store_colonies(data):
     content = ""
     for player in data['Players']:
         content += f"**{player}**: {data['Location'][0]} : {data['Location'][1]}\n"
     if os.path.isfile(f"{bot.path}\{data['Location'][0]}_{data['Location'][1]}.png"):
-        print('removing')
         async for message in bot.ocr_channel.history(limit=10):
             coord_x = []
             coord_y = []
@@ -186,7 +200,6 @@ async def store_colonies(data):
             if coord_x != [[]] and coord_y != [[]]:
                 time.sleep(1)
                 await message.delete()
-                print('found')
             # if message.content[]
         os.remove(f"{bot.path}\{data['Location'][0]}_{data['Location'][1]}.png")
         for file in os.listdir(bot.path):
@@ -194,14 +207,14 @@ async def store_colonies(data):
                 print(file)
                 os.remove(f"{bot.path}\{file}")
                 break
-    await generate_message()
+    db_handle(data)
+    await start()
     
 
-async def generate_message():
+async def generate_message(data):
+    print('entering generate_message')
     view = View(timeout=None)
-    data = get_data()
-    content = f"> 🪐 **{data['Name']}**  🔍 ``{data['Location']}``  `"
-    print(content)
+    content = f"> 🪐 **{data['Title']}**  🔍 ``{data['Location']}``  `"
     true_number: int = 0
     for it in range(0, len(data['Players'])):
         if data['Ready_to_store'][it] == True:
@@ -211,16 +224,14 @@ async def generate_message():
             content = content + "🔳"
     content = content + "`"
     if true_number == len(data["Players"]):
+        print('processed result was perfect')
         await store_colonies(data)
-    print('before')
     data = parse_location(data)
-    print('after')
     file = get_screen(data)
-    print('got the screen')
     view = await add_menu(data, view, content)
     view = await add_button(data, view, content)
-    print('hohoho')
-    await bot.ocr_channel.send(content=content, file=file, view=view) #, attachment="Bot-OCR\screenshot.png"
+    print('sending message')
+    await bot.ocr_channel.send(content=content, view=view, file=file)
 
 async def button_write_name(view, data, it_player, content): 
     button_write_name = Button(label = f"{data['Players'][it_player]}", style=discord.ButtonStyle.grey)  

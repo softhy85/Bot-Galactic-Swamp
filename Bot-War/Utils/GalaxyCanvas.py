@@ -237,6 +237,8 @@ class GalaxyCanvas:
     obj = None
     list = self.bot.db.get_colonies_list(obj)
     list_all = {"x": list[0]['list_found'] + list[0]['list_scouted'], "y": list[1]['list_found'] + list[1]['list_scouted']}
+    obj = {"name":"completed_list"}
+    completed_list: dict = self.bot.db.get_completed_list(obj)
     size_x: int = max(list_all["x"]) / zoom
     size_y: int = max(list_all["y"]) / zoom
     fig,ax = plt.subplots(1)
@@ -249,6 +251,8 @@ class GalaxyCanvas:
     cmap_black = ListedColormap(["#000000"])
     if scout_player_step is None:
       myHist, xedges, yedges, image  = plt.hist2d(list_all['x'], list_all["y"], bins=[84,167], cmap='inferno',  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
+      for it in range(0, len(completed_list['list_x'])):
+        ax.add_patch(Rectangle((completed_list['list_x'][it]*12, completed_list['list_y'][it]*6), 12, 6, facecolor='#130136'))
     else:
       ax.add_patch(Rectangle((0, 0), 1008, 1004, facecolor='black'))
     if scout == True:

@@ -18,7 +18,7 @@ class Alliance:
     command_channel_id: int = None
     command_channel: discord.abc.GuildChannel | discord.Thread | discord.abc.PrivateChannel | None = None
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: commands.Bot): 
         self.bot = bot
         self.command_channel_id = int(os.getenv("COMMAND_CHANNEL"))
         self.command_channel = self.bot.get_channel(self.command_channel_id)

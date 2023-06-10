@@ -376,11 +376,8 @@ class Cog_War(commands.Cog):
         embed.add_field(name="⛔ Players online:", value=next_war['players_online_list'], inline=False)
         embed.add_field(name=war_start_string, value=vote_string, inline=False)
         embed.add_field(name=f"💥 Last war recap: `{war_log['enemy_name']}`", value=f"``{war_log['ally_score'][-1]}`` vs ``{war_log['enemy_score'][-1]}`` - ``{len(war_log['ally_score'])} attacks`` - ``{'Win' if war_log['ally_score'][-1] >war_log['enemy_score'][-1] else 'Lost'}``", inline=False)
-        print('0')
         banner = discord.File(f"{self.program_path}/Image/banner.png", filename="banner.png")
         embed.set_image(url="attachment://war_recap.png")
-        print('1')
-        print(f"{self.program_path}/Image/war_recap.png")
         if updated == False:
             self.bot.galaxyCanvas.draw_recap()
             message = await channel.send(embed=embed, files=[war_recap, banner])
