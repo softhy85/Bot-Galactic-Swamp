@@ -63,17 +63,46 @@ async def on_ready():
     
 async def start():
     data = None
+    stock = await get_processed_channel_length()
+    screen_number = len(list(bot.db.get_all_found_colonies()))
+    print('stock', stock)
+    embed = discord.Embed(title='✅ Screened Colonies', description=f'📸 Screens remaining: `{stock}`\n🪐 Colonies screened so far: `{screen_number}`')
+    
+    hist_list = [hist_list async for hist_list in bot.ocr_channel.history(limit=10)]
+    if_embed = False
+    if len(hist_list) >= 2:
+        print('enters')
+        for message in hist_list:
+            if message.content[0] == "✅":
+                print('there is the embed')
+                await message.edit(embed=embed)
+                if_embed = True
+        if if_embed == False:
+            await bot.ocr_channel.send(embed=embed)
+    print('then')
     processed_messages = [processed_messages async for processed_messages in bot.processed_channel.history(limit=10)]
     while len(processed_messages) == 0:
         processed_messages = [processed_messages async for processed_messages in bot.processed_channel.history(limit=10)]
     print('found messages in processed')
-    data = await bot.processing.process()
+    
 
     hist_list = [hist_list async for hist_list in bot.ocr_channel.history(limit=10)]
-    if len(hist_list) < 2 or hist_list == []:
+    while len(hist_list) < 2 or hist_list == []:
         print('currently not enough messages (', len(hist_list), ')')
+        while len(processed_messages) == 0:
+            processed_messages = [processed_messages async for processed_messages in bot.processed_channel.history(limit=10)]
+        print('escaping the while loop')
+        data = await bot.processing.process()
         await generate_message(data)
-
+    
+        
+async def get_processed_channel_length():
+    channel = bot.processed_channel
+    count = 0
+    async for _ in channel.history(limit=None):
+        count += 1
+    return count
+    
 @bot.command()
 async def sync(ctx: Context) -> None:
     if bot.spec_role.admin_role(ctx.guild, ctx.author):
