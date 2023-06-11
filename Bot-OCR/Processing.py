@@ -25,8 +25,8 @@ class Processing():
         self.fail = 0
         self.matching_list = []
         self.program_path = os.getenv("PROGRAM_PATH")
-        self.path = f'{self.program_path}\\Processed'
-        self.path_unprocessed = f'{self.program_path}\\Unprocessed'
+        self.path = f'{self.program_path}/Processed'
+        self.path_unprocessed = f'{self.program_path}/Unprocessed'
         self.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
         self.processed_channel = self.bot.get_channel(self.processed_channel_id)
         self.worked_first_try = False
