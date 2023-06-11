@@ -136,14 +136,15 @@ class GalaxyCanvas:
                     else:
                       completed = False
                       if completed_list:
+                        x_index = 0
                         for x_check in completed_list['list_x']:
                           if x == x_check:
-                            for y_check in completed_list['list_y']:
-                              if y == y_check:
-                                completed = True
-                                break
+                            if y == completed_list['list_y'][x_index]:
+                              completed = True
+                              break
                           if completed:
                             break
+                          x_index += 1  
                       if completed: 
                         break
                 else:

@@ -230,6 +230,7 @@ async def store_colonies(data):
             coord_y.append([m.start() for m in re.finditer(f"{data['Location'][1]}", message.content)])
             if coord_x != [[]] and coord_y != [[]]:
                 time.sleep(1)
+                print('should delete')
                 await message.delete()
             # if message.content[]
         os.remove(f"{bot.path}\{data['Location'][0]}_{data['Location'][1]}.png")
