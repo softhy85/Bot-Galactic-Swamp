@@ -68,15 +68,17 @@ async def start():
     print('stock', stock)
     embed = discord.Embed(title='✅ Screened Colonies', description=f'📸 Screens remaining: `{stock}`\n🪐 Colonies screened so far: `{screen_number}`')
     
-    hist_list = [hist_list async for hist_list in bot.ocr_channel.history(limit=10)]
+    hist_list = [hist_list async for hist_list in bot.ocr_channel.history(limit=10, oldest_first=False)]
     if_embed = False
     if len(hist_list) >= 2:
         print('enters')
         for message in hist_list:
-            if message.content[0] == "✅":
-                print('there is the embed')
-                await message.edit(embed=embed)
-                if_embed = True
+            print(message.embeds)
+            if message.embeds != []:
+                if message.embeds[0].title[0] == "✅":
+                    print('there is the embed')
+                    await message.edit(embed=embed)
+                    if_embed = True
         if if_embed == False:
             await bot.ocr_channel.send(embed=embed)
     print('then')
@@ -87,7 +89,8 @@ async def start():
     
 
     hist_list = [hist_list async for hist_list in bot.ocr_channel.history(limit=10)]
-    while len(hist_list) < 2 or hist_list == []:
+    print('history made')
+    while len(hist_list) < 4 or hist_list == []:
         print('currently not enough messages (', len(hist_list), ')')
         while len(processed_messages) == 0:
             processed_messages = [processed_messages async for processed_messages in bot.processed_channel.history(limit=10)]

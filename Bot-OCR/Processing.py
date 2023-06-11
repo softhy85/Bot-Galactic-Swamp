@@ -299,7 +299,8 @@ class Processing():
                     else:
                         print('No result found')
                         result = "No result Found"
-                        self.data['No_Result'].append(self.user_list[self.it]) 
+                        user, username_list = self.preprocess(self.user_list[self.it])
+                        self.data['No_Result'].append(user) 
                         self.fail += 1
                 
                 self.matching_list.append(result)
@@ -343,8 +344,8 @@ class Processing():
             else:
                 print('❌ No result found because there was no name')
                 result = "No result Found"
-                self.data["Players"][self.it] = "No_Name"
-                self.data['No_Result'].append("No_Name") 
+                self.data["Players"][self.it] = "No Name"
+                self.data['No_Result'].append("No Name") 
                 self.fail += 1
             self.it += 1
         time_end: datetime.datetime = datetime.datetime.now()

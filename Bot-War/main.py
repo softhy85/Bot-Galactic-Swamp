@@ -217,6 +217,40 @@ async def woops(ctx: Context, content: int):
             await message.delete()
             await bot.raw_channel.send(content="", files=files)
     await ctx.send("I've fixed all for you. But dont make that mistake again 😎")
+    
+    
+@bot.command(pass_context=True)
+async def fuck(ctx: Context, message_id: int):
+    await  ctx.send(f"> :flag_fr: Damn, you fucked up once again? [FRENCH BOT] will fix that for you 🥖")
+    print('-1')
+    message = await bot.raw_backup_channel.fetch_message(message_id)
+    print('0')
+    for file in os.listdir(f"{bot.path}/Test"):
+        if file.endswith(".png"):
+            path = os.path.join(f"{bot.path}/Test", file)
+            try:
+                os.remove(f"D:\💻 DOCUMENTS\🛠 Programmation\Bot-Galactic-Swamp\Bot-War\Test\{file}")
+            except OSError as e: # name the Exception `e`
+                print ("Failed with:", e.strerror )# look what it says
+                print ("Error code:", e.code )   
+    print('2')
+    for file in message.attachments:
+        if file.filename.endswith(".png") == True:
+            file_path = file
+            files = []
+            myfile = requests.get(file_path)
+            with open(f"{bot.path}/Test/{file.filename}", "wb") as outfile:
+                outfile.write(myfile.content)
+                outfile.close()
+    print('3')
+    for file in os.listdir(f"{bot.path}/Test"):
+        if file.endswith(".png"):
+            file_saved = discord.File(f'{bot.path}/Test/{file}', filename=f"{file}")
+            files.append(file_saved)
+    print('4')
+    await message.delete()
+    await bot.raw_channel.send(content=message.content, files=files)
+    await ctx.send("I've fixed all for you. But dont make that mistake again 😎")
 
 
 @bot.command()
