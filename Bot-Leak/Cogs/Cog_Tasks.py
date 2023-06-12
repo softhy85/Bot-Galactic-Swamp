@@ -19,7 +19,8 @@ class Cog_Tasks(commands.Cog):
         self.client = discord.Client
         self.log_channel_id = int(os.getenv("LOG_CHANNEL"))
         self.log_channel = bot.get_channel(bot.log_channel_id)
-        
+        self.app_name = os.getenv("APP_NAME")
+
         if not self.check_if_war.is_running():
             self.check_if_war.start()
 
@@ -41,9 +42,10 @@ class Cog_Tasks(commands.Cog):
         history = [message async for message in self.bot.log_channel.history(before=date, after=leaked_colonies["last_update"])]
         for message in history:
             username = message.content.split('**')[1]
-            if message.author.name == app_name:
+            if message.author.name == self.app_name:
                 for index in range(0, len(message.reactions)):
                     users = [user async for user in message.reactions[index].users()]
+                    print('1b')
                     for user in users:
                         if user != message.author:
                             for emoji_index in range(0, len(reaction_list)):
@@ -53,6 +55,7 @@ class Cog_Tasks(commands.Cog):
                                     break
                                 else:
                                     emoji = "0"
+                    
                             if user.name in leaked_colonies:
                                 if not username in leaked_colonies[user.name]:
                                     leaked_colonies[user.name][username] = []
@@ -90,11 +93,15 @@ class Cog_Tasks(commands.Cog):
                     dm_history = [msg async for msg in channel.history(limit=10, oldest_first=True)]
                     if len(dm_history) == 0:
                         await channel.send('Loading...')
-                    for msg_index in range(0, len(dm_history)):
-                        if msg_index < len(dm_history)-1:
-                            await dm_history[msg_index].delete()
+                    bot_msg_list = []
+                    for msg_index in dm_history:
+                        if msg_index.author.name == self.app_name:
+                            bot_msg_list.append(msg_index)
+                    for msg_index in range(0, len(bot_msg_list)):
+                        if msg_index < len(bot_msg_list)-1:
+                            await bot_msg_list[msg_index].delete()
                         else:
-                            await dm_history[msg_index].edit(embed=embed, content="")
+                            await bot_msg_list[msg_index].edit(embed=embed, content="")
                 else:
                     
                     if user_dm.dm_channel is not None:
@@ -122,10 +129,12 @@ class Cog_Tasks(commands.Cog):
                         await dm_history[msg_index].delete()
                     else:
                         await dm_history[msg_index].edit(content="Your colonies are currently kept secret", embed=None)
-        history = [message async for message in self.log_channel.history(before=leaked_colonies["last_update"] - datetime.timedelta(seconds=20), after=previous_last_update)] #before=date - datetime.timedelta(seconds=20),
+        print('before', leaked_colonies["last_update"], 'after', previous_last_update),  #- datetime.timedelta(seconds=20)
+        history = [message async for message in self.log_channel.history(before=leaked_colonies["last_update"] , after=previous_last_update)] #before=date - datetime.timedelta(seconds=20),
         for message in history:
             for index in range(0, len(message.reactions)):
                 await message.remove_reaction(emoji=message.reactions[index], member=message.author)
+        print('5')
     
     async def clean_leaked_colonies(self):
         leaked_colonies = self.bot.db.get_leaked_colonies()
