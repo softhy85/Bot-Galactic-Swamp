@@ -33,6 +33,7 @@ class Cog_Tasks(commands.Cog):
     #</editor-fold>
 
     async def task_update_leaked_colonies(self):
+        print('enters')
         reaction_list = ['1_', '2_', '3_', '4_', '5_', "6_", "7_", "8_", "9_", "10_", "11_"]
         date = datetime.datetime.now()
         leaked_colonies = self.bot.db.get_leaked_colonies()
@@ -45,7 +46,6 @@ class Cog_Tasks(commands.Cog):
             if message.author.name == self.app_name:
                 for index in range(0, len(message.reactions)):
                     users = [user async for user in message.reactions[index].users()]
-                    print('1b')
                     for user in users:
                         if user != message.author:
                             for emoji_index in range(0, len(reaction_list)):
@@ -55,7 +55,6 @@ class Cog_Tasks(commands.Cog):
                                     break
                                 else:
                                     emoji = "0"
-                    
                             if user.name in leaked_colonies:
                                 if not username in leaked_colonies[user.name]:
                                     leaked_colonies[user.name][username] = []
@@ -81,7 +80,9 @@ class Cog_Tasks(commands.Cog):
                         content[index_player] = content[index_player] + "```" 
                 if content[index_player] == f"\n**{index_player}**:":
                     content[index_player] = ""
+        
         for user_id in leaked_colonies['registered_users']:
+            bot_msg_list = []
             user_dm=await self.bot.fetch_user(int(user_id))
             if user_dm.name in content:
                 if content[user_dm.name] != "":
@@ -93,10 +94,11 @@ class Cog_Tasks(commands.Cog):
                     dm_history = [msg async for msg in channel.history(limit=10, oldest_first=True)]
                     if len(dm_history) == 0:
                         await channel.send('Loading...')
-                    bot_msg_list = []
                     for msg_index in dm_history:
-                        if msg_index.author.name == self.app_name:
+
+                        if str(msg_index.author.name) == str(self.app_name):
                             bot_msg_list.append(msg_index)
+
                     for msg_index in range(0, len(bot_msg_list)):
                         if msg_index < len(bot_msg_list)-1:
                             await bot_msg_list[msg_index].delete()
