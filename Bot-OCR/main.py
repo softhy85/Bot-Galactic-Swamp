@@ -28,7 +28,8 @@ token: str = os.getenv("BOT_TOKEN")
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
+help = commands.HelpCommand
+bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True), help=False)
 client = discord.Client(intents=intents)
 db = DataBase()
 
