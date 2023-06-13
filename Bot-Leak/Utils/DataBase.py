@@ -94,6 +94,11 @@ class DataBase:
 
     def get_all_players(self) -> Cursor[Player_Model]:
         return self.db.players.find()
+    
+    def get_players_from_alliance(self, alliance_id) -> Cursor[Player_Model]:
+    
+        return self.db.players.find({"_alliance_id":alliance_id})
+
 
     def push_new_colony(self, colony: Colony_Model) -> ObjectId | None:
         existing_colony: Colony_Model = self.db.player.find_one({"_player_id": colony["_player_id"], "number": colony["number"]})

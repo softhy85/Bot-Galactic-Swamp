@@ -28,8 +28,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 db = DataBase()
-help = commands.HelpCommand
-bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True), help = False)
+bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
+bot.remove_command("help")
 client = discord.Client(intents=intents)
 app_name: str = os.getenv("APP_NAME")
 @bot.event

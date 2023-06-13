@@ -6,7 +6,8 @@ import discord
 from discord import Client, app_commands
 from discord.ext import commands, tasks
 from Models.War_Model import War_Model
-
+from Models.Alliance_Model import Alliance_Model
+from Models.Player_Model import Player_Model
 
 class Cog_Tasks(commands.Cog):
     bot: commands.Bot = None
@@ -33,7 +34,6 @@ class Cog_Tasks(commands.Cog):
     #</editor-fold>
 
     async def task_update_leaked_colonies(self):
-        print('enters')
         reaction_list = ['1_', '2_', '3_', '4_', '5_', "6_", "7_", "8_", "9_", "10_", "11_"]
         date = datetime.datetime.now()
         leaked_colonies = self.bot.db.get_leaked_colonies()
@@ -68,25 +68,38 @@ class Cog_Tasks(commands.Cog):
         leaked_colonies["last_update"] = end_date
         self.bot.db.update_leaked_colonies(leaked_colonies)
         content = {}
+        alliance: Alliance_Model = self.bot.db.get_one_alliance('name', "KORNAD CLAN")
+        players_list: List(Player_Model) = list(self.bot.db.get_players_from_alliance(alliance["_id"]))
         for index_player in leaked_colonies:
             if index_player != 'last_update' and index_player != 'registered_users':
                 content[index_player] = ""
-                content[index_player] = content[index_player] + f"\n**{index_player}**:"
                 for enemy in leaked_colonies[f'{index_player}']:
+                    it_player = 0
+                    player_data = None
+                    for player in players_list:
+                        if player['pseudo'].upper() == enemy:
+                            player_data = it_player
+                        it_player += 1
                     if len(leaked_colonies[f'{index_player}'][enemy]) > 0:
-                        content[index_player] = content[index_player] + f"```py\n{enemy}: "
+                        prefix_string = "```py\n"
+                        suffix_string = "```"
+                        if 'state' in players_list[player_data]:
+                            if players_list[player_data]['state'] == "leaker":
+                                prefix_string = "```ansi\n\u001b[0;31m"
+                        content[index_player] = content[index_player] + f"{prefix_string}{enemy}: "
                         for colony in leaked_colonies[f'{index_player}'][f'{enemy}']:
                             content[index_player] = content[index_player] + f"{colony} "
-                        content[index_player] = content[index_player] + "```" 
+                        content[index_player] = content[index_player] + f"{suffix_string}" 
                 if content[index_player] == f"\n**{index_player}**:":
                     content[index_player] = ""
+       
         
         for user_id in leaked_colonies['registered_users']:
             bot_msg_list = []
             user_dm=await self.bot.fetch_user(int(user_id))
             if user_dm.name in content:
                 if content[user_dm.name] != "":
-                    embed: discord.Embed = discord.Embed(title=f"Leaked Colonies", description=content[user_dm.name], color=discord.Color.from_rgb(8, 1, 31), timestamp=date)
+                    embed: discord.Embed = discord.Embed(title=f"🔎 Leaked Colonies", description=content[user_dm.name], color=discord.Color.from_rgb(8, 1, 31), timestamp=date)
                     if user_dm.dm_channel is not None:
                         channel = user_dm.dm_channel
                     else:
@@ -136,7 +149,6 @@ class Cog_Tasks(commands.Cog):
         for message in history:
             for index in range(0, len(message.reactions)):
                 await message.remove_reaction(emoji=message.reactions[index], member=message.author)
-        print('5')
     
     async def clean_leaked_colonies(self):
         leaked_colonies = self.bot.db.get_leaked_colonies()

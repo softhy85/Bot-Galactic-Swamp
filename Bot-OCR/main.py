@@ -28,10 +28,11 @@ token: str = os.getenv("BOT_TOKEN")
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-help = commands.HelpCommand
-bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True), help=False)
+bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
+bot.remove_command("help")
 client = discord.Client(intents=intents)
 db = DataBase()
+
 
 @bot.event
 async def on_ready():
@@ -61,7 +62,12 @@ async def on_ready():
     message, user = await client.wait_for('message')
     reaction, user = await client.wait_for('reaction_add')
 
-    
+
+class MyHelp(commands.HelpCommand):
+   # !help
+    async def help(self):
+        await self.context.send("This is help")
+        
 async def start():
     data = None
     stock = await get_processed_channel_length()

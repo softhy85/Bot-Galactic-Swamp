@@ -181,6 +181,13 @@ class DataBase:
         leaked_colonies_db['content'] = leaked_colonies
         if leaked_colonies_db:
             self.db.leakedcolonies.update_one({"name": "leaked_colonies"}, {'$set': leaked_colonies_db})
+    
+    def reset_leaked_colonies(self):
+        obj = {'name': "leaked_colonies"}
+        leaked_colonies_db = self.get_colonies_list(obj)
+        leaked_colonies_db = {"_id": leaked_colonies_db['_id'], 'name': leaked_colonies_db["name"], 'content': {'last_update': leaked_colonies_db["content"]["last_update"], 'registered_users': leaked_colonies_db["content"]['registered_users']}}
+        if leaked_colonies_db:
+            self.db.leakedcolonies.update_one({"name": "leaked_colonies"}, {'$set': leaked_colonies_db})
             
     def update_colonies_list(self, list: Colonies_List_Model) -> None:
         obj = None

@@ -98,16 +98,13 @@ class Cog_Colony(commands.Cog):
             if len(leaked_colonies) <= 2:
                 await interaction.response.send_message("> 🚫 No war currently happening. You don't need to use this command. Use your last braincell instead !")
                 return
-            print(leaked_colonies)
             name = interaction.user.name
-
             if f"{name}" in leaked_colonies:
-                print(leaked_colonies[name])
                 for enemy in leaked_colonies[name]:
                     if enemy != 'last_update' and enemy != 'registered_users' and len(leaked_colonies[name][enemy]) >= 1:
-                        print(leaked_colonies[name][enemy])
-                        leaked_colonies[name][enemy].remove(f"{colo_number}")
-            print(leaked_colonies)
+                        for colony in leaked_colonies[name][enemy]:
+                            if int(colony) == colo_number:
+                                leaked_colonies[name][enemy].remove(f"{colo_number}")
             await interaction.response.send_message(f"> Colony n°**{colo_number}** of **{name}** moved. ✅")
             self.bot.db.update_leaked_colonies(leaked_colonies)
                 

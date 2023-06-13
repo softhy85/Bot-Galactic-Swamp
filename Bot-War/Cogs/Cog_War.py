@@ -206,6 +206,7 @@ class Cog_War(commands.Cog):
             start_time = utcnow() + timedelta(hours=72)
         next_war: Next_War_Model = {"name": "next_war", "start_time": int(start_time.timestamp()), "negative_votes": 0, "positive_votes": 0, "vote_done": False}
         next_war_db: Next_War_Model = self.bot.db.get_nextwar()
+        self.bot.db.reset_leaked_colonies()
         async for message in channel.history(oldest_first=True, limit=10):
             if message.author.name == self.app_name:
                 await message.clear_reactions()
