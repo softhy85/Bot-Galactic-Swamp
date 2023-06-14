@@ -30,6 +30,8 @@ class Cog_Writing_Coords(commands.Cog):
         self.fail = 0
         self.matching_list = []
         self.program_path_back = os.getenv("PROGRAM_PATH_BACK")
+        self.program_path_back_ready = os.getenv("PROGRAM_PATH_BACK_READY")
+        self.program_path_back_ready= self.program_path_back_ready[0:-1]
         self.program_path = os.getenv("PROGRAM_PATH")
         self.path = f'{self.program_path}/Processed'
         self.path_ready = f'{self.program_path}/Ready'
@@ -64,7 +66,7 @@ class Cog_Writing_Coords(commands.Cog):
                         path = os.path.join(f"{self.path_ready}", file)
                         try:
                             
-                            os.remove(f"{self.program_path_back}Ready\{file}")
+                            os.remove(f"{self.program_path_back_ready}{file}")
                         except OSError as e: # name the Exception `e`
                             print ("Failed with:", e.strerror )# look what it says
                             print ("Error code:", e.code )   

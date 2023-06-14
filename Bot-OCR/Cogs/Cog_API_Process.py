@@ -25,7 +25,9 @@ class Cog_API_Process(commands.Cog):
         self.multiple_answer_count = 0
         self.fail = 0
         self.matching_list = []
-        self.program_path_back = os.getenv("PROGRAM_PATH_BACK")
+        self.program_path_back_processed = os.getenv("PROGRAM_PATH_BACK_PROCESSED")
+        self.program_path_back_processed = self.program_path_back_processed[0:-1]
+        print(self.program_path_back_processed[0:-1])
         self.program_path = os.getenv("PROGRAM_PATH")
         self.path = f'{self.program_path}/Processed'
         self.path_unprocessed = f'{self.program_path}/Unprocessed'
@@ -122,11 +124,11 @@ class Cog_API_Process(commands.Cog):
         
         for file in os.listdir(f"{self.path}"):
             if file.endswith(".png"):
-                print(f"{self.program_path_back}Processed\{file}")
+                print(f"{self.program_path_back_processed}{file}")
                 print('there is a file')
                 path = os.path.join(f"{self.path_unprocessed}", file)
                 try:
-                    os.remove(f"{self.program_path_back}Processed\{file}")
+                    os.remove(f"{self.program_path_back_processed}{file}")
                 except OSError as e: # name the Exception `e`
                     print ("Failed with:", e.strerror )# look what it says
                     print ("Error code:", e.code )   
