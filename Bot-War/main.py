@@ -63,6 +63,8 @@ async def on_ready():
     bot.easter: int = 0
     bot.path = os.getenv("PROGRAM_PATH")
     bot.path_back = os.getenv("PROGRAM_PATH_BACK")
+    bot.path_back_test = os.getenv("PROGRAM_PATH_BACK_TEST")
+    bot.path_back_test = bot.path_back_test[0:-1]
     await bot.command_channel.send(f"> `[{bot.machine_id}]` - The bot is **online**. ✨")
     cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony", "Cogs.Cog_Misc", "Cogs.Cog_Scout"])
     for cog in cogs:
@@ -234,7 +236,7 @@ async def transfer(ctx: Context, content: int):
         if file.endswith(".png"):
             path = os.path.join(f"{bot.path}/Test", file)
             try:
-                os.remove(f"{bot.path_backTest}\{file}")
+                os.remove(f"{bot.path_back_test}{file}")
             except OSError as e: # name the Exception `e`
                 print ("Failed with:", e.strerror )# look what it says
                 print ("Error code:", e.code )
