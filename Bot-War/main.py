@@ -30,7 +30,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 db = DataBase()
-bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True))
+bot: commands.Bot = commands.Bot(command_prefix=".", intents=intents, application_id=os.getenv("APP_ID"), allowed_mentions = discord.AllowedMentions(everyone = True), help_command=None)
 bot.remove_command("help")
 client = discord.Client(intents=intents)
 @bot.event
@@ -54,6 +54,10 @@ async def on_ready():
     bot.machine_id = os.getenv("MACHINE_ID")
     bot.raw_backup_channel_id = int(os.getenv("RAW_BACKUP_CHANNEL"))
     bot.raw_backup_channel = bot.get_channel(bot.raw_backup_channel_id)
+    bot.processed_backup_channel_id = int(os.getenv("PROCESSED_BACKUP_CHANNEL"))
+    bot.processed_backup_channel = bot.get_channel(bot.processed_backup_channel_id)
+    bot.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
+    bot.processed_channel = bot.get_channel(bot.processed_channel_id)
     bot.raw_channel_id = int(os.getenv("RAW_CHANNEL"))
     bot.raw_channel = bot.get_channel(bot.raw_channel_id)
     bot.easter: int = 0
@@ -220,6 +224,42 @@ async def woops(ctx: Context, content: int):
             await bot.raw_channel.send(content="", files=files)
     await ctx.send("I've fixed all for you. But dont make that mistake again 😎")
     
+
+@bot.command(pass_context=True)
+async def transfer(ctx: Context, content: int):
+    await  ctx.send(f"> :flag_fr: Damn, you fucked up once again? [FRENCH BOT] will fix that for you 🥖")
+    hist_list = [hist_list async for hist_list in bot.processed_backup_channel.history(limit=content)]
+    for file in os.listdir(f"{bot.path}/Test"):
+        if file.endswith(".png"):
+            path = os.path.join(f"{bot.path}/Test", file)
+            try:
+                os.remove(f"D:\💻 DOCUMENTS\🛠 Programmation\Bot-Galactic-Swamp\Bot-War\Test\{file}")
+            except OSError as e: # name the Exception `e`
+                print ("Failed with:", e.strerror )# look what it says
+                print ("Error code:", e.code )
+    it: int = 0
+    it_max: int = len(hist_list)     
+    for message in hist_list:
+        print('remaing:', it_max - it, "/", it_max)
+        it += 1
+
+        for file in message.attachments:
+            if file.filename.endswith(".png") == True:
+                file_path = file
+                files = []
+                myfile = requests.get(file_path)
+                with open(f"{bot.path}/Test/{file.filename}", "wb") as outfile:
+                    outfile.write(myfile.content)
+                    outfile.close()
+        for file in os.listdir(f"{bot.path}/Test"):
+            if file.endswith(".png"):
+                file_saved = discord.File(f'{bot.path}/Test/{file}', filename=f"{file}")
+                files.append(file_saved)
+        #await message.delete()
+            
+        await bot.processed_channel.send(content=message.content, files=files)
+    await ctx.send("I've fixed all for you. But dont make that mistake again 😎")
+
     
 @bot.command(pass_context=True)
 async def fuck(ctx: Context, message_id: int):

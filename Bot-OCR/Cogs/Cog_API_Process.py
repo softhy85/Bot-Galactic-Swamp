@@ -1,39 +1,54 @@
 import asyncio
 import datetime
-import time
 import itertools
 import json
 import os
 import re
+import time
 from collections import Counter
 
 import discord
 import requests
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.ext.commands import Context
 from discord.ui import Button, Select, View
+from Models.Found_Colony_Model import Found_Colony_Model
 
-
-class Processing():
+class Cog_API_Process(commands.Cog):
     bot: commands.Bot = None
 
     def __init__(self, bot: commands.Bot):
+        super().__init__()
         self.bot = bot
         self.username_count = 0
         self.success_count = 0
         self.multiple_answer_count = 0
         self.fail = 0
         self.matching_list = []
+        self.program_path_back = os.getenv("PROGRAM_PATH_BACK")
         self.program_path = os.getenv("PROGRAM_PATH")
         self.path = f'{self.program_path}/Processed'
         self.path_unprocessed = f'{self.program_path}/Unprocessed'
         self.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
         self.processed_channel = self.bot.get_channel(self.processed_channel_id)
+        self.API_processed_channel_id = int(os.getenv("API_PROCESSED_CHANNEL"))
+        self.API_processed_channel = self.bot.get_channel(self.API_processed_channel_id)
         self.worked_first_try = False
+        self.api_process_messages.start()
+    
+    @tasks.loop(seconds = 1)
+    async def api_process_messages(self):
+        await self.process()
+
+    @api_process_messages.before_loop
+    async def before_api_process_messages(self):
+        await self.bot.wait_until_ready()
      
     async def process(self):
         self.matching_list = []
         self.data = await self.get_data()
+        if self.data is None:
+            return
         print(self.data)
         self.user_list = []
         for player in self.data['PlanetInfos']:
@@ -68,35 +83,75 @@ class Processing():
         print(self.user_list)
         self.OCR_sender()   
         print('everything all done')
-        return self.data
-   
+        files =  []
+        files_ends = ["Processing_worthy", "Processing_players0", "Processing_players1", ]
+        for file_end in files_ends:
+            print(file_end)
+            filename = f"{self.data['Location'][0]}_{self.data['Location'][1]}_{file_end}.png"
+            print(filename)
+            files.append(discord.File(f"{self.path}/{filename}", filename=filename))
+        print(files)
+        send_bool: bool = await self.check_sendability(self.data)
+        if send_bool == True:
+            await self.API_processed_channel.send(self.data, files=files)
+        
+    async def check_sendability(self, data):
+        true_number: int = 0
+        for it in range(0, len(data['Players'])):
+            if data['Ready_to_store'][it] == True:
+                true_number += 1
+        if true_number == len(data["Players"]):
+            print('✅✅✅ processed result was perfect')
+            await self.db_handle(data)
+            return False
+        else: 
+            return True
+                
+    async def db_handle(self, data):
+        for player in data['Players']:
+            player_infos = self.bot.galaxyLifeAPI.get_player_infos_from_name(player)
+            player_id = player_infos['player_id_gl']        
+            print(f"attempting to store colony:  {player} ({player_id}): {data['Title']}({data['Location']})")
+            colony: Found_Colony_Model = {'gl_id': player_id, 'colo_sys_name':data['Title'], 'X': int(data['Location'][0]), 'Y':int(data['Location'][1])}
+            self.bot.db.push_found_colony(colony)
         
     async def get_data(self):
         it_message = 0
         history = self.processed_channel.history(oldest_first=True, limit=1)
         hist_list = [hist_list async for hist_list in self.processed_channel.history(limit=1, oldest_first=False)]
+        
+        for file in os.listdir(f"{self.path}"):
+            if file.endswith(".png"):
+                print(f"{self.program_path_back}Processed\{file}")
+                print('there is a file')
+                path = os.path.join(f"{self.path_unprocessed}", file)
+                try:
+                    os.remove(f"{self.program_path_back}Processed\{file}")
+                except OSError as e: # name the Exception `e`
+                    print ("Failed with:", e.strerror )# look what it says
+                    print ("Error code:", e.code )   
         if hist_list != []:
             for message in hist_list: #, limit=1
                 print(message)
                 # for attachment in message.attachments:
                 it = 0
                 data =  json.loads(message.content)
-                attachment = message.attachments[0]
-                print(attachment)
-                if attachment.filename.endswith(".png") == True:
-                    # print(list(message.attachments))
-                    file_path = message.attachments[0]
-                    myfile = requests.get(file_path)
-                    # print(f"{bot.path_unprocessed}/screen_{it+1}.png")
-                    screen_name = str(data['Location']).split(', ')
-                    with open(f"{self.path}/{screen_name[0]}_{screen_name[1]}.png", "wb") as outfile:
-                        outfile.write(myfile.content)
-                    it += 1    
-                it_message += 1 
+                print(message.attachments)
+                for attachment in message.attachments:
+                    if attachment.filename.endswith(".png") == True:
+                        # print(list(message.attachments))
+                        file_path = attachment
+                        myfile = requests.get(file_path)
+                        # print(f"{bot.path_unprocessed}/screen_{it+1}.png")
+                        screen_name = str(data['Location']).split(', ')
+                        with open(f"{self.path}/{screen_name[0]}_{screen_name[1]}_{attachment.filename}", "wb") as outfile:
+                            outfile.write(myfile.content)
+                        it += 1    
+                    it_message += 1 
                 await message.delete()
         else:
-            print('currently no message in channel')
-            return
+            # print('No msg')
+            return None
         return data
         
     def preprocess(self, player_input):
@@ -371,16 +426,6 @@ class Processing():
                 print(self.data['Players'][name], "---->", self.data['Proposal'][self.data['Players'][name]], "\n")
             it += 1
         print(self.data)    
-        # json_file = json.dumps(self.data, indent=1)
-        
-        # with open(f"{self.path_processed}/{location_list[0]}_{location_list[1]}.json", "w") as outfile:
-        #     outfile.write(json_file)
-        # os.remove(f"{self.path_unprocessed}\{location_list[0]}_{location_list[1]}.json")
-    # ✅ take data from json
-    # ✅ preprocess
-    # ✅ generate variations
-    # ✅ test each variation
-    # ✅ if no result, decrease result size
-    # ✅ if one result, replace name in data["Players"][it]
-    # if multiple results, add to data['Proposal'] = {f'{data["Players"][it]}':[self.matching_list]}
-    # think about how to handle No results
+
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Cog_API_Process(bot), guilds=[discord.Object(id=os.getenv("SERVER_ID"))])
