@@ -59,7 +59,7 @@ async def on_ready():
     for cog in cogs:
         await bot.load_extension(cog)
     print('after loading cogs')
-    await bot.command_channel.send(f"> `[{bot.machine_id}]` -📝 The OCR (API Process) bot is **online**. ✨")
+    await bot.command_channel.send(f"> `[{bot.machine_id}]` - 📝 The OCR (API Process) bot is **online**. ✨")
     
     message, user = await client.wait_for('message')
     reaction, user = await client.wait_for('reaction_add')

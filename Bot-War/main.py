@@ -65,7 +65,7 @@ async def on_ready():
     bot.path_back = os.getenv("PROGRAM_PATH_BACK")
     bot.path_back_test = os.getenv("PROGRAM_PATH_BACK_TEST")
     bot.path_back_test = bot.path_back_test[0:-1]
-    await bot.command_channel.send(f"> `[{bot.machine_id}]` - The bot is **online**. ✨")
+    await bot.command_channel.send(f"> `[{bot.machine_id}]`- 💥 The war bot is **online**. ✨")
     cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony", "Cogs.Cog_Misc", "Cogs.Cog_Scout"])
     for cog in cogs:
         await bot.load_extension(cog)
@@ -301,7 +301,7 @@ async def fuck(ctx: Context, message_id: int):
 @bot.command()
 async def disconnect(ctx: Context):
     if bot.spec_role.admin_role(ctx.guild, ctx.author):
-        await bot.command_channel.send(f"> `[{bot.machine_id}]` - The war bot is **shutting down**. 💢")
+        await bot.command_channel.send(f"> `[{bot.machine_id}]` - 💥 The war bot is **shutting down**. 💢")
         print("Closing the bot.")
         bot.db.close()
         await bot.close()
