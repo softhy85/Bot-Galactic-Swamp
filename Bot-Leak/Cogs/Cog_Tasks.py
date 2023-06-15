@@ -34,24 +34,19 @@ class Cog_Tasks(commands.Cog):
     #</editor-fold>
 
     async def task_update_leaked_colonies(self):
-        print('beginning')
         reaction_list = ['1_', '2_', '3_', '4_', '5_', "6_", "7_", "8_", "9_", "10_", "11_"]
         date = datetime.datetime.now()
         leaked_colonies = self.bot.db.get_leaked_colonies()
         if not leaked_colonies:
            leaked_colonies = self.bot.db.create_leaked_colonies()  
         previous_last_update =  leaked_colonies["last_update"] 
-        print('0.1')
         history = [message async for message in self.bot.log_channel.history(before=date, after=leaked_colonies["last_update"], limit=2)]
-        print('0.2')
         for message in history:
             username = message.content.split('**')[1]
             if message.author.name == self.app_name:
-                print('.03')
                 for index in range(0, len(message.reactions)):
                     users = [user async for user in message.reactions[index].users()]
                     for user in users:
-                        print('0.41')
                         if user != message.author:
                             for emoji_index in range(0, len(reaction_list)):
                                 emoji = message.reactions[index].emoji.name
@@ -69,7 +64,6 @@ class Cog_Tasks(commands.Cog):
                                 leaked_colonies[user.name] = {}
                                 leaked_colonies[user.name][username] = []
                                 leaked_colonies[user.name][username].append(emoji)
-        print('0.5')
         end_date = datetime.datetime.now()
         leaked_colonies["last_update"] = end_date
         self.bot.db.update_leaked_colonies(leaked_colonies)
@@ -100,14 +94,12 @@ class Cog_Tasks(commands.Cog):
                 if content[index_player] == f"\n**{index_player}**:":
                     content[index_player] = ""
        
-        print('before that')
         for user_id in leaked_colonies['registered_users']:
             bot_msg_list = []
             user_dm=await self.bot.fetch_user(int(user_id))
             if user_dm.name in content:
                 if content[user_dm.name] != "":
                     embed: discord.Embed = discord.Embed(title=f"🔎 Leaked Colonies", description=content[user_dm.name], color=discord.Color.from_rgb(8, 1, 31), timestamp=date)
-                    print('1')
                     if user_dm.dm_channel is not None:
                         channel = user_dm.dm_channel
                     else:
@@ -124,7 +116,6 @@ class Cog_Tasks(commands.Cog):
                             await bot_msg_list[msg_index].delete()
                         else:
                             await bot_msg_list[msg_index].edit(embed=embed, content="")
-                    print('4')
                 else:
                     if user_dm.dm_channel is not None:
                         channel = user_dm.dm_channel
@@ -188,7 +179,6 @@ class Cog_Tasks(commands.Cog):
         date_time_str: str = now.strftime("%H:%M:%S")
         leaked_colonies = self.bot.db.get_leaked_colonies()
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
-        print('actual war:', actual_war)
         if actual_war is not None:
             await self.task_update_leaked_colonies()
         elif len(leaked_colonies) > 2:
