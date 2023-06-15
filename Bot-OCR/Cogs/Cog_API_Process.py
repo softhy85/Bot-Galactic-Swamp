@@ -182,6 +182,9 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("«", "")
         player_input = player_input.replace("<", "")
         player_input = player_input.replace("_", "")    
+        print(player_input)
+        player_input = player_input.replace("'", "")
+        print(player_input)
 
         print("pre processed username:", player_input)
         username_list = [player_input]

@@ -53,6 +53,8 @@ class Cog_Writing_Coords(commands.Cog):
             # print('currently not enough messages (', len(hist_list), ')')
             API_processed_messages = [API_processed_messages async for API_processed_messages in self.API_processed_channel.history(limit=10)]
             if len(API_processed_messages) == 0:
+                # stock = await self.get_API_processed_channel_length()
+                # print('stock', stock)
                 return
             else:
                 print('generating message')
@@ -95,7 +97,6 @@ class Cog_Writing_Coords(commands.Cog):
     async def task_update_embed(self):
         date = datetime.datetime.now()
         stock = await self.get_API_processed_channel_length()
-        print('stock', stock)
         screen_number = len(list(self.bot.db.get_all_found_colonies()))
         embed = discord.Embed(title='✅ Screened Colonies', description=f'📸 Screens remaining: `{stock}`\n🪐 Colonies screened so far: `{screen_number}`', timestamp=date)
         hist_list = [hist_list async for hist_list in self.ocr_channel.history(limit=10, oldest_first=False)]
@@ -141,7 +142,7 @@ class Cog_Writing_Coords(commands.Cog):
             self.skip == True
             await self.store_colonies(data)
         
-        print('sending message', self.skip)
+        print('skipping message', self.skip)
         
         if self.skip == False:
             files.reverse()
@@ -155,7 +156,7 @@ class Cog_Writing_Coords(commands.Cog):
                 await self.menu(data, view, it_player, content)
                 data["Menu_number"] += 1
         return (view)
-
+ 
     async def button_write_name(self, view, data, it_player, content): 
         button_write_name = Button(label = f"{data['Players'][it_player]}", style=discord.ButtonStyle.grey)  
         view.add_item(button_write_name)
@@ -215,7 +216,7 @@ class Cog_Writing_Coords(commands.Cog):
             if it < 20:
                 
                 options.append(discord.SelectOption(label=data['Proposal'][data['Players'][it_player]][it], emoji="💫", default=False))
-        select = Select(min_values=1, max_values=1, options = options, placeholder=f"{it_player + 1} - {data['Players'][it_player]}", custom_id=data['Players'][it_player])  
+        select = Select(min_values=1, max_values=1,  options = options, placeholder=f"{it_player + 1} - {data['Players'][it_player]}")  
         view.add_item(select)
         
         async def my_callback(interaction):
