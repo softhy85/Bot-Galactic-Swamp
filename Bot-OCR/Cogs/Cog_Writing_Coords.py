@@ -216,13 +216,13 @@ class Cog_Writing_Coords(commands.Cog):
             if it < 20:
                 
                 options.append(discord.SelectOption(label=data['Proposal'][data['Players'][it_player]][it], emoji="💫", default=False))
-        select = Select(min_values=1, max_values=1,  options = options, placeholder=f"{it_player + 1} - {data['Players'][it_player]}")  
+        select = Select(min_values=1, max_values=1,  options = options, placeholder=f"{it_player + 1} - {data['Players'][it_player]}", custom_id=f"{data['Players'][it_player]}{it_player + 1}")  
         view.add_item(select)
         
         async def my_callback(interaction):
             print('selected value:', select.values[0])
             for it_player in range(0, len(data['Players'])):
-                if data['Players'][it_player] == select.custom_id:
+                if f"{data['Players'][it_player]}{it_player + 1}" == select.custom_id:
                     if select.values[0] != "No good answer":
                         data['Players'][it_player] = select.values[0]
                         data['Ready_to_store'][it_player] = True
