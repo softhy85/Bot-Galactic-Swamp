@@ -274,7 +274,7 @@ async def fuck(ctx: Context, message_id: int):
         if file.endswith(".png"):
             path = os.path.join(f"{bot.path}/Test", file)
             try:
-                os.remove(f"D:\💻 DOCUMENTS\🛠 Programmation\Bot-Galactic-Swamp\Bot-War\Test\{file}")
+                os.remove(f"{bot.path_back_test}\{file}")
             except OSError as e: # name the Exception `e`
                 print ("Failed with:", e.strerror )# look what it says
                 print ("Error code:", e.code )   
