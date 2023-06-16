@@ -86,13 +86,19 @@ class Cog_API_Process(commands.Cog):
         self.OCR_sender()   
         print('everything all done')
         files =  []
-        files_ends = ["Processing_worthy", "Processing_players0", "Processing_players1", ]
+        files_ends = ["Processing_worthy", "Processing_players0" ]
+        for file in os.listdir(f"{self.path}"):
+            if file.endswith("players1.png"):
+                print('found extra file')
+                files_ends.append("Processing_players1") 
+        print(files_ends)
         for file_end in files_ends:
-            print(file_end)
             filename = f"{self.data['Location'][0]}_{self.data['Location'][1]}_{file_end}.png"
-            print(filename)
-            files.append(discord.File(f"{self.path}/{filename}", filename=filename))
-        print(files)
+            try:
+                print('test', f"{self.program_path_back_processed}{filename}")
+                files.append(discord.File(f"{self.program_path_back_processed}{filename}", filename=filename))
+            except Exception as e:
+                print ("Failed with:", e.strerror )  
         send_bool: bool = await self.check_sendability(self.data)
         if send_bool == True:
             await self.API_processed_channel.send(self.data, files=files)
@@ -184,6 +190,8 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("_", "")    
         print(player_input)
         player_input = player_input.replace("'", "")
+        player_input = player_input.replace('"', "")
+        player_input = player_input.replace("...",    "")
         print(player_input)
 
         print("pre processed username:", player_input)
