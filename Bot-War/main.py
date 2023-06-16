@@ -274,7 +274,7 @@ async def fuck(ctx: Context, message_id: int):
         if file.endswith(".png"):
             path = os.path.join(f"{bot.path}/Test", file)
             try:
-                os.remove(f"{bot.path_back_test}\{file}")
+                os.remove(f"{bot.path_back_test}{file}")
             except OSError as e: # name the Exception `e`
                 print ("Failed with:", e.strerror )# look what it says
                 print ("Error code:", e.code )   
@@ -288,9 +288,9 @@ async def fuck(ctx: Context, message_id: int):
                 outfile.write(myfile.content)
                 outfile.close()
     print('3')
-    for file in os.listdir(f"{bot.path}/Test"):
+    for file in os.listdir(f"{bot.path_back_test}"):
         if file.endswith(".png"):
-            file_saved = discord.File(f'{bot.path}/Test/{file}', filename=f"{file}")
+            file_saved = discord.File(f'{bot.path_back_test}{file}', filename=f"{file}")
             files.append(file_saved)
     print('4')
     await message.delete()
