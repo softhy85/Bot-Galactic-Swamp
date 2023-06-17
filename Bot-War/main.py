@@ -6,9 +6,10 @@ import sys
 import time
 from datetime import timedelta
 from typing import List
-import requests
 
 import discord
+import requests
+from config.definitions import ROOT_DIR
 from discord import Guild, app_commands
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
@@ -61,10 +62,6 @@ async def on_ready():
     bot.raw_channel_id = int(os.getenv("RAW_CHANNEL"))
     bot.raw_channel = bot.get_channel(bot.raw_channel_id)
     bot.easter: int = 0
-    bot.path = os.getenv("PROGRAM_PATH")
-    bot.path_back = os.getenv("PROGRAM_PATH_BACK")
-    bot.path_back_test = os.getenv("PROGRAM_PATH_BACK_TEST")
-    bot.path_back_test = bot.path_back_test[0:-1]
     await bot.command_channel.send(f"> `[{bot.machine_id}]`- 💥 The war bot is **online**. ✨")
     cogs: List[str] = list(["Cogs.Cog_Historic", "Cogs.Cog_Refresh", "Cogs.Cog_War", "Cogs.Cog_Alliance", "Cogs.Cog_Player", "Cogs.Cog_Colony", "Cogs.Cog_Misc", "Cogs.Cog_Scout"])
     for cog in cogs:
@@ -197,11 +194,13 @@ async def on_command_error(ctx, error):
 async def woops(ctx: Context, content: int):
     await  ctx.send(f"> :flag_fr: Damn, you fucked up once again? [FRENCH BOT] will fix that for you 🥖")
     hist_list = [hist_list async for hist_list in bot.raw_backup_channel.history(limit=content)]
-    for file in os.listdir(f"{bot.path}/Test"):
+    print('start')
+    for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Test')}"):
         if file.endswith(".png"):
-            path = os.path.join(f"{bot.path}/Test", file)
+            print(file)
             try:
-                os.remove(f"D:\💻 DOCUMENTS\🛠 Programmation\Bot-Galactic-Swamp\Bot-War\Test\{file}")
+                os.remove(f"{os.path.join(ROOT_DIR, 'Test', file)}")
+                print('removed')
             except OSError as e: # name the Exception `e`
                 print ("Failed with:", e.strerror )# look what it says
                 print ("Error code:", e.code )
@@ -216,12 +215,12 @@ async def woops(ctx: Context, content: int):
                     file_path = file
                     files = []
                     myfile = requests.get(file_path)
-                    with open(f"{bot.path}/Test/{file.filename}", "wb") as outfile:
+                    with open(f"{os.path.join(ROOT_DIR, 'Test', file.filename)}", "wb") as outfile:
                         outfile.write(myfile.content)
                         outfile.close()
-            for file in os.listdir(f"{bot.path}/Test"):
+            for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Test')}"):
                 if file.endswith(".png"):
-                    file_saved = discord.File(f'{bot.path}/Test/{file}', filename=f"{file}")
+                    file_saved = discord.File(f'{os.path.join(ROOT_DIR, "Test", file)}', filename=f"{file}")
                     files.append(file_saved)
             await message.delete()
             await bot.raw_channel.send(content="", files=files)
@@ -232,11 +231,10 @@ async def woops(ctx: Context, content: int):
 async def transfer(ctx: Context, content: int):
     await  ctx.send(f"> :flag_fr: Damn, you fucked up once again? [FRENCH BOT] will fix that for you 🥖")
     hist_list = [hist_list async for hist_list in bot.processed_backup_channel.history(limit=content)]
-    for file in os.listdir(f"{bot.path}/Test"):
+    for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Test')}"):
         if file.endswith(".png"):
-            path = os.path.join(f"{bot.path}/Test", file)
             try:
-                os.remove(f"{bot.path_back_test}{file}")
+                os.remove(f"{os.path.join(ROOT_DIR, 'Test', file)}")
             except OSError as e: # name the Exception `e`
                 print ("Failed with:", e.strerror )# look what it says
                 print ("Error code:", e.code )
@@ -245,18 +243,17 @@ async def transfer(ctx: Context, content: int):
     for message in hist_list:
         print('remaing:', it_max - it, "/", it_max)
         it += 1
-
         for file in message.attachments:
             if file.filename.endswith(".png") == True:
                 file_path = file
                 files = []
                 myfile = requests.get(file_path)
-                with open(f"{bot.path}/Test/{file.filename}", "wb") as outfile:
+                with open(f"{os.path.join(ROOT_DIR, 'Test', file.filename)}", "wb") as outfile:
                     outfile.write(myfile.content)
                     outfile.close()
-        for file in os.listdir(f"{bot.path}/Test"):
+        for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Test')}"):
             if file.endswith(".png"):
-                file_saved = discord.File(f'{bot.path}/Test/{file}', filename=f"{file}")
+                file_saved = discord.File(f'{os.path.join(ROOT_DIR, "Test", file)}', filename=f"{file}")
                 files.append(file_saved)
         #await message.delete()
             
@@ -270,11 +267,11 @@ async def fuck(ctx: Context, message_id: int):
     print('-1')
     message = await bot.raw_backup_channel.fetch_message(message_id)
     print('0')
-    for file in os.listdir(f"{bot.path}/Test"):
+    for file in os.listdir(os.path.join(ROOT_DIR, "Test")):
         if file.endswith(".png"):
-            path = os.path.join(f"{bot.path}/Test", file)
+            path = os.path.join(os.path.join(ROOT_DIR, 'Test', file))
             try:
-                os.remove(f"{bot.path_back_test}{file}")
+                os.remove(f"{os.path.join(ROOT_DIR, 'Test', file)}")
             except OSError as e: # name the Exception `e`
                 print ("Failed with:", e.strerror )# look what it says
                 print ("Error code:", e.code )   
@@ -284,13 +281,13 @@ async def fuck(ctx: Context, message_id: int):
             file_path = file
             files = []
             myfile = requests.get(file_path)
-            with open(f"{bot.path}/Test/{file.filename}", "wb") as outfile:
+            with open(f"{os.path.join(ROOT_DIR, 'Test', file.filename)}", "wb") as outfile:
                 outfile.write(myfile.content)
                 outfile.close()
     print('3')
-    for file in os.listdir(f"{bot.path_back_test}"):
+    for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Test')}"):
         if file.endswith(".png"):
-            file_saved = discord.File(f'{bot.path_back_test}{file}', filename=f"{file}")
+            file_saved = discord.File(f'{os.path.join(ROOT_DIR, "Test", file)}', filename=f"{file}")
             files.append(file_saved)
     print('4')
     await message.delete()

@@ -11,6 +11,7 @@ from typing import List
 
 import discord
 import requests
+from config.definitions import ROOT_DIR
 from discord import ui
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
@@ -29,13 +30,18 @@ class Cog_Writing_Coords(commands.Cog):
         self.multiple_answer_count = 0
         self.fail = 0
         self.matching_list = []
-        self.program_path_back = os.getenv("PROGRAM_PATH_BACK")
-        self.program_path_back_ready = os.getenv("PROGRAM_PATH_BACK_READY")
-        self.program_path_back_ready= self.program_path_back_ready[0:-1]
-        self.program_path = os.getenv("PROGRAM_PATH")
-        self.path = f'{self.program_path}/Processed'
-        self.path_ready = f'{self.program_path}/Ready'
-        self.path_unprocessed = f'{self.program_path}/Unprocessed'
+        self.program_path_back_processed = os.path.join(ROOT_DIR, 'Processed')
+        self.program_path = os.path.join(ROOT_DIR)
+        self.path = os.path.join(ROOT_DIR, 'Processed')
+        self.path_unprocessed = os.path.join(ROOT_DIR, 'Unprocessed')
+        
+        self.program_path_back = os.path.join(ROOT_DIR)
+        self.program_path_back_ready = os.path.join(ROOT_DIR, "Ready")
+
+
+
+        self.path_ready = os.path.join(ROOT_DIR, "Ready")
+
         self.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
         self.processed_channel = self.bot.get_channel(self.processed_channel_id)
         self.API_processed_channel_id = int(os.getenv("API_PROCESSED_CHANNEL"))
@@ -60,15 +66,12 @@ class Cog_Writing_Coords(commands.Cog):
                 print('generating message')
 
                 message = await self.API_processed_channel.fetch_message(API_processed_messages[0].id)
-                for file in os.listdir(f"{self.path_ready}"):
+                for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Ready')}"):
                     if file.endswith(".png"):
                         
                         print('there is a file')
-                        
-                        path = os.path.join(f"{self.path_ready}", file)
                         try:
-                            
-                            os.remove(f"{self.program_path_back_ready}{file}")
+                            os.remove(f"{os.path.join(ROOT_DIR, 'Ready', file)}")
                         except OSError as e: # name the Exception `e`
                             print ("Failed with:", e.strerror )# look what it says
                             print ("Error code:", e.code )   
@@ -76,20 +79,26 @@ class Cog_Writing_Coords(commands.Cog):
                     if file.filename.endswith(".png") == True:
                         file_path = file
                         myfile = requests.get(file_path)
-                        with open(f"{self.path_ready}/{file.filename}", "wb") as outfile:
+                        with open(f"{os.path.join(ROOT_DIR, 'Ready', file.filename)}", "wb") as outfile:
                             outfile.write(myfile.content)
                             outfile.close()
                 files = []
-                for file in os.listdir(f"{self.path_ready}"):
+                for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Ready')}"):
                     if file.endswith(".png"):
-                        file_saved = discord.File(f'{self.path_ready}/{file}', filename=f"{file}")
+                        print({os.path.join(ROOT_DIR, "Ready", file)})
+                        file_saved = discord.File(f'{os.path.join(ROOT_DIR, "Ready", file)}', filename=f"{file}")
                         files.append(file_saved)
+                        print(files)
                 await message.delete()
                 content = message.content
                 content = str(content).replace("'", '"')
                 content = str(content).replace("True", 'true')
                 content = str(content).replace("False", 'false')
-                data =  json.loads(content)
+                print(content)
+                try:
+                    data =  json.loads(content)
+                except Exception as e:
+                    print ("Failed with:", e )  
                 await self.generate_message(data, files)
             
 

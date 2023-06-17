@@ -12,6 +12,7 @@ from typing import List
 
 import discord
 import requests
+from config.definitions import ROOT_DIR
 from discord import Guild, app_commands, ui
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
@@ -48,10 +49,10 @@ async def on_ready():
     bot.processed_channel = bot.get_channel(bot.processed_channel_id)
     bot.machine_id = os.getenv("MACHINE_ID")
     bot.easter: int = 0
-    bot.program_path = os.getenv("PROGRAM_PATH")
-    bot.path = f'{bot.program_path}/Processed'
-    bot.path_unprocessed = f'{bot.program_path}/Unprocessed'
-    bot.path_processed = "Bot-OCR/Processed"
+    bot.program_path = os.path.join(ROOT_DIR)
+    bot.path = os.path.join(ROOT_DIR, 'Processed')
+    bot.path_unprocessed = os.path.join(ROOT_DIR, 'Unprocessed')
+    bot.path_processed = os.path.join(ROOT_DIR, 'Processed')
     bot.galaxyLifeAPI = GalaxyLifeAPI()
     print('before loading cogs')
     cogs: List[str] = list(["Cogs.Cog_Writing_Coords"])

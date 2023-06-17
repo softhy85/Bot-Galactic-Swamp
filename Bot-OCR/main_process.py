@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 from Models.Found_Colony_Model import Found_Colony_Model
 from Utils.DataBase import DataBase
 from Utils.GalaxyLifeAPI import GalaxyLifeAPI
+from config.definitions import ROOT_DIR
 
 load_dotenv()
 token: str = os.getenv("BOT_TOKEN")
@@ -49,10 +50,11 @@ async def on_ready():
     bot.processed_channel = bot.get_channel(bot.processed_channel_id)
     bot.machine_id = os.getenv("MACHINE_ID")
     bot.easter: int = 0
-    bot.program_path = os.getenv("PROGRAM_PATH")
-    bot.path = f'{bot.program_path}/Processed'
-    bot.path_unprocessed = f'{bot.program_path}/Unprocessed'
-    bot.path_processed = "Bot-OCR/Processed"
+    bot.program_path = os.path.join(ROOT_DIR)
+    print(os.path.join(ROOT_DIR))
+    bot.path = os.path.join(ROOT_DIR, 'Processed')
+    bot.path_unprocessed = os.path.join(ROOT_DIR, 'Unprocessed')
+    bot.path_processed = os.path.join(ROOT_DIR, 'Processed')
     bot.galaxyLifeAPI = GalaxyLifeAPI()
     print('before loagind cogs')
     cogs: List[str] = list(["Cogs.Cog_API_Process"])

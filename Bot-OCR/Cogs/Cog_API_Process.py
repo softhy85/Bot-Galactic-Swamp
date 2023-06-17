@@ -9,10 +9,12 @@ from collections import Counter
 
 import discord
 import requests
+from config.definitions import ROOT_DIR
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
 from discord.ui import Button, Select, View
 from Models.Found_Colony_Model import Found_Colony_Model
+
 
 class Cog_API_Process(commands.Cog):
     bot: commands.Bot = None
@@ -25,12 +27,10 @@ class Cog_API_Process(commands.Cog):
         self.multiple_answer_count = 0
         self.fail = 0
         self.matching_list = []
-        self.program_path_back_processed = os.getenv("PROGRAM_PATH_BACK_PROCESSED")
-        self.program_path_back_processed = self.program_path_back_processed[0:-1]
-        print(self.program_path_back_processed[0:-1])
-        self.program_path = os.getenv("PROGRAM_PATH")
-        self.path = f'{self.program_path}/Processed'
-        self.path_unprocessed = f'{self.program_path}/Unprocessed'
+        self.program_path_back_processed = os.path.join(ROOT_DIR, 'Processed')
+        self.program_path = os.path.join(ROOT_DIR)
+        self.path = os.path.join(ROOT_DIR, 'Processed')
+        self.path_unprocessed = os.path.join(ROOT_DIR, 'Unprocessed')
         self.processed_channel_id = int(os.getenv("PROCESSED_CHANNEL"))
         self.processed_channel = self.bot.get_channel(self.processed_channel_id)
         self.API_processed_channel_id = int(os.getenv("API_PROCESSED_CHANNEL"))
@@ -52,6 +52,7 @@ class Cog_API_Process(commands.Cog):
         if self.data is None:
             return
         print(self.data)
+        self.data["Title"], anything = self.preprocess(self.data["Title"])
         self.user_list = []
         for player in self.data['PlanetInfos']:
             print(player)
@@ -68,8 +69,8 @@ class Cog_API_Process(commands.Cog):
         self.data['Menu_number'] = 0
         index = 0
         for word in self.user_list:
-            if len(word) > 10:
-                while len(word) > 10:
+            if len(word) > 12:
+                while len(word) > 12:
                     word = word[1:]
                     word = word[:len(word)-1]
                 self.user_list[index] = word
@@ -91,12 +92,12 @@ class Cog_API_Process(commands.Cog):
             if file.endswith("players1.png"):
                 print('found extra file')
                 files_ends.append("Processing_players1") 
-        print(files_ends)
+        # print(files_ends)
         for file_end in files_ends:
             filename = f"{self.data['Location'][0]}_{self.data['Location'][1]}_{file_end}.png"
             try:
-                print('test', f"{self.program_path_back_processed}{filename}")
-                files.append(discord.File(f"{self.program_path_back_processed}{filename}", filename=filename))
+                # print('test', f"{os.path.join(ROOT_DIR, 'Processed', filename)}")
+                files.append(discord.File(f"{os.path.join(ROOT_DIR, 'Processed', filename)}", filename=filename))
             except Exception as e:
                 print ("Failed with:", e.strerror )  
         send_bool: bool = await self.check_sendability(self.data)
@@ -127,38 +128,28 @@ class Cog_API_Process(commands.Cog):
         it_message = 0
         history = self.processed_channel.history(oldest_first=True, limit=1)
         hist_list = [hist_list async for hist_list in self.processed_channel.history(limit=1, oldest_first=False)]
-        
-        for file in os.listdir(f"{self.path}"):
+        print("[Info]: New Iteration")
+        for file in os.listdir(f"{os.path.join(ROOT_DIR, 'Processed')}"):
             if file.endswith(".png"):
-                print(f"{self.program_path_back_processed}{file}")
-                print('there is a file')
-                path = os.path.join(f"{self.path_unprocessed}", file)
                 try:
-                    os.remove(f"{self.program_path_back_processed}{file}")
-                except OSError as e: # name the Exception `e`
-                    print ("Failed with:", e.strerror )# look what it says
-                    print ("Error code:", e.code )   
+                    os.remove(f"{os.path.join(ROOT_DIR, 'Processed', file)}")
+                except OSError as e:
+                    print ("Failed with:", e.strerror )
         if hist_list != []:
-            for message in hist_list: #, limit=1
-                print(message)
-                # for attachment in message.attachments:
+            for message in hist_list:
                 it = 0
                 data =  json.loads(message.content)
-                print(message.attachments)
                 for attachment in message.attachments:
                     if attachment.filename.endswith(".png") == True:
-                        # print(list(message.attachments))
                         file_path = attachment
                         myfile = requests.get(file_path)
-                        # print(f"{bot.path_unprocessed}/screen_{it+1}.png")
                         screen_name = str(data['Location']).split(', ')
-                        with open(f"{self.path}/{screen_name[0]}_{screen_name[1]}_{attachment.filename}", "wb") as outfile:
+                        with open(f"{os.path.join(ROOT_DIR, 'Processed', f'{screen_name[0]}_{screen_name[1]}_{attachment.filename}')}", "wb") as outfile:
                             outfile.write(myfile.content)
                         it += 1    
                     it_message += 1 
                 await message.delete()
         else:
-            # print('No msg')
             return None
         return data
         
@@ -188,14 +179,12 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("«", "")
         player_input = player_input.replace("<", "")
         player_input = player_input.replace("_", "")    
-        print(player_input)
         player_input = player_input.replace("'", "")
         player_input = player_input.replace('"', "")
         player_input = player_input.replace("...", "")
         player_input = player_input.replace("|", "")
-        print(player_input)
 
-        print("pre processed username:", player_input)
+        print("pre processed string:", player_input)
         username_list = [player_input]
         return player_input, username_list
 
@@ -206,34 +195,34 @@ class Cog_API_Process(commands.Cog):
         # N -> M
         # VV -> W
         char_found_index.append([m.start() for m in re.finditer('3', player_input)]) # 3 -> B
-        char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> B
-        char_found_index.append([m.start() for m in re.finditer('B', player_input)]) # B -> 3
+        char_found_index.append([m.start() for m in re.finditer('s', player_input)]) # S -> B
+        char_found_index.append([m.start() for m in re.finditer('b', player_input)]) # B -> 3
         
-        char_found_index.append([m.start() for m in re.finditer('O', player_input)]) # O -> 0
+        char_found_index.append([m.start() for m in re.finditer('o', player_input)]) # O -> 0
         char_found_index.append([m.start() for m in re.finditer('0', player_input)]) # 0 -> O
         
-        char_found_index.append([m.start() for m in re.finditer('Z', player_input)]) # Z -> 2
+        char_found_index.append([m.start() for m in re.finditer('z', player_input)]) # Z -> 2
         char_found_index.append([m.start() for m in re.finditer('2', player_input)]) # 2 -> Z
         
-        char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> 5
+        char_found_index.append([m.start() for m in re.finditer('s', player_input)]) # S -> 5
         char_found_index.append([m.start() for m in re.finditer('5', player_input)]) # 5 -> S
         
         char_found_index.append([m.start() for m in re.finditer('11', player_input)]) # 11 -> N
-        char_found_index.append([m.start() for m in re.finditer('A', player_input)]) # A -> 4
+        char_found_index.append([m.start() for m in re.finditer('a', player_input)]) # A -> 4
         
-        char_found_index.append([m.start() for m in re.finditer('E', player_input)]) # E -> S
-        char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> E
+        char_found_index.append([m.start() for m in re.finditer('e', player_input)]) # E -> S
+        char_found_index.append([m.start() for m in re.finditer('s', player_input)]) # S -> E
         
-        char_found_index.append([m.start() for m in re.finditer('S', player_input)]) # S -> 8
+        char_found_index.append([m.start() for m in re.finditer('s', player_input)]) # S -> 8
         
         
-        char_found_index.append([m.start() for m in re.finditer('N', player_input)]) # N -> M
-        char_found_index.append([m.start() for m in re.finditer('I', player_input)]) # I -> 1
-        char_found_index.append([m.start() for m in re.finditer('I', player_input)]) # I -> T
+        char_found_index.append([m.start() for m in re.finditer('n', player_input)]) # N -> M
+        char_found_index.append([m.start() for m in re.finditer('i', player_input)]) # I -> 1
+        char_found_index.append([m.start() for m in re.finditer('i', player_input)]) # I -> T
         
 
-        replace_chr: list = ["3", "S", "B", "O", "0", "Z", "2", "S", "5", "11", "A", "E", "S", "S", "N", "I", "I"] 
-        original_chr: list = ["B", "B", "3", "0", "O", "2", "Z", "5", "S", "N", "4", "S", "E", "8", "M", "1", "T"] 
+        replace_chr: list = ["3", "s", "b", "o", "0", "z", "2", "s", "5", "11", "a", "e", "s", "s", "n", "i", "i"] 
+        original_chr: list = ["b", "b", "3", "0", "o", "2", "z", "5", "s", "n", "4", "s", "e", "8", "m", "1", "t"] 
         return char_found_index, original_chr, replace_chr
 
     # it_char_found : position in list of replacement chars 
@@ -251,14 +240,11 @@ class Cog_API_Process(commands.Cog):
             for L in range(len(char_found_index[it_char_found]) + 1):
                 for subset in itertools.combinations(index, L):
                     swap.append(subset)
-            # print(swap)
             for x_char_in_swap in swap:
-                # print(x_char_in_swap)
                 if len(x_char_in_swap) > 0:
                     result_it = player_input
                     for x_char_in_swap_index in x_char_in_swap:
                         result_it = result_it[:x_char_in_swap_index] + original_chr[it_char_found] + result_it[x_char_in_swap_index+len(replace_chr[it_char_found]):]
-                        # print(result_it)
                         it += 1
                     username_list.append(result_it)
             it_char_found += 1
@@ -287,7 +273,6 @@ class Cog_API_Process(commands.Cog):
                     for player in results:
                         names.append(player['Name'])
                     given_results.append(names)
-                    # print(names)
                     resulting_name = True
                 else:
                     resulting_name = True
@@ -310,30 +295,28 @@ class Cog_API_Process(commands.Cog):
         final_username_list = list(dict.fromkeys(username_list_flat))
         # print("variants:", len(final_username_list))
         if len(final_username_list) > 25:
-            print("variants number was:", len(final_username_list))
+            #print("variants number was:", len(final_username_list))
             final_username_list = final_username_list[0]
-            print(final_username_list)
+            #print(final_username_list)
         return final_username_list
 
 
     def most_frequent(self, List):
         if List != []:
             most_common = [item for item in Counter(List).most_common()]
-            return str(most_common[0:25])
+            return str(most_common[0:10])
         else:
             return 'No most frequent result found'
         
     def test_username(self, player_input, username_list):  
-        
         given_results = []
         char_found_index, original_chr, replace_chr = self.filter(player_input)
-        # username_list = username_builder(char_found_index, original_chr, replace_chr, player_input, username_list)
-        
         username_list = username_list[0:4]
-        # print(username_list)
-        username_list_2 = self.exhaustive_usernames(char_found_index, original_chr, replace_chr, username_list)
+        username_list_2 = self.username_builder(char_found_index, original_chr, replace_chr, player_input, username_list)
+        # print("🔎 variants that won't be used:", username_list_2, "vs", username_list)
+        # username_list_3 = self.exhaustive_usernames(char_found_index, original_chr, replace_chr, username_list)
+        # print("🔎 variants that won't be used:", username_list_3)
         given_results = self.api_check(username_list)
-
         given_results_done = []
         for list_index in range(0, len(given_results)):
             for index in range(0, len(given_results[list_index])):
@@ -359,14 +342,13 @@ class Cog_API_Process(commands.Cog):
                 result = self.test_username(user, username_list)
                 while result == None:
                     if len(user) > 4:
-                        print("decreasing size")
+                        #print("decreasing size")
                         not_decreased = False
                         user = user[1:]
                         user = user[:len(user)-1]
                         username_list = [user]
                         result = self.test_username(user, username_list)
                     else:
-                        print('No result found')
                         result = "No result Found"
                         user, username_list = self.preprocess(self.user_list[self.it])
                         self.data['No_Result'].append(user) 
