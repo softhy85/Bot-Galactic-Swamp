@@ -144,12 +144,14 @@ class Cog_War(commands.Cog):
         date_time_str: str = now.strftime("%H:%M:%S")
         alliance_infos = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name)
         if alliance_infos['war_status']:
+            await self.set_bot_status(alliance_infos["enemy_name"])
             await self.update_war_channel_name(True)
             await self.create_new_war(alliance_infos["enemy_name"].upper())
             print(f"Info: War started at {date_time_str}")
             self.task_war_started.stop()
             self.task_war_over.start()
         else:
+            await self.set_bot_status()
             await self.update_war_channel_name()
             await self.update_peace_embed()
         print("Infos: task_war_started ended")
@@ -162,6 +164,33 @@ class Cog_War(commands.Cog):
 
     #<editor-fold desc="other">
 
+    
+    async def set_bot_status(self, enemy_name = None):
+        
+        if enemy_name is not None:
+            await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f"⚔️ {enemy_name}"), status=discord.Status.dnd)
+        else:
+            next_war: Next_War_Model = self.bot.db.get_nextwar()
+            now = datetime.datetime.now()
+            date = datetime.datetime.fromtimestamp(next_war["start_time"])
+            now_2 = datetime.datetime.strftime(now, "%d %H %M")
+            date_2 = datetime.datetime.strftime(date, "%d %H %M")
+            now_3 = datetime.datetime.strptime(now_2, "%d %H %M")
+            date_3 = datetime.datetime.strptime(date_2, "%d %H %M")
+            next_war_cd = date_3 - now_3
+            next_war_cleaned_up = str(next_war_cd).replace(' days, ', ':')
+            next_war_cd_list = next_war_cleaned_up.split(":")
+            time_div_list = [' days ', 'h ', ' min' ]
+            shield_duration = ""
+            for it in range(0, len(next_war_cd_list)-1):
+                if int(next_war_cd_list[it]) > 0:
+                    shield_duration = shield_duration + next_war_cd_list[it] + time_div_list[it]
+            if shield_duration == "":
+                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f"😎 Winning next war"), status=discord.Status.online)
+            else:
+                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f"🛡️ {shield_duration}"), status=discord.Status.idle)
+        
+    
     async def create_new_war(self, alliance: str):
         print('War_Infos: new war')
         self.bot.db.remove_warlog()
