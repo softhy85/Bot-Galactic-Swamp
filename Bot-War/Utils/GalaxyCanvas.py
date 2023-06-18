@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Rectangle
 from pymongo.cursor import Cursor
-
+from config.definitions import ROOT_DIR
 from Models.Alliance_Model import Alliance_Model
 from Models.Colonies_List_Model import Colonies_List_Model
 from Models.Colony_Model import Colony_Model
@@ -32,7 +32,7 @@ from Utils.DataBase import DataBase
 from Utils.Dropdown import DropView
 
 load_dotenv()
-
+print("root dir for gl canvas:", ROOT_DIR)
 class GalaxyCanvas:
 
   def __init__(self, bot: commands.Bot):
@@ -231,7 +231,8 @@ class GalaxyCanvas:
       ax.axhline(y=threshold, color='#222224')
       ax.axhline(y=threshold, color='w', linestyle=":")
     plt.subplots_adjust(bottom=0, right=1, top=1, left=0)
-    plt.savefig(f'{self.program_path}/Image/war_recap.png', bbox_inches='tight', dpi=300, facecolor="#222224")
+    filename = 'war_recap.png'
+    plt.savefig(f'{os.path.join(ROOT_DIR, "Image", filename)}', bbox_inches='tight', dpi=300, facecolor="#222224")
     plt.close('all')
   
   def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None):
@@ -342,6 +343,7 @@ class GalaxyCanvas:
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)
-    plt.savefig(f'{self.program_path}/Image/scout_map.png', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
+    filename =  'scout_map.png'
+    plt.savefig(f'{os.path.join(ROOT_DIR, "Image", filename)}', bbox_inches='tight', dpi=100, edgecolor="black", facecolor="#2b2e31")
     plt.close('all')
     return (int(zoom), pos_x, pos_y, scout_x, scout_y, scout_player)

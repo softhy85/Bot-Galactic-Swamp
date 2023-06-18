@@ -199,7 +199,7 @@ class Dashboard:
                     await self.log_regen.send(f"> ⬆️ __Level {player['lvl']}__ **{player['pseudo'].upper()}**: 🌍 main base is now back :seedling: `{score_per_base[player['MB_lvl']-1]} pts`")
                     player["MB_status"] = "Up"
                 if player['war_points_delta'] != 0:
-                    # await self.log_channel.send(f">  `☠️ Level {player['lvl']}:` `{player['pseudo']} scored {player['war_points_delta']} points.`")
+                    await self.log_channel.send(f">  `☠️ Level {player['lvl']}:` `{player['pseudo']} scored {player['war_points_delta']} points.`")
                     player['war_points_delta'] = 0
                 self.bot.db.update_player(player)
             if player["MB_status"] == "Up":
