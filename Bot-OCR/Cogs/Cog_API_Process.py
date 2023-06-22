@@ -52,7 +52,10 @@ class Cog_API_Process(commands.Cog):
         if self.data is None:
             return
         print(self.data)
-        self.data["Title"], anything = self.preprocess(self.data["Title"])
+        if self.data['Title'] == "-1" or self.data['Title'] == None:
+            self.data['Title'] = "Unknown System"
+        else:
+            self.data["Title"], anything = self.preprocess(self.data["Title"])
         self.user_list = []
         for player in self.data['PlanetInfos']:
             print(player)
@@ -62,11 +65,13 @@ class Cog_API_Process(commands.Cog):
         print(self.user_list)
         # if self.user_list == []:
         #     print("the user list is empty !!!")
+        
         self.data = {'Title': self.data['Title'], 'Location': self.data['Location']}
         self.data['Proposal'] = {}
         self.data['No_Result'] = []
         self.data['Ready_to_store'] = []
         self.data['Menu_number'] = 0
+        self.data['Button_number'] = 0
         index = 0
         for word in self.user_list:
             if len(word) > 12:
@@ -159,6 +164,7 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("?", "7")
         player_input = player_input.replace("_", "")
         player_input = player_input.replace("\\", "")
+        player_input = player_input.replace("/", "")
         player_input = player_input.replace("€", "E")
         player_input = player_input.replace("&", "E")
         player_input = player_input.replace("§", "6")
@@ -178,11 +184,14 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("<s>", "")
         player_input = player_input.replace("«", "")
         player_input = player_input.replace("<", "")
+        player_input = player_input.replace(">", "")
         player_input = player_input.replace("_", "")    
         player_input = player_input.replace("'", "")
         player_input = player_input.replace('"', "")
         player_input = player_input.replace("...", "")
         player_input = player_input.replace("|", "")
+        player_input = player_input.replace("}", "")
+        player_input = player_input.replace(";", "")
 
         print("pre processed string:", player_input)
         username_list = [player_input]
@@ -194,6 +203,7 @@ class Cog_API_Process(commands.Cog):
         # Q -> 4
         # N -> M
         # VV -> W
+        # +++ U -> LI
         char_found_index.append([m.start() for m in re.finditer('3', player_input)]) # 3 -> B
         char_found_index.append([m.start() for m in re.finditer('s', player_input)]) # S -> B
         char_found_index.append([m.start() for m in re.finditer('b', player_input)]) # B -> 3
@@ -354,47 +364,74 @@ class Cog_API_Process(commands.Cog):
                         self.data['No_Result'].append(user) 
                         self.fail += 1
                 
-                self.matching_list.append(result)
+                
                 if result != 'No result Found':
                     elements: int = 0
                     for chr in result:
                         if chr == '(':
                             elements += 1
                     if elements == 1 and self.worked_first_try == True and not_decreased == True:
+                        self.matching_list.append(result)
                         print('✅ worked first try is true')
                         self.user_list[self.it] = result
                         self.success_count += 1
                     elif elements == 1 and self.worked_first_try == True and not_decreased == False:
                         print('❌ one result but username got decreased in size')
-                        result_list = []
-                        result = list(result.split("'"))
-                        for proposal in range(0, len(result)):
-                            if proposal %2 == 1:
-                                result[proposal] = result[proposal]
-                                result_list.append(result[proposal])
-                        self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                        self.matching_list.append(result)
+                        if len(self.data['Proposal']) < 5:
+                            result = list(result.split("'"))
+                            result_list = []
+                            for proposal in range(0, len(result)):
+                                if proposal %2 == 1:
+                                    result[proposal] = result[proposal]
+                                    result_list.append(result[proposal])
+                            self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                        else:
+                            print("👄👄👄👄 too many menus. adding it as no_result")
+                            self.data['No_Result'].append(self.data["Players"][self.it])
+                            print(self.data)
+                            
                     elif elements == 1 and self.worked_first_try == False:
                         print('❌ one result but didnt work at first try')
-                        result_list = []
-                        result = list(result.split("'"))
-                        for proposal in range(0, len(result)):
-                            if proposal %2 == 1:
-                                result[proposal] = result[proposal]
-                                result_list.append(result[proposal])
-                        self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                        self.matching_list.append(result)
+                        if len(self.data['Proposal']) < 5:
+                            result = list(result.split("'"))
+                            result_list = []    
+                            for proposal in range(0, len(result)):
+                                print(proposal)
+                                print(result)
+                                if proposal %2 == 1:
+                                    print(result[proposal])
+                                    result[proposal] = result[proposal]
+                                    result_list.append(result[proposal])
+                            self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                        else:
+                            print("👄👄👄👄 too many menus. adding it as no_result")
+                            self.data['No_Result'].append(self.data["Players"][self.it])
+                            print(self.data)
                     
                     elif elements > 1:
                         self.multiple_answer_count += 1
-                        result = list(result.split("'"))
-                        result_list = []
-                        for proposal in range(0, len(result)):
-                            if proposal %2 == 1:
-                                result[proposal] = result[proposal]
-                                result_list.append(result[proposal])
-                        self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                        print(result)
+                        
+                        if len(self.data['Proposal']) < 5:
+                            result_splitted = list(result.split("'"))
+                            result_list = []
+                            for proposal in range(0, len(result_splitted)):
+                                if proposal %2 == 1:
+                                    result_splitted[proposal] = result_splitted[proposal]
+                                    result_list.append(result_splitted[proposal])
+                            self.data["Proposal"][f'{self.data["Players"][self.it]}'] = result_list
+                        else:
+                            print("👄👄👄👄 too many menus. adding it as no_result")
+                            result = "No result Found"
+                            self.data['No_Result'].append(self.data["Players"][self.it])
+                            print(self.data)
+                        self.matching_list.append(result)
             else:
                 print('❌ No result found because there was no name')
                 result = "No result Found"
+                self.matching_list.append(result)
                 self.data["Players"][self.it] = "No Name"
                 self.data['No_Result'].append("No Name") 
                 self.fail += 1
@@ -409,6 +446,7 @@ class Cog_API_Process(commands.Cog):
         location_list = list(location.split(","))
         self.data["Location"] = location_list
         it = 0
+        print('did it change? we"ll see:', self.data['Players'])
         for name in range(0, len(self.data['Players'])):
             accurate_name = str(self.matching_list[name]).split("'")
             

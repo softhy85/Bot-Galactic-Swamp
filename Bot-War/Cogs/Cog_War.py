@@ -1,11 +1,13 @@
 
 import datetime
 import os
+import re
 from datetime import timedelta
 from threading import Thread
 from typing import List
 
 import discord
+from config.definitions import ROOT_DIR
 from discord import app_commands
 from discord.ext import commands, tasks
 from discord.utils import utcnow
@@ -178,15 +180,28 @@ class Cog_War(commands.Cog):
             now_3 = datetime.datetime.strptime(now_2, "%d %H %M")
             date_3 = datetime.datetime.strptime(date_2, "%d %H %M")
             next_war_cd = date_3 - now_3
+            print(next_war_cd)
+            is_day = []
+            is_days = []
+            is_day.append([m.start() for m in re.finditer('day', str(next_war_cd))])
+            is_days.append([m.start() for m in re.finditer('days', str(next_war_cd))])
+            if is_day != [] and is_days != [] :
+                time_div_list = [' days ', 'h ', ' min' ]
+            else:
+                time_div_list = [ 'h ', ' min', '' ]
+            
             next_war_cleaned_up = str(next_war_cd).replace(' days, ', ':')
+            next_war_cleaned_up = str(next_war_cleaned_up).replace(' day, ', ':')
             next_war_cd_list = next_war_cleaned_up.split(":")
-            time_div_list = [' days ', 'h ', ' min' ]
+            if len(next_war_cd_list) < 3:
+                time_div_list = [' min', '' ]
             shield_duration = ""
+            print(next_war_cd_list)
             for it in range(0, len(next_war_cd_list)-1):
                 if int(next_war_cd_list[it]) > 0:
                     shield_duration = shield_duration + next_war_cd_list[it] + time_div_list[it]
             if shield_duration == "":
-                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f"😎 Winning next war"), status=discord.Status.online)
+                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f"😎 Winning next war"), status=discord.Status.do_not_disturb)
             else:
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=f"🛡️ {shield_duration}"), status=discord.Status.idle)
         
@@ -377,7 +392,7 @@ class Cog_War(commands.Cog):
         embed_title: str = ""
         war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R>"
         
-        war_recap = discord.File(f"{self.program_path}/Image/war_recap.png", filename="war_recap.png")
+        war_recap = discord.File(f"{os.path.join(ROOT_DIR, 'Image', 'war_recap.png')}", filename="war_recap.png")
         
         if next_war['positive_votes'] > 0 and (next_war['positive_votes'] - next_war['negative_votes']) < 4:
             war_start_string = f"➡️ Next war <t:{int(next_war['start_time'])}:R> `({4-next_war['positive_votes']+next_war['negative_votes']} votes to start)`"
@@ -405,7 +420,7 @@ class Cog_War(commands.Cog):
         embed.add_field(name="⛔ Players online:", value=next_war['players_online_list'], inline=False)
         embed.add_field(name=war_start_string, value=vote_string, inline=False)
         embed.add_field(name=f"💥 Last war recap: `{war_log['enemy_name']}`", value=f"``{war_log['ally_score'][-1]}`` vs ``{war_log['enemy_score'][-1]}`` - ``{len(war_log['ally_score'])} attacks`` - ``{'Win' if war_log['ally_score'][-1] >war_log['enemy_score'][-1] else 'Lost'}``", inline=False)
-        banner = discord.File(f"{self.program_path}/Image/banner.png", filename="banner.png")
+        banner = discord.File(f"{os.path.join(ROOT_DIR, 'Image', 'banner.png')}", filename="banner.png")
         embed.set_image(url="attachment://war_recap.png")
         if updated == False:
             self.bot.galaxyCanvas.draw_recap()

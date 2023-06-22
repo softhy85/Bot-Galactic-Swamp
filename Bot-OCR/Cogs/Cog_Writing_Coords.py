@@ -137,6 +137,8 @@ class Cog_Writing_Coords(commands.Cog):
     async def generate_message(self, data, files):
         self.skip = False
         view = View(timeout=None)
+        if data['Title'] == "-1":
+            data['Title'] = "Unknown System"
         content = f"> 🪐 **{data['Title']}**  🔍 ``{data['Location']}``  `"
         true_number: int = 0
         for it in range(0, len(data['Players'])):
@@ -155,17 +157,86 @@ class Cog_Writing_Coords(commands.Cog):
         
         if self.skip == False:
             files.reverse()
-            view = await self.add_menu(data, view, content)
+            check_coords = self.check_coords(data)
+            data['Elements'] = {}
+            if 'DefiniteWrongLocation' in data:
+                if data['DefiniteWrongLocation'] == True:
+                    print('is true')
+                    check_coords = True
+            if check_coords == True:
+                print('coord must be checked:', data['Location'])
+                view = await self.add_coords_button(view, data, content)
+                data['Elements']['Coords'] = data["Menu_number"] + data["Button_number"]
+                data["Button_number"] += 1
             view = await self.add_button(data, view, content)
+            view = await self.add_menu(data, view, content)
+            print(data)
             await self.ocr_channel.send(content=content, view=view, files=files)
-    
+            
+    def check_coords(self, data):
+        char_found_index = []
+        number_list = ['4', '9']
+        for number in number_list:
+            for coord in data['Location']:
+                if [m.start() for m in re.finditer(number, coord)] != []:
+                    char_found_index.append([m.start() for m in re.finditer(number, coord)])
+        print(char_found_index)
+        if char_found_index != []:
+            check_coords = True
+        else: 
+            check_coords = False
+        return check_coords
+        
+        
     async def add_menu(self, data, view, content):
         for it_player in range(0, len(data['Players'])):
             if  data['Players'][it_player] in data["Proposal"]:
+                data['Elements'][data["Players"][it_player]] = data["Menu_number"] + data["Button_number"]
                 await self.menu(data, view, it_player, content)
                 data["Menu_number"] += 1
         return (view)
- 
+
+    async def add_coords_button(self, view, data, content):
+        print(data['Location']) 
+        button_write_name = Button(label = f"{str(data['Location'])}", style=discord.ButtonStyle.blurple)  
+        view.add_item(button_write_name)
+        async def button_callback_write_name(interaction):
+            modal_placeholder = data['Location']
+            class my_modal(ui.Modal, title='Change coordinates'):
+                coords=ui.TextInput(label='username', style=discord.TextStyle.short, default=f'{modal_placeholder}', required = True)   
+                async def on_submit(self_2, interaction):
+                    del data["Location"]
+                    location = str(self_2.coords.value)[1:-1]
+                    data["Location"] = []
+                    location = location.split(',')
+                    for coord in location:
+                        coord = coord.replace("'", "")
+                        coord = coord.replace(" ", "")
+                        data["Location"].append(coord)
+                    content_list = content.split("``")
+                    string = ""
+                    content_list[1] = self_2.coords.value
+                    for item in content_list:
+                        string = string + item
+                        
+                    view.remove_item(view.children[data['Elements']['Coords']])
+                    for object in data['Elements']:
+                        if data['Elements'][object] >  data['Elements']['Coords']:
+                            data['Elements'][object] = data['Elements'][object] - 1
+                    data['Elements']['Coords'] = data['Menu_number'] + data['Button_number'] - 1
+                    print(data, data['Menu_number'], data['Button_number'])
+                    
+                    
+                    
+                    button_write_name = Button(label = f"{self_2.coords.value}", style=discord.ButtonStyle.blurple) 
+                    view.add_item(button_write_name)
+                    button_write_name.callback = button_callback_write_name
+                    print('before')
+                    await interaction.response.edit_message(view=view, content=string)
+            await interaction.response.send_modal(my_modal())
+        button_write_name.callback = button_callback_write_name  
+        return view
+
     async def button_write_name(self, view, data, it_player, content): 
         button_write_name = Button(label = f"{data['Players'][it_player]}", style=discord.ButtonStyle.grey)  
         view.add_item(button_write_name)
@@ -176,15 +247,29 @@ class Cog_Writing_Coords(commands.Cog):
                 async def on_submit(self_2, interaction):
                     for player_index in range(0, len(data["No_Result"])):
                         if data["No_Result"][player_index] == test_name_1:
+                            
                             child_number = player_index
                             data["No_Result"].append(self_2.player.value)
                             del data["No_Result"][player_index]
+                            print(data["No_Result"])
+                            print("child_number", child_number)
                             break
+
                     test_name = data['Players'][it_player]
                     results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={self_2.player.value}', timeout=1.5)
                     if chr(results.content[0]) == '{':  
                         button_write_name = Button(label = f"{self_2.player.value}", style=discord.ButtonStyle.green)
-                        view.remove_item(view.children[child_number+data["Menu_number"]])
+                        
+                        
+                        view.remove_item(view.children[data['Elements'][test_name_1]])
+                        for object in data['Elements']:
+                            if data['Elements'][object] >  data['Elements'][test_name_1]:
+                                data['Elements'][object] = data['Elements'][object] - 1
+                        data['Elements'][self_2.player.value] = data['Elements'].pop(test_name_1)
+                        data['Elements'][self_2.player.value] = data['Menu_number'] + data['Button_number']  - 1
+                        
+                        print(data)
+                       
                         view.add_item(button_write_name)
                         for index in range(0, len(data["Players"])):
                             if data["Players"][index] == test_name:
@@ -196,7 +281,15 @@ class Cog_Writing_Coords(commands.Cog):
                                 data['Players'][index] = self_2.player.value
                                 data['Ready_to_store'][index] = False
                                 break
-                        view.remove_item(view.children[child_number+data["Menu_number"]])
+                        view.remove_item(view.children[data['Elements'][test_name_1]])
+                        print(data['Menu_number'], data['Button_number'] - 1)
+                        for object in data['Elements']:
+                            if data['Elements'][object] >  data['Elements'][test_name_1]:
+                                data['Elements'][object] = data['Elements'][object] - 1
+                        data['Elements'][self_2.player.value] = data['Elements'].pop(test_name_1)
+                        data['Elements'][self_2.player.value] = data['Menu_number'] + data['Button_number'] - 1
+                        
+                        print(data)
                         button_write_name = Button(label = f"{self_2.player.value}", style=discord.ButtonStyle.red) 
                         view.add_item(button_write_name)
                     button_write_name.callback = button_callback_write_name
@@ -251,7 +344,17 @@ class Cog_Writing_Coords(commands.Cog):
                     else:
                         for it in range(0, len(data['Proposal'])):
                             if  data['Players'][it_player] in data["Proposal"]:
-                                view.remove_item(view.children[it])
+                                print(data["Proposal"])
+                                print("Button_number", data["Button_number"])
+                                print(it)
+                                
+                                view.remove_item(view.children[data['Elements'][data['Players'][it_player]]])
+                                for object in data['Elements']:
+                                    if data['Elements'][object] >  data['Elements'][data['Players'][it_player]]:
+                                        data['Elements'][object] = data['Elements'][object] - 1
+                                data['Elements'][data['Players'][it_player]] = data['Menu_number'] + data['Button_number']  - 1
+                                print(data)
+                                data["Button_number"] += 1
                                 await self.button_write_name(view, data, it_player, content)  
                                 data["No_Result"].append(data['Players'][it_player])
                                 data["Menu_number"] -= 1
@@ -262,8 +365,9 @@ class Cog_Writing_Coords(commands.Cog):
         
     async def add_button(self, data, view, content):
         for it_player in range(0, len(data['Players'])):
-            
             if data['Players'][it_player] in data["No_Result"]:
+                data['Elements'][data["Players"][it_player]] = data["Menu_number"] + data["Button_number"]
+                data["Button_number"] += 1
                 await self.button_write_name(view, data, it_player, content)
         if view is not None:
             return view
