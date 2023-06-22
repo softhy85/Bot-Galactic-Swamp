@@ -209,7 +209,7 @@ async def woops(ctx: Context, content: int):
     for message in hist_list:
         print('remaing:', it_max - it, "/", it_max)
         it += 1
-        if message.content == "API request failed":
+        if message.content == "API request failed" or message.content == 'Probably something wrong with the image' or message.content == "No players in the system.":
             for file in message.attachments:
                 if file.filename.endswith(".png") == True:
                     file_path = file
