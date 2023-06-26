@@ -106,8 +106,10 @@ class Cog_API_Process(commands.Cog):
             except Exception as e:
                 print ("Failed with:", e.strerror )  
         send_bool: bool = await self.check_sendability(self.data)
+        print('sendability checked')
         if send_bool == True:
             await self.API_processed_channel.send(self.data, files=files)
+        await self.clear_message()
         
     async def check_sendability(self, data):
         true_number: int = 0
@@ -116,8 +118,15 @@ class Cog_API_Process(commands.Cog):
                 true_number += 1
         if true_number == len(data["Players"]):
             print('✅✅✅ processed result was perfect')
-            await self.db_handle(data)
-            return False
+            if 'DefiniteWrongLocation' in data:
+                    if data['DefiniteWrongLocation'] == True:
+                        print('⚠️ but coords are wrong. Seending instead.')
+            elif data['Location'][0] == "-1" or data['Location'][1] == "-1":
+                print('⚠️ but coords are wrong. Seending instead.')
+            else:
+                print('storage rules are matching')
+                await self.db_handle(data)
+                return False
         else: 
             return True
                 
@@ -153,11 +162,19 @@ class Cog_API_Process(commands.Cog):
                             outfile.write(myfile.content)
                         it += 1    
                     it_message += 1 
-                await message.delete()
+                # await message.delete()
         else:
             return None
         return data
+    
+    async def clear_message(self):
         
+        hist_list = [hist_list async for hist_list in self.processed_channel.history(limit=1, oldest_first=False)]
+        if hist_list != []:
+            for message in hist_list:
+                print('clearing message in processed channel')
+                await message.delete()
+    
     def preprocess(self, player_input):
         player_input = player_input.replace("/N", "M")
         player_input = player_input.replace("//", "M")
@@ -194,6 +211,9 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace(";", "")
         player_input = player_input.replace("¢", "")
         player_input = player_input.replace("°", "")
+        player_input = player_input.replace("¡", "")
+        player_input = player_input.replace("к", "k")
+        player_input = player_input.replace("#", "")
 
         print("pre processed string:", player_input)
         username_list = [player_input]
@@ -266,7 +286,14 @@ class Cog_API_Process(commands.Cog):
         self.worked_first_try = False
         given_results = []
         username_list = username_list [0:10]
-        results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={username_list[0]}', timeout=15.0)
+        try:
+            results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={username_list[0]}', timeout=5.0)
+            # for it in range(0, 15):
+            #     print(chr(results.content[it]))
+        except Exception as e:
+            print(e)
+            results = []
+            
         if chr(results.content[0]) == '{':  
             results = json.loads(results.content)
             if results != []:
@@ -278,12 +305,20 @@ class Cog_API_Process(commands.Cog):
         for it in range(0, len(username_list)):
             resulting_name: bool = False
             while resulting_name == False:
-                results = requests.get(f'https://api.galaxylifegame.net/Users/search?name={username_list[it]}', timeout=15.0)
-                results = json.loads(results.content)
+                try:
+                    results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={username_list[it]}', timeout=5.0)
+                    results = json.loads(results.content)
+                    # for it in range(0, 15):
+                    #     print(chr(results.content[it]))
+                except Exception as e:
+                    results = []
                 if results != []:
                     names = []
-                    for player in results:
-                        names.append(player['Name'])
+                    if 'Id' in results:
+                        names.append(results['Name'])
+                    else:
+                        for player in results:
+                            names.append(player['Name'])
                     given_results.append(names)
                     resulting_name = True
                 else:
@@ -335,6 +370,7 @@ class Cog_API_Process(commands.Cog):
                 given_results_done.append(given_results[list_index][index])
                 
         if given_results_done == []:
+            print('no result')
             return None
         # print("Usernames returned by API :", given_results) 
         matching_name = self.most_frequent(given_results_done)
@@ -365,7 +401,7 @@ class Cog_API_Process(commands.Cog):
                         user, username_list = self.preprocess(self.user_list[self.it])
                         self.data['No_Result'].append(user) 
                         self.fail += 1
-                
+                        self.matching_list.append(result)
                 
                 if result != 'No result Found':
                     elements: int = 0
@@ -430,6 +466,7 @@ class Cog_API_Process(commands.Cog):
                             self.data['No_Result'].append(self.data["Players"][self.it])
                             print(self.data)
                         self.matching_list.append(result)
+                        print('5')
             else:
                 print('❌ No result found because there was no name')
                 result = "No result Found"
@@ -438,6 +475,7 @@ class Cog_API_Process(commands.Cog):
                 self.data['No_Result'].append("No Name") 
                 self.fail += 1
             self.it += 1
+        print('6')
         time_end: datetime.datetime = datetime.datetime.now()
         # print(f'program executed for {time_end - time_start} ')
         # print('usernames', self.username_count)

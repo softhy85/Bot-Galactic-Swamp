@@ -28,6 +28,7 @@ class Cog_Scout(commands.Cog):
             button_right = Button(label = f"⇨", style=discord.ButtonStyle.blurple)
             view.add_item(button_right)
             async def button_callback_right(interaction):
+                await interaction.response.defer()
                 self.retrieve_embed(embed)
                 if self.new_pos_x + 0.5*int(1000/self.new_zoom) <= 1000 - 0.5*int(1000/self.new_zoom):
                     self.new_pos_x = self.new_pos_x + 0.5*int(1000/self.new_zoom)
@@ -39,13 +40,14 @@ class Cog_Scout(commands.Cog):
                 button_right.callback = button_callback_right
                 embed.clear_fields()
                 embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
-                await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+                await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
             button_right.callback = button_callback_right
 
     def button_left(self, view, embed):
         button_left = Button(label = f"⇦", style=discord.ButtonStyle.blurple)
         view.add_item(button_left)
         async def button_callback_left(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             if self.new_pos_x - 0.5*int(1000/self.new_zoom) >= 0.5*int(1000/self.new_zoom):
                 self.new_pos_x = self.new_pos_x - 0.5*int(1000/self.new_zoom)
@@ -57,13 +59,14 @@ class Cog_Scout(commands.Cog):
             button_left.callback = button_callback_left
             embed.clear_fields()
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file])    
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_left.callback = button_callback_left
     
     def button_down(self, view, embed):
         button_down = Button(label = f"⇩", style=discord.ButtonStyle.blurple)
         view.add_item(button_down)
         async def button_callback_down(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             if self.new_pos_y + 0.5*int(1000/self.new_zoom) <= 1000 - 0.5*int(1000/self.new_zoom):
                 self.new_pos_y = self.new_pos_y + 0.5*int(1000/self.new_zoom)
@@ -75,13 +78,14 @@ class Cog_Scout(commands.Cog):
             embed.clear_fields()
             button_down.callback = button_callback_down
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_down.callback = button_callback_down
 
     def button_up(self, view, embed):
         button_up = Button(label = f"⇧", style=discord.ButtonStyle.blurple)
         view.add_item(button_up)
         async def button_callback_up(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             if self.new_pos_y - 0.5*int(1000/self.new_zoom) >= 0.5*int(1000/self.new_zoom):
                 self.new_pos_y = self.new_pos_y - 0.5*int(1000/self.new_zoom)
@@ -93,7 +97,7 @@ class Cog_Scout(commands.Cog):
             embed.clear_fields()
             button_up.callback = button_callback_up
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_up.callback = button_callback_up     
         
     def retrieve_embed(self, embed):
@@ -112,6 +116,7 @@ class Cog_Scout(commands.Cog):
         button_zoom_in = Button(label = f"＋", style=discord.ButtonStyle.green)
         view.add_item(button_zoom_in)
         async def button_callback_zoom_in(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             if self.new_zoom <= 100:
                 self.new_zoom = self.new_zoom * 2
@@ -121,13 +126,14 @@ class Cog_Scout(commands.Cog):
             button_zoom_in.callback = button_callback_zoom_in
             embed.clear_fields()
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file])    
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file])     
         button_zoom_in.callback = button_callback_zoom_in
         
     def button_zoom_out(self, view, embed):  
         button_zoom_out = Button(label = f"-", style=discord.ButtonStyle.green)
         view.add_item(button_zoom_out)  
         async def button_callback_zoom_out(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             if self.new_zoom >= 2:
                 self.new_zoom = int(self.new_zoom / 2)
@@ -145,7 +151,7 @@ class Cog_Scout(commands.Cog):
             button_zoom_out.callback = button_callback_zoom_out
             embed.clear_fields()
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file])    
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file])     
         button_zoom_out.callback = button_callback_zoom_out
 
     def button_change_coords(self, view, embed): 
@@ -173,13 +179,14 @@ class Cog_Scout(commands.Cog):
                     else:
                         self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, int(canvas.pos_x.value), int(canvas.pos_y.value))         
                 async def on_submit(canvas, interaction):
+                    await interaction.response.defer()
                     canvas.update()
                     filename = "scout_map.png"
                     new_file = discord.File(f"{os.path.join(ROOT_DIR, 'Image', filename)}", filename=filename)
                     embed.clear_fields()
                     embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
                     self.new_zoom = canvas.display_zoom
-                    await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file])
+                    await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
             await interaction.response.send_modal(my_modal())
         button_change_coords.callback = button_callback_change_coords  
 
@@ -208,13 +215,14 @@ class Cog_Scout(commands.Cog):
                     else:
                         self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(self.new_zoom, int(canvas.pos_x.value), int(canvas.pos_y.value))         
                 async def on_submit(canvas, interaction):
+                    await interaction.response.defer()
                     canvas.update()
                     filename = "scout_map.png"
                     new_file = discord.File(f"{os.path.join(ROOT_DIR, 'Image', filename)}", filename=filename)
                     embed.clear_fields()
                     embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
                     self.new_zoom = canvas.display_zoom
-                    await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file])
+                    await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
             await interaction.response.send_modal(my_modal())
         button_change_coords.callback = button_callback_change_coords  
     
@@ -222,6 +230,7 @@ class Cog_Scout(commands.Cog):
         button_refresh = Button(label = f"🔄️", style=discord.ButtonStyle.grey)
         view.add_item(button_refresh)
         async def button_callback_refresh(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             self.bot.galaxyCanvas.update_lists() 
             if self.scout_player_step:
@@ -232,13 +241,14 @@ class Cog_Scout(commands.Cog):
             embed.clear_fields()
             button_refresh.callback = button_callback_refresh
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_refresh.callback = button_callback_refresh
         
     def button_scout(self, view, embed):
         button_scout = Button(label = f"🔍", style=discord.ButtonStyle.grey)
         view.add_item(button_scout)
         async def button_callback_scout(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             self.bot.galaxyCanvas.update_lists() 
             self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player  = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout=True)
@@ -247,13 +257,14 @@ class Cog_Scout(commands.Cog):
             embed.clear_fields()
             button_scout.callback = button_callback_scout
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value=f'Coords to enter: `{scout_x}` : `{scout_y}`')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_scout.callback = button_callback_scout
 
     def button_complete_general(self, view, embed):
         button_complete = Button(label = f"✅", style=discord.ButtonStyle.grey)
         view.add_item(button_complete)
         async def button_callback_complete(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             value_str = str(embed.fields[0].value)
             splitted_value = value_str.split('`')   
@@ -264,13 +275,14 @@ class Cog_Scout(commands.Cog):
             embed.clear_fields()
             button_complete.callback = button_callback_complete
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value=f'Coords to enter: `{scout_x}` : `{scout_y}`')
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_complete.callback = button_callback_complete
 
     def button_complete_player(self, view, embed):
         button_complete = Button(label = f"✅", style=discord.ButtonStyle.grey)
         view.add_item(button_complete)
         async def button_callback_complete_player(interaction):
+            await interaction.response.defer()
             self.retrieve_embed(embed)
             #self.bot.galaxyCanvas.update_lists() 
             zoom, pos_x, pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, scout_player_step=self.scout_player_step)
@@ -279,7 +291,7 @@ class Cog_Scout(commands.Cog):
             embed.clear_fields()
             button_complete.callback = button_callback_complete_player
             embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value=f"Coords to enter: `{int(self.scout_player['list_x'][-1])}` : `{int(self.scout_player['list_y'][-1])}` - Step: `{len(self.scout_player['list_x'])}` / `25`")
-            await interaction.response.edit_message(embed=embed, view=view, attachments=[new_file]) 
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_complete.callback = button_callback_complete_player
 
     @app_commands.command(name="scout_player", description="Search around a player's main base to find colonies. This acts as a tool")

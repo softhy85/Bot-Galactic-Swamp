@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import gc
 import math
 import os
 import random as random
@@ -14,12 +15,11 @@ import matplotlib as mpl
 import matplotlib.dates as mdates
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
+from config.definitions import ROOT_DIR
 from discord.ext import commands
 from dotenv import load_dotenv
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Rectangle
-from pymongo.cursor import Cursor
-from config.definitions import ROOT_DIR
 from Models.Alliance_Model import Alliance_Model
 from Models.Colonies_List_Model import Colonies_List_Model
 from Models.Colony_Model import Colony_Model
@@ -28,6 +28,7 @@ from Models.Completed_List_Model import Completed_List_Model
 from Models.InfoMessage_Model import InfoMessage_Model
 from Models.Player_Model import Player_Model
 from Models.War_Model import War_Model
+from pymongo.cursor import Cursor
 from Utils.DataBase import DataBase
 from Utils.Dropdown import DropView
 
@@ -234,7 +235,7 @@ class GalaxyCanvas:
     filename = 'war_recap.png'
     plt.savefig(f'{os.path.join(ROOT_DIR, "Image", filename)}', bbox_inches='tight', dpi=300, facecolor="#222224")
     plt.close('all')
-  
+    
   def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None):
     obj = None
     list = self.bot.db.get_colonies_list(obj)
