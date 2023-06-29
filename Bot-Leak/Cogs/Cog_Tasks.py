@@ -180,6 +180,7 @@ class Cog_Tasks(commands.Cog):
         leaked_colonies = self.bot.db.get_leaked_colonies()
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if actual_war is not None:
+            print('Infos: update leaked colonies')
             await self.task_update_leaked_colonies()
         elif len(leaked_colonies) > 2:
             await self.task_update_leaked_colonies()

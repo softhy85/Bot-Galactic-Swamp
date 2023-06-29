@@ -184,8 +184,9 @@ class Cog_Scout(commands.Cog):
                     filename = "scout_map.png"
                     new_file = discord.File(f"{os.path.join(ROOT_DIR, 'Image', filename)}", filename=filename)
                     embed.clear_fields()
-                    embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
                     self.new_zoom = canvas.display_zoom
+                    embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
+                    
                     await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
             await interaction.response.send_modal(my_modal())
         button_change_coords.callback = button_callback_change_coords  
@@ -208,8 +209,8 @@ class Cog_Scout(commands.Cog):
                     limit_size = min(borders)
                     if int(limit_size) < 0.5*size_x :
                         new_zoom_adapted = 1000 / (2*int(limit_size))
-                        self.bot.galaxyCanvas.draw_map(new_zoom_adapted, int(canvas.pos_x.value), int(canvas.pos_y.value)) 
-                        canvas.display_zoom = new_zoom_adapted
+                        self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y = self.bot.galaxyCanvas.draw_map(new_zoom_adapted, int(canvas.pos_x.value), int(canvas.pos_y.value)) 
+                        canvas.display_zoom = self.new_zoom
                         self.new_pos_x = int(canvas.pos_x.value)
                         self.new_pos_y = int(canvas.pos_y.value)
                     else:
@@ -294,6 +295,21 @@ class Cog_Scout(commands.Cog):
             await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
         button_complete.callback = button_callback_complete_player
 
+    def button_render(self, view, embed):
+        button_render = Button(label = f"📹", style=discord.ButtonStyle.grey)
+        view.add_item(button_render)
+        async def button_callback_render(interaction):
+            await interaction.response.defer()
+            self.retrieve_embed(embed)
+            self.new_zoom, self.new_pos_x, self.new_pos_y, scout_x, scout_y, self.scout_player = self.bot.galaxyCanvas.draw_map(self.new_zoom, self.new_pos_x, self.new_pos_y, render=True)
+            filename = "scout_map.png"
+            new_file = discord.File(f"{os.path.join(ROOT_DIR, 'Image', filename)}", filename=filename)
+            button_render.callback = button_callback_render
+            embed.clear_fields()
+            embed.add_field(name=f"🔍 Zoom: `{int(self.new_zoom)}`   -   🎯  X: `{int(self.new_pos_x)}`   -   🎯  Y: `{int(self.new_pos_y)}`       ", value='')
+            await interaction.edit_original_response(embed=embed, view=view, attachments=[new_file]) 
+        button_render.callback = button_callback_render
+    
     @app_commands.command(name="scout_player", description="Search around a player's main base to find colonies. This acts as a tool")
     @app_commands.describe(pos_x="x position", pos_y="y position", player="player username (used as a reminder)")
     async def scout_player(self, interaction: discord.Interaction, pos_x: int, pos_y: int, player: str = ""):
@@ -372,6 +388,7 @@ class Cog_Scout(commands.Cog):
         self.button_refresh(view, embed)
         self.button_scout(view, embed)
         self.button_complete_general(view, embed)
+        self.button_render(view, embed)
         await interaction.followup.send(embed=embed, file=file, view=view)
     
 async def setup(bot: commands.Bot):

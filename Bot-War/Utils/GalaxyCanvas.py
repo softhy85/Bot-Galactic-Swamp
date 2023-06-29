@@ -56,11 +56,11 @@ class GalaxyCanvas:
                 self.list_x_scouted.append(self.all_colonies[it]['colo_coord']['x'])
                 self.list_y_scouted.append(self.all_colonies[it]['colo_coord']['y'])
             
-  def plot_found_colonies(self, size_x, size_y):
+  def plot_found_colonies(self, min_x, min_y,  size_x, size_y):
       it = 0
       for it in range(len(self.colo_db)):
         if self.colo_db[it]["X"] != -1:
-          if self.colo_db[it]["X"] <=  size_x and self.colo_db[it]["Y"] <=  size_y:
+          if min_x <= self.colo_db[it]["X"] <=  size_x and min_y <= self.colo_db[it]["Y"] <=  size_y:
             self.list_x_found.append(self.colo_db[it]["X"])
             self.list_y_found.append(self.colo_db[it]["Y"])
           
@@ -165,14 +165,14 @@ class GalaxyCanvas:
       scout_size = 3
     return (x_found*12, y_found*6, scout_size, x_found*12 + 6, y_found*6 + 3)
 
-  def update_lists(self):
+  def update_lists(self, min_x=0, min_y=0, size_x=1008, size_y=1002):
     self.all_colonies = list(self.bot.db.get_all_updated_colonies())
     self.colo_db: List = list(self.bot.db.get_all_found_colonies())
     size_y = 1002
     size_x = 1008
     self.list_x: list = []
     self.list_y: list = []
-    self.plot_found_colonies( size_x, size_y) # fix that, freezing/
+    self.plot_found_colonies(min_x, min_y, size_x, size_y) # fix that, freezing/
     self.plot_scouted_colonies( size_x, size_y)
     list_x_store: Colonies_List_Model = {"name": "x", "list_found": self.list_x_found, "list_scouted": self.list_x_scouted}
     list_y_store: Colonies_List_Model = {"name": "y", "list_found": self.list_y_found, "list_scouted": self.list_y_scouted}
@@ -236,7 +236,7 @@ class GalaxyCanvas:
     plt.savefig(f'{os.path.join(ROOT_DIR, "Image", filename)}', bbox_inches='tight', dpi=300, facecolor="#222224")
     plt.close('all')
     
-  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None):
+  def draw_map(self, zoom, pos_x, pos_y, players_list=None, scout=False, scout_player_step=None, radius=None, render=False):
     obj = None
     list = self.bot.db.get_colonies_list(obj)
     list_all = {"x": list[0]['list_found'] + list[0]['list_scouted'], "y": list[1]['list_found'] + list[1]['list_scouted']}
@@ -254,8 +254,8 @@ class GalaxyCanvas:
     cmap_black = ListedColormap(["#000000"])
     if scout_player_step is None:
       myHist, xedges, yedges, image  = plt.hist2d(list_all['x'], list_all["y"], bins=[84,167], cmap='inferno',  norm = mpl.colors.Normalize(vmin=0, vmax=10)) #, range=[[0, 100], [0, 100]] #,  norm = mpl.colors.Normalize(vmin=0, vmax=10)
-      for it in range(0, len(completed_list['list_x'])):
-        ax.add_patch(Rectangle((completed_list['list_x'][it]*12, completed_list['list_y'][it]*6), 12, 6, facecolor='#130136'))
+      # for it in range(0, len(completed_list['list_x'])):
+      #   ax.add_patch(Rectangle((completed_list['list_x'][it]*12, completed_list['list_y'][it]*6), 12, 6, facecolor='#130136'))
     else:
       ax.add_patch(Rectangle((0, 0), 1008, 1004, facecolor='black'))
     if scout == True:
@@ -339,8 +339,9 @@ class GalaxyCanvas:
           ax.add_patch(Rectangle(((scout_player["list_x"][it] - 6), scout_player["list_y"][it] - 3), 12, 6, facecolor='#25b373'))
       ax.add_patch(Rectangle(((scout_player["list_x"][-1] - 6), scout_player["list_y"][-1] - 3), 12, 6, facecolor='none', edgecolor='white', linewidth=3))  
     plt.axis([or_x, max_x, max_y, or_y])
-    plt.scatter(list[0]["list_scouted"], list[1]["list_scouted"], color = '#c88944', alpha=1, s=1*zoom)
-    plt.scatter(list[0]["list_found"], list[1]["list_found"], color = '#49b02c', alpha=1, s=1*zoom)
+    if render == True:
+      plt.scatter(list[0]["list_scouted"], list[1]["list_scouted"], color = '#c88944', alpha=1, s=1*zoom)
+      plt.scatter(list[0]["list_found"], list[1]["list_found"], color = '#49b02c', alpha=1, s=1*zoom)
     plt.plot(pos_x, pos_y, 'w+', markersize=25)
     plt.yticks(fontsize=8)
     plt.xticks(fontsize=8)

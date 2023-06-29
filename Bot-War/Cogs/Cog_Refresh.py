@@ -39,6 +39,7 @@ class Cog_Refresh(commands.Cog):
     #<editor-fold desc="thread">
     
     def thread_update_players(self):
+        print('updating players')
         date_start: datetime.datetime = datetime.datetime.now()
         act_war: War_Model = self.bot.db.get_one_war("status", "InProgress")
         if act_war is not None:
@@ -49,9 +50,7 @@ class Cog_Refresh(commands.Cog):
                 # players: List[Player_Model] = list(self.bot.db.get_players(obj))
                 it = 0
                 for member in enemy_alliance['members_list']:
-                    obj: dict = {"pseudo":member['Name']}
-                    player = self.bot.db.get_one_player(obj)
-                    print(player)
+                    player = self.bot.db.get_one_player("pseudo", member['Name'])
                     if "id_gl" in player:
                         player["online"] = self.bot.galaxyLifeAPI.get_player_status(player['id_gl'])
                     else:
@@ -181,8 +180,9 @@ class Cog_Refresh(commands.Cog):
     async def task_update_players(self):
         print("Infos: task_update_players_online started")
         thread_players: Thread = Thread(target=self.thread_update_players)
+        print('started for real')
         thread_players.daemon = True
-        # thread_players.start()
+        thread_players.start()
         # thread_players.join()
 
     @tasks.loop(minutes=1)
