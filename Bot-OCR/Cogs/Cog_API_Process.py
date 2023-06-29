@@ -216,6 +216,7 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("#", "")
         player_input = player_input.replace("[", "")
         player_input = player_input.replace(",", "")
+        player_input = player_input.replace("=", "3")
         player_input = player_input.replace("е", "e")
         player_input = player_input.replace("м", "m")
         player_input = player_input.replace("у", "y")

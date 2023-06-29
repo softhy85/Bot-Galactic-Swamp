@@ -148,7 +148,7 @@ class Cog_Writing_Coords(commands.Cog):
             else:
                 content = content + "🔳"
         content = content + "`"
-        if true_number == len(data["Players"]):
+        if true_number == len(data["Players"]) and data['Location'][0] != "-1" and data['Location'][1] != "-1":
             print('✅✅✅ processed result was perfect')
             self.skip == True
             await self.store_colonies(data)
@@ -175,7 +175,7 @@ class Cog_Writing_Coords(commands.Cog):
             
     def check_coords(self, data):
         char_found_index = []
-        number_list = ['4', '9']
+        number_list = ['4', '9', '-1']
         for number in number_list:
             for coord in data['Location']:
                 if [m.start() for m in re.finditer(number, coord)] != []:
@@ -198,7 +198,10 @@ class Cog_Writing_Coords(commands.Cog):
 
     async def add_coords_button(self, view, data, content):
         print(data['Location']) 
-        button_write_name = Button(label = f"{str(data['Location'])}", style=discord.ButtonStyle.blurple)  
+        if data['Location'][0] == "-1" and data['Location'][1] == "-1":
+            button_write_name = Button(label = f"{str(data['Location'])}", style=discord.ButtonStyle.red)
+        else:
+            button_write_name = Button(label = f"{str(data['Location'])}", style=discord.ButtonStyle.blurple)  
         view.add_item(button_write_name)
         async def button_callback_write_name(interaction):
             modal_placeholder = data['Location']
@@ -225,10 +228,10 @@ class Cog_Writing_Coords(commands.Cog):
                             data['Elements'][object] = data['Elements'][object] - 1
                     data['Elements']['Coords'] = data['Menu_number'] + data['Button_number'] - 1
                     print(data, data['Menu_number'], data['Button_number'])
-                    
-                    
-                    
-                    button_write_name = Button(label = f"{self_2.coords.value}", style=discord.ButtonStyle.blurple) 
+                    if data['Location'][0] == "-1" and data['Location'][1] == "-1":
+                        button_write_name = Button(label = f"{str(data['Location'])}", style=discord.ButtonStyle.red)
+                    else:
+                        button_write_name = Button(label = f"{str(data['Location'])}", style=discord.ButtonStyle.blurple) 
                     view.add_item(button_write_name)
                     button_write_name.callback = button_callback_write_name
                     print('before')
@@ -304,7 +307,8 @@ class Cog_Writing_Coords(commands.Cog):
                             string = string + "🔳"
                     string = string + "`"
                     await interaction.response.edit_message(view=view, content=string)
-                    if true_number == len(data["Players"]):
+                    if true_number == len(data["Players"]) and data['Location'][0] != "-1" and data['Location'][1] != "-1":
+                        # print('should be stored: ', data['Location'][0], data['Location'][1])
                         await self.store_colonies(data)
             await interaction.response.send_modal(my_modal())
         button_write_name.callback = button_callback_write_name  
@@ -339,7 +343,8 @@ class Cog_Writing_Coords(commands.Cog):
                                 string = string + "🔳"
                         string = string + "`"
                         await interaction.response.edit_message(content=string)  
-                        if true_number == len(data['Players']):
+                        if true_number == len(data["Players"]) and data['Location'][0] != "-1" and data['Location'][1] != "-1":
+                            print('should be stored: ', data['Location'][0], data['Location'][1])
                             await self.store_colonies(data)
                     else:
                         for it in range(0, len(data['Proposal'])):
