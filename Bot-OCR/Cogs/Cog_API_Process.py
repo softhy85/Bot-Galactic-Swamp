@@ -205,7 +205,7 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("_", "")    
         player_input = player_input.replace("'", "")
         player_input = player_input.replace('"', "")
-        player_input = player_input.replace("...", "")
+        player_input = player_input.replace(".", "")
         player_input = player_input.replace("|", "")
         player_input = player_input.replace("}", "")
         player_input = player_input.replace(";", "")
@@ -214,6 +214,21 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("¡", "")
         player_input = player_input.replace("к", "k")
         player_input = player_input.replace("#", "")
+        player_input = player_input.replace("[", "")
+        player_input = player_input.replace(",", "")
+        player_input = player_input.replace("е", "e")
+        player_input = player_input.replace("м", "m")
+        player_input = player_input.replace("у", "y")
+        
+        player_input = player_input.replace("т", "t")
+        player_input = player_input.replace("о", "o")
+        player_input = player_input.replace("р", "p")
+        player_input = player_input.replace("д", "a")
+        player_input = player_input.replace("с", "c")
+        player_input = player_input.replace("л", "n")
+        
+        
+        
 
         print("pre processed string:", player_input)
         username_list = [player_input]
@@ -306,9 +321,12 @@ class Cog_API_Process(commands.Cog):
             resulting_name: bool = False
             while resulting_name == False:
                 try:
-                    results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={username_list[it]}', timeout=5.0)
+                    results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={username_list[it].lower()}', timeout=5.0)
                     results = json.loads(results.content)
-                    # for it in range(0, 15):
+                    if results == []:
+                        results = requests.get(f'https://api.galaxylifegame.net/Users/name?name={username_list[it].upper()}', timeout=5.0)
+                        results = json.loads(results.content)
+                    # for it in range(0, 15): 
                     #     print(chr(results.content[it]))
                 except Exception as e:
                     results = []

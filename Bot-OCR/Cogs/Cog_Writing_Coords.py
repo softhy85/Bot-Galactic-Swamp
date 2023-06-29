@@ -55,7 +55,7 @@ class Cog_Writing_Coords(commands.Cog):
     @tasks.loop(seconds = 1)
     async def task_writing_coords(self):
         hist_list = [hist_list async for hist_list in self.ocr_channel.history(limit=10)]
-        if len(hist_list) < 4 or hist_list == []:
+        if len(hist_list) < 6 or hist_list == []:
             # print('currently not enough messages (', len(hist_list), ')')
             API_processed_messages = [API_processed_messages async for API_processed_messages in self.API_processed_channel.history(limit=10)]
             if len(API_processed_messages) == 0:
