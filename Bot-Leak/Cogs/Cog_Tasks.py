@@ -42,28 +42,29 @@ class Cog_Tasks(commands.Cog):
         previous_last_update =  leaked_colonies["last_update"] 
         history = [message async for message in self.bot.log_channel.history(before=date, after=leaked_colonies["last_update"], limit=2)]
         for message in history:
-            username = message.content.split('**')[1]
-            if message.author.name == self.app_name:
-                for index in range(0, len(message.reactions)):
-                    users = [user async for user in message.reactions[index].users()]
-                    for user in users:
-                        if user != message.author:
-                            for emoji_index in range(0, len(reaction_list)):
-                                emoji = message.reactions[index].emoji.name
-                                if emoji == reaction_list[emoji_index]:
-                                    emoji = str(emoji_index+1)
-                                    break
-                                else:
-                                    emoji = "0"
-                            if user.name in leaked_colonies:
-                                if not username in leaked_colonies[user.name]:
+            if message.content[2] == '💥':
+                username = message.content.split('**')[1]
+                if message.author.name == self.app_name:
+                    for index in range(0, len(message.reactions)):
+                        users = [user async for user in message.reactions[index].users()]
+                        for user in users:
+                            if user != message.author:
+                                for emoji_index in range(0, len(reaction_list)):
+                                    emoji = message.reactions[index].emoji.name
+                                    if emoji == reaction_list[emoji_index]:
+                                        emoji = str(emoji_index+1)
+                                        break
+                                    else:
+                                        emoji = "0"
+                                if user.name in leaked_colonies:
+                                    if not username in leaked_colonies[user.name]:
+                                        leaked_colonies[user.name][username] = []
+                                    if not emoji in leaked_colonies[user.name][username]:
+                                        leaked_colonies[user.name][username].append(emoji)
+                                else: 
+                                    leaked_colonies[user.name] = {}
                                     leaked_colonies[user.name][username] = []
-                                if not emoji in leaked_colonies[user.name][username]:
                                     leaked_colonies[user.name][username].append(emoji)
-                            else: 
-                                leaked_colonies[user.name] = {}
-                                leaked_colonies[user.name][username] = []
-                                leaked_colonies[user.name][username].append(emoji)
         end_date = datetime.datetime.now()
         leaked_colonies["last_update"] = end_date
         self.bot.db.update_leaked_colonies(leaked_colonies)
