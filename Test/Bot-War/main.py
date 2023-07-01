@@ -39,9 +39,9 @@ client = discord.Client(intents=intents)
 # THINGS TO CHANGE IN DB #
 # infomessages (alliance_id) //// may not be needed
 # nextwar (alliance_id) done for get_nextwar
-# warlog (alliance_id) // done?
+# warlog (alliance_id)
 # wars (alliance_id) ok?
-# handle deletions after wars: warlog, nextwar, etc
+
 
 async def on_ready():
     print("The bot is online")

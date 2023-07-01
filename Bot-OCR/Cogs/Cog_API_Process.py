@@ -202,6 +202,7 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("«", "")
         player_input = player_input.replace("<", "")
         player_input = player_input.replace(">", "")
+        player_input = player_input.replace("-", "")  
         player_input = player_input.replace("_", "")    
         player_input = player_input.replace("'", "")
         player_input = player_input.replace('"', "")
@@ -215,6 +216,7 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("к", "k")
         player_input = player_input.replace("#", "")
         player_input = player_input.replace("[", "")
+        player_input = player_input.replace("]", "")
         player_input = player_input.replace(",", "")
         player_input = player_input.replace("=", "3")
         player_input = player_input.replace("е", "e")
@@ -227,7 +229,14 @@ class Cog_API_Process(commands.Cog):
         player_input = player_input.replace("д", "a")
         player_input = player_input.replace("с", "c")
         player_input = player_input.replace("л", "n")
+        player_input = player_input.replace("а", "n")
+        player_input = player_input.replace("р", "n")
+        player_input = player_input.replace("е", "n")
         
+        
+        player_input = player_input.replace("¿", "")
+        player_input = player_input.replace("£", "")
+
         
         
 
@@ -267,7 +276,7 @@ class Cog_API_Process(commands.Cog):
         char_found_index.append([m.start() for m in re.finditer('n', player_input)]) # N -> M
         char_found_index.append([m.start() for m in re.finditer('i', player_input)]) # I -> 1
         char_found_index.append([m.start() for m in re.finditer('i', player_input)]) # I -> T
-        
+        # z -> p
 
         replace_chr: list = ["3", "s", "b", "o", "0", "z", "2", "s", "5", "11", "a", "e", "s", "s", "n", "i", "i"] 
         original_chr: list = ["b", "b", "3", "0", "o", "2", "z", "5", "s", "n", "4", "s", "e", "8", "m", "1", "t"] 

@@ -209,7 +209,7 @@ class Cog_War(commands.Cog):
     
     async def create_new_war(self, alliance: str):
         print('War_Infos: new war')
-        self.bot.db.remove_warlog()
+        self.bot.db.remove_warlog(self.ally_alliance_name)
         print('War_Infos: Warlog has been reset')
         date: datetime.datetime = datetime.datetime.now()
         actual_war: War_Model = self.bot.db.get_one_war("status", "InProgress", self.ally_alliance_name)
@@ -234,7 +234,8 @@ class Cog_War(commands.Cog):
         async for message in self.war_channel.history(oldest_first=True):
             await message.delete()
         print(f'Chosen refresh duration: {refresh_duration} hours.')
-        new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date, "refresh_duration": refresh_duration}
+        new_war: War_Model = {"_alliance_id": act_alliance["_id"], "alliance_name": act_alliance["name"], "initial_enemy_score": api_alliance_en['alliance_score'], "ally_initial_score": api_alliance_gs['alliance_score'], "status": "InProgress", "start_time": date, "refresh_duration": refresh_duration, "ally_name":self.ally_alliance_name}
+        print('new war:', new_war)
         new_war["_id"] = self.bot.db.push_new_war(new_war)
         await self.bot.dashboard.create_Dashboard(new_war)
   
@@ -382,7 +383,7 @@ class Cog_War(commands.Cog):
         alliance_api_info: dict = self.bot.galaxyLifeAPI.get_alliance(self.ally_alliance_name) 
         next_war: Next_War_Model = self.bot.db.get_nextwar(self.ally_alliance_name)
         print('next war retrieved:', next_war)
-        war_log = self.bot.db.get_warlog()  
+        war_log = self.bot.db.get_warlog(self.ally_alliance_name)  
         leaderboard = self.create_leaderboard()
         if alliance_api_info['alliance_winrate'] != -1:
             alliance_winrate = alliance_api_info['alliance_winrate']
@@ -423,7 +424,8 @@ class Cog_War(commands.Cog):
         embed.add_field(name=leaderboard['name'], value=leaderboard['value'], inline=False)
         embed.add_field(name="⛔ Players online:", value=next_war['players_online_list'], inline=False)
         embed.add_field(name=war_start_string, value=vote_string, inline=False)
-        embed.add_field(name=f"💥 Last war recap: `{war_log['enemy_name']}`", value=f"``{war_log['ally_score'][-1]}`` vs ``{war_log['enemy_score'][-1]}`` - ``{len(war_log['ally_score'])} attacks`` - ``{'Win' if war_log['ally_score'][-1] >war_log['enemy_score'][-1] else 'Lost'}``", inline=False)
+        if war_log is not None:
+            embed.add_field(name=f"💥 Last war recap: `{war_log['enemy_name']}`", value=f"``{war_log['ally_score'][-1]}`` vs ``{war_log['enemy_score'][-1]}`` - ``{len(war_log['ally_score'])} attacks`` - ``{'Win' if war_log['ally_score'][-1] >war_log['enemy_score'][-1] else 'Lost'}``", inline=False)
         banner = discord.File(f"{os.path.join(ROOT_DIR, 'Image', 'banner.png')}", filename="banner.png")
         embed.set_image(url="attachment://war_recap.png")
         if updated == False:

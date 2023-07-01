@@ -238,7 +238,7 @@ class Dashboard:
         if 'ally_initial_score' in war_infos:
             return_value["ally_alliance_score"] = ally_alliance['alliance_score'] - war_infos['ally_initial_score']
             return_value["enemy_alliance_score"] = enemy_alliance['alliance_score'] - war_infos['initial_enemy_score']
-            war_log: dict = self.bot.db.get_warlog()
+            war_log: dict = self.bot.db.get_warlog(self.ally_alliance_name)
             if war_log:
                 if war_log['enemy_score'][len(war_log['enemy_score'])-1] != return_value['enemy_alliance_score'] or war_log['ally_score'][len(war_log['ally_score'])-1] != return_value['ally_alliance_score']:  
                     war_log['enemy_score'].append(return_value["enemy_alliance_score"])
@@ -249,7 +249,7 @@ class Dashboard:
                         print('Alert. Beating Us')
                         await self.log_channel.send(f"> ⚠️ Alert : The enemy is beating us !! ⚠️")
             else:
-                war_log: dict = {'name': 'warlog', 'enemy_name': alliance, 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": [time]}
+                war_log: dict = {'name': 'warlog', 'enemy_name': alliance, 'enemy_score': [return_value["enemy_alliance_score"]], 'ally_score': [return_value["ally_alliance_score"]], "timestamp": [time], "ally_name":self.ally_alliance_name}
                 self.bot.db.push_warlog(war_log)
         else: 
             return_value["ally_alliance_score"] = "x"

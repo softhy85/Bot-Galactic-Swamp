@@ -229,30 +229,30 @@ class DataBase:
         return self.db.nextwar.find_one({'name':'next_war', 'ally_name':ally_name})        
 
     def push_nextwar(self, nextwar: dict) -> ObjectId | None:
-        nextwar_db = self.db.nextwar.find_one({'name':nextwar['name']})
+        nextwar_db = self.db.nextwar.find_one({'name':nextwar['name'], 'ally_name':nextwar["ally_name"]})
         if nextwar_db is None:
             return self.db.nextwar.insert_one(nextwar).inserted_id
 
     def update_nextwar(self, nextwar: dict) -> None:
-        nextwar_db = self.db.nextwar.find_one({'name':nextwar['name']})
+        nextwar_db = self.db.nextwar.find_one({'name':nextwar['name'], 'ally_name':nextwar["ally_name"]})
         if nextwar_db is not None:
             return self.db.nextwar.update_one({"_id": nextwar_db["_id"]}, {'$set': nextwar})
     
-    def get_warlog(self) -> War_Log_Model:
-        return self.db.warlog.find_one({'name':'warlog'})        
+    def get_warlog(self, ally_name) -> War_Log_Model:
+        return self.db.warlog.find_one({'name':'warlog', "ally_name":ally_name})        
 
     def push_warlog(self, warlog: dict) -> ObjectId | None:
-        warlog_db = self.db.warlog.find_one({'name':warlog['name']})
+        warlog_db = self.db.warlog.find_one({'name':warlog['name'], "ally_name":warlog["ally_name"]})
         if warlog_db is None:
             return self.db.warlog.insert_one(warlog).inserted_id
 
     def update_warlog(self, warlog: dict) -> None:
-        warlog_db = self.db.warlog.find_one({'name':warlog['name']})
+        warlog_db = self.db.warlog.find_one({'name':warlog['name'], "ally_name":warlog["ally_name"]})
         if warlog_db is not None:
             return self.db.warlog.update_one({"_id": warlog_db["_id"]}, {'$set': warlog})
     
-    def remove_warlog(self) -> None:
-        self.db.warlog.delete_one({'name':'warlog'})
+    def remove_warlog(self, ally_name) -> None:
+        self.db.warlog.delete_one({'name':'warlog', "ally_name":ally_name})
 
     def close(self) -> None:
         self.mongo_client.close()
